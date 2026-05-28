@@ -1,0 +1,269 @@
+# 场景C：开发新项目（正向设计）
+
+## 执行流程（坡度化）
+
+```
+第1步：是什么（坡度阶段1→2→3）
+    ├── 阶段1：点出概念
+    │   ├── 一句话定义（类比理解）
+    │   └── 本质特征表格（从问题推导系统根本）
+    ├── 阶段2：建立联系
+    │   ├── 关键属性表格（从本质推导具体组成，标记✅❌）
+    │   └── 区分属性（明确不是什么）
+    └── 阶段3：详细讲解
+        └── 设计哲学 + 对❌属性展开说明
+           ↓
+第2步：为什么（坡度阶段1→2→3）
+    ├── 阶段1：点出概念
+    │   └── 存在理由一句话总结
+    ├── 阶段2：建立联系
+    │   └── 技术选型表格（选型→推导逻辑）
+    └── 阶段3：详细讲解
+        └── 架构设计理由 + 设计模式选择
+           ↓
+第3步：怎么做（坡度阶段1→2→3）
+    ├── 阶段1：点出概念
+    │   └── 系统架构一句话概述
+    ├── 阶段2：建立联系
+    │   ├── 模块划分表格（标记✅❌）
+    │   └── 接口契约表格
+    └── 阶段3：详细讲解
+        ├── 全局状态设计
+        ├── 每个模块的四层设计（数据规矩→存储→流转→接口）
+        ├── 方法设计（状态流转图）
+        ├── 路由设计（多场景分发）
+        └── 可运行代码实现
+           ↓
+    输出：可运行的代码实现 + 设计文档
+```
+
+## 输出文档结构
+
+场景C的文档保存在**项目代码库内**，作为项目文档：
+
+```
+{project-root}/docs/
+├── 01-本质分析.md                    # 是什么
+├── 02-架构决策.md                    # 为什么
+├── 03-模块设计.md                    # 怎么做
+├── 04-{模块A}-四层设计.md            # 第1层模块（✅标记）
+├── 05-{模块B}-四层设计.md            # 第1层模块（✅标记）
+│   ├── 05-01-{子模块B1}-四层设计.md  # 第2层模块
+│   └── 05-02-{子模块B2}-四层设计.md  # 第2层模块
+└── 06-{模块C}-四层设计.md            # 第1层模块（✅标记）
+```
+
+**编号规则**：
+- 三阶文档：`01-`, `02-`, `03-`（固定编号）
+- 第1层模块：`04-`, `05-`, `06-`...（从04开始，两位数）
+- 第2层模块：`04-01-`, `04-02-`...（四位数，体现父子关系）
+- 第3层模块：`04-01-01-`...（六位数）
+
+## 文档命名规范
+
+| 文档类型 | 命名格式 | 内容 |
+|---------|---------|------|
+| **本质分析** | `01-本质分析.md` | 是什么阶段输出：问题定义、本质特征、关键属性 |
+| **架构决策** | `02-架构决策.md` | 为什么阶段输出：技术选型、架构设计理由 |
+| **模块设计** | `03-模块设计.md` | 怎么做阶段输出：模块划分、接口契约 |
+| **四层设计** | `{模块名}-四层设计.md` | 每个模块的四层基础设施详细设计 |
+
+## 检查清单
+
+- [ ] 阶段1：已给出系统的一句话定义和本质特征
+- [ ] 阶段2：已从本质推导出关键属性，并标记 ✅需深入 的模块
+- [ ] 阶段3：已明确系统边界（不做什么）
+- [ ] 是什么：已从问题推导出系统本质
+- [ ] 为什么：已推导技术选型理由和架构决策
+- [ ] 怎么做：已完成模块划分和接口契约定义
+- [ ] 四层：每个模块已完成四层设计（数据规矩、数据存储、数据流转、接口层）
+- [ ] 状态：已设计全局状态和模块内部状态
+- [ ] 路由：已设计状态流转路由
+- [ ] 代码：已实现可运行代码
+
+## 完整示例：任务管理系统
+
+### 第1步：是什么 (What) - 定义本质
+
+**核心问题**：这个系统本质上是什么？
+
+#### 1.1 本质特征（内涵）
+
+| 推导要素 | 逻辑分析 | 结论 |
+|---------|---------|------|
+| **核心问题** | 用户面临什么问题？ | 任务太多，容易遗漏；任务分散，难以追踪 |
+| **目标用户** | 为谁解决？ | 个人用户、小型团队 |
+| **核心价值** | 解决后带来什么？ | 提高效率、减少遗漏、清晰进度 |
+| **一句话定义** | 类比理解 | "这是一个任务管家，帮你记住该做的事并跟踪进度" |
+
+**本质特征**：
+1. **记忆辅助** - 系统必须记住用户创建的所有任务
+2. **状态追踪** - 系统必须能追踪任务从创建到完成的全生命周期
+3. **分类组织** - 系统必须支持按不同维度组织任务
+4. **提醒通知** - 系统必须在关键时刻提醒用户
+
+#### 1.2 关键属性（外延）
+
+```
+本质特征 "记忆辅助"  → 属性：任务模块（Task）✅ 需深入
+本质特征 "状态追踪"  → 属性：用户模块（User）、历史模块（History）
+本质特征 "分类组织"  → 属性：标签模块（Tag）、项目模块（Project）
+本质特征 "提醒通知"  → 属性：调度模块（Scheduler）、通知模块（Notification）
+```
+
+| 属性名 | 推导来源 | 是否需深入 |
+|-------|---------|----------|
+| **任务模块** | 记忆辅助的核心 | ✅ 需深入 |
+| **用户模块** | 状态追踪需要身份 | ❌ |
+| **标签模块** | 分类组织需要 | ❌ |
+| **项目模块** | 分类组织需要 | ❌ |
+| **历史模块** | 状态追踪需要审计 | ❌ |
+| **调度模块** | 提醒通知需要触发 | ❌ |
+| **通知模块** | 提醒通知需要渠道 | ❌ |
+
+#### 1.3 区分属性（边界）
+
+- ✅ 做：个人任务管理、简单分配、状态追踪、提醒通知
+- ❌ 不做：复杂日历视图、甘特图、审批工作流、资源管理
+
+#### 1.4 设计哲学
+
+**简单优先，快速记录，清晰追踪**
+
+### 第2步：为什么 (Why) - 确定架构
+
+#### 2.1 存在理由
+
+```
+因：用户大脑记忆有限，任务散落在各处，不知道优先做什么
+果：提供统一入口记录任务，支持多维度分类，清晰展示状态
+```
+
+#### 2.2 技术栈决策
+
+| 决策项 | 选择 | 推导逻辑 |
+|-------|------|---------|
+| **架构** | 单体应用 | 个人工具，非高并发 |
+| **语言** | Python | 开发效率高，适合快速迭代 |
+| **Web框架** | FastAPI | 异步支持好，类型安全 |
+| **数据库** | PostgreSQL | 关系型数据适合任务关联 |
+
+### 第3步：怎么做 (How) - 实现交付
+
+#### 3.1 全局状态设计（项目级单一状态源）
+
+```python
+from typing import TypedDict, Optional, List
+from datetime import datetime
+
+class AppState(TypedDict):
+    """项目级全局状态 - 所有模块共享"""
+    current_user_id: Optional[str]
+    current_task_id: Optional[str]
+    messages: List[dict]
+    errors: List[dict]
+```
+
+**规则**：所有模块通过接口契约读写全局状态，禁止直接操作其他模块内部数据。
+
+#### 3.2 模块划分与接口契约
+
+```
+项目（任务管理系统）
+├── 用户模块（User）
+│   ├── 内部状态：user_id, username, email, settings
+│   └── 对外接口：register(), login(), get_settings()
+│
+├── 任务模块（Task）✅ 需深入
+│   ├── 内部状态：task_id, title, description, status, priority, due_date
+│   └── 对外接口：create(), get(), list(), transition_status()
+│
+├── 标签模块（Tag）
+│   ├── 内部状态：tag_id, name, color
+│   └── 对外接口：create(), link_to_task(), list_by_task()
+│
+└── ...其他模块
+```
+
+#### 3.3 任务模块四层设计（✅ 需深入模块示例）
+
+**模块内部状态（局部单一状态源）**：
+
+```python
+from enum import Enum
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional, List
+
+class TaskStatus(str, Enum):
+    TODO = "todo"
+    IN_PROGRESS = "in_progress"
+    PAUSED = "paused"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+@dataclass
+class TaskState:
+    """任务模块内部状态 - 模块级单一状态源"""
+    task_id: str
+    user_id: str
+    title: str
+    description: str = ""
+    status: TaskStatus = TaskStatus.TODO
+    priority: str = "medium"
+    due_date: Optional[datetime] = None
+    project_id: Optional[str] = None
+    tag_ids: List[str] = None
+    created_at: datetime = None
+    updated_at: datetime = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    pause_reason: Optional[str] = None
+    cancel_reason: Optional[str] = None
+```
+
+**四层设计**：
+
+| 层面 | 设计内容 |
+|-----|---------|
+| **数据规矩** | `TaskState` Dataclass，字段类型/约束/默认值已定义；`TaskStatus` 枚举限制状态值 |
+| **数据存储** | PostgreSQL `tasks` 表；异步写入；配合 History 表实现审计 |
+| **数据流转** | 状态机：`todo → in_progress → completed`；流转前验证权限；失败回滚 |
+| **接口层** | `TaskService` Protocol（见下方）；输入/输出/错误契约已定义 |
+
+**模块对外接口契约**：
+
+```python
+from typing import Protocol, List, Optional
+from dataclasses import dataclass
+
+@dataclass
+class TaskCreateRequest:
+    title: str
+    description: str = ""
+    priority: str = "medium"
+    due_date: Optional[datetime] = None
+    tag_ids: List[str] = None
+    project_id: Optional[str] = None
+
+@dataclass
+class TaskResponse:
+    task_id: str
+    title: str
+    status: str
+    priority: str
+    due_date: Optional[datetime]
+
+class TaskService(Protocol):
+    """任务模块对外接口 - 外部只能通过此接口访问任务数据"""
+    
+    def create_task(self, user_id: str, request: TaskCreateRequest) -> TaskResponse: ...
+    def get_task(self, task_id: str) -> Optional[TaskResponse]: ...
+    def list_tasks(self, user_id: str, status: Optional[str] = None) -> List[TaskResponse]: ...
+    def transition_status(self, task_id: str, action: str, **kwargs) -> TaskResponse: ...
+```
+
+**关键规则**：
+- 外部模块（如 Notification、History）只能通过 `TaskService` 接口访问任务数据
+- 禁止直接操作 `TaskState` 内部字段
+- 模块内部状态变更由模块自己管理，外部无感知
