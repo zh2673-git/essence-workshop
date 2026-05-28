@@ -141,6 +141,7 @@ E(内容输出) → 输出时发现需要深入理解 → A(知识探索)
 基础设施：四层框架 = 数据规矩 → 数据存储 → 数据流转 → 接口层
 编码纪律：先思后写 + 简洁优先 + 精准修改 + 目标驱动
 视频管线：文章 → 镜头拆分(slides.json) → Canvas渲染+Playwright录制(WebM) + Edge TTS(MP3) → FFmpeg合并(MP4)
+文章拉取：公众号API(media_id) / 文章URL抓取 → 正文提取(Markdown) → 镜头拆分 → 视频管线
 ```
 
 ---
@@ -193,6 +194,8 @@ essence-workshop/
 ├── scripts/                              # 可执行脚本
 │   ├── video-template.html               # Canvas卡片翻页HTML模板
 │   ├── video_pipeline.py                 # 视频生成管线（录制+TTS+FFmpeg）
+│   ├── article_fetcher.py                # 公众号文章拉取（API+URL）
+│   ├── article_to_video.py               # 文章转视频（拉取→拆镜头→视频）
 │   └── example-slides.json               # 示例镜头JSON
 ├── workflows/                            # 5个场景工作流
 │   ├── A-knowledge-exploration.md        # 知识探索

@@ -8,6 +8,8 @@
 
 - 用户说「写公众号」「发布文章」「输出文章」
 - 用户说「做视频」「生成视频」「视频号」
+- 用户说「把文章做成视频」「文章转视频」
+- 用户给公众号文章链接或说「列出我的文章」
 - 场景A/B/C/D执行完成后，用户选择输出
 - 用户直接提供内容要求发布
 
@@ -334,4 +336,91 @@ python scripts/video_pipeline.py output/slides.json --output output/video/ --wid
 1. 先完成公众号图文管线（步骤4~8），产出 article.md
 2. 从 article.md 提取核心内容，执行步骤V1~V5，产出 final.mp4
 3. 两者保存在同一 output/ 目录下
+```
+
+---
+
+## 文章转视频流程
+
+> 当用户提供公众号文章（media_id / URL / 本地文件）并要求生成视频时，执行以下流程。
+
+### 步骤F1：拉取文章
+
+**两种方式**：
+
+#### 方式一：公众号API（默认，稳定）
+
+```bash
+# 列出最近文章，用户选择
+python scripts/article_fetcher.py --list --count 10
+
+# 按media_id拉取正文
+python scripts/article_fetcher.py --media-id XXXXX --save output/article.md
+```
+
+- 走微信公众号官方API，稳定可靠
+- 仅限自己公众号的已发布文章
+- 自动复用 `wechat-pub` 的配置（AppID/AppSecret）
+
+#### 方式二：文章URL抓取（备选）
+
+```bash
+# 直接给公众号文章链接
+python scripts/article_fetcher.py --url "https://mp.weixin.qq.com/s/xxxxx" --save output/article.md
+```
+
+- 适用于任何公众号的文章
+- 通过抓取页面提取正文，转为Markdown
+- 微信改版可能需要适配
+
+### 步骤F2：文章拆镜头
+
+`article_to_video.py` 自动完成：
+1. 读取文章Markdown
+2. 按 H2/H3 章节拆分
+3. 自动分类镜头类型（标题/要点/引言/步骤/总结）
+4. 生成口语化旁白
+5. 输出 `slides.json`
+
+### 步骤F3：视频生成
+
+自动调用 `video_pipeline.py`：
+1. Edge TTS 生成旁白
+2. Playwright 录制 Canvas 动画
+3. FFmpeg 合并音视频
+
+### 一键命令
+
+```bash
+# 从公众号API拉取文章并生成视频
+python scripts/article_to_video.py --media-id XXXXX
+
+# 从URL抓取文章并生成视频
+python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxxxx"
+
+# 从本地Markdown生成视频
+python scripts/article_to_video.py --article output/article.md
+
+# 指定语音和保存文章
+python scripts/article_to_video.py --media-id XXXXX --voice zh-CN-YunxiNeural --save-article output/article.md
+
+# 压缩视频
+python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxxxx" --compress
+```
+
+### 完整链路
+
+```
+用户说「把这篇文章做成视频」
+    ↓
+判断来源：
+├── 给了media_id → article_fetcher.py --media-id → 正文
+├── 给了URL → article_fetcher.py --url → 正文
+├── 给了本地文件 → 直接读取
+└── 什么都没给 → article_fetcher.py --list → 用户选择 → 正文
+    ↓
+article_to_video.py 自动执行：
+    正文(Markdown) → 拆镜头(slides.json) → TTS + 录制 + 合并 → final.mp4
+    ↓
+输出到 output/video/YYYYMMDD_HHMMSS/final.mp4
 ```
