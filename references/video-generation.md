@@ -1,27 +1,30 @@
-# 视频生成方案（微信视频号）
+# 视频生成方案 v2（微信视频号）
 
 ## 核心原则
 
-**画面服务于内容，技术服务于效率。** 视频号的本质是「用画面+声音传递信息」，不是做精美动画。最简方案 = 卡片翻页 + TTS旁白，把文字内容以最直接的方式呈现给观众。
+**画面服务于内容，技术服务于效率。** 视频号的本质是「用画面+声音传递信息」，不是做精美动画。v2 升级：Stage+Sprite时间切片模型实现元素级动画控制，BGM+Ducking混音提升观感，多格式导出满足不同场景，品牌素材协议保证视觉一致性，反AI slop规则确保视觉品味。
 
 ---
 
-## 技术架构
+## 技术架构 v2
 
 ```
-文章内容 → 拆分镜头 → Canvas渲染帧 → Playwright录制 → WebM
-                                                        ↓
-文章内容 → TTS旁白脚本 → Edge TTS合成 → MP3 ──────────→ FFmpeg合并 → MP4
+文章内容 → 拆分镜头(+timeline) → Canvas渲染帧(Sprite驱动) → Playwright录制 → WebM
+         ↓                                                                  ↓
+品牌素材 → 自动提取 → brand-spec.json                                FFmpeg合并 ← TTS旁白 + BGM
+                                                                        ↓
+                                                              MP4 / MP4_60fps / GIF
 ```
 
-### 四步管线
+### 五步管线 v2
 
-| 步骤 | 输入 | 输出 | 工具 |
-|------|------|------|------|
-| 1. 镜头拆分 | 文章Markdown | 镜头JSON | Agent自动拆分 |
-| 2. Canvas渲染+录制 | 镜头JSON + HTML模板 | WebM视频 | Playwright |
-| 3. TTS合成 | 旁白文本 | MP3音频 | Edge TTS |
-| 4. 合并输出 | WebM + MP3 | 最终MP4 | FFmpeg |
+| 步骤 | 输入 | 输出 | 工具 | v2新增 |
+|------|------|------|------|--------|
+| 1. 镜头拆分 | 文章Markdown | 镜头JSON(+timeline) | Agent自动拆分 | ✅ timeline字段 |
+| 2. TTS合成 | 旁白文本 | MP3音频 | Edge TTS | - |
+| 3. Canvas渲染+录制 | 镜头JSON + HTML模板(+style) | WebM视频 | Playwright | ✅ style参数 |
+| 4. 合并输出 | WebM + 旁白 + BGM | MP4 | FFmpeg | ✅ BGM+Ducking |
+| 5. 格式导出 | MP4 | MP4_60fps / GIF | FFmpeg | ✅ 多格式 |
 
 ---
 
@@ -30,7 +33,7 @@
 | 参数 | 推荐值 | 说明 |
 |------|--------|------|
 | 画幅 | 1080×1920（9:16竖屏） | 视频号主流，手机全屏 |
-| 帧率 | 30 fps | 流畅度够用 |
+| 帧率 | 25 fps（默认）/ 60 fps（高帧率模式） | v2支持60fps |
 | 时长 | 1-3分钟 | 知识类最佳时长 |
 | 编码 | H.264 | 兼容性最好 |
 | 码率 | 2-5 Mbps | 平衡清晰度和体积 |
@@ -372,3 +375,189 @@ FFmpeg 需要单独安装：
 | 300-500字 | 1-1.5分钟 | 金句集、要点速览 |
 | 500-800字 | 1.5-2.5分钟 | 知识讲解（推荐） |
 | 800-1200字 | 2.5-3.5分钟 | 深度分析 |
+
+---
+
+## v2 新特性
+
+### Stage+Sprite 时间切片模型
+
+每个视觉元素作为独立Sprite，拥有自己的时间线，可实现元素重叠、错开入场、缓动曲线等连续运动叙事效果。
+
+**slides.json 中的 timeline 字段：**
+
+```json
+{
+  "type": "title",
+  "title": "从Vibe Coding到Agentic Engineering",
+  "duration": 5,
+  "timeline": {
+    "duration": 5,
+    "elements": [
+      {"id": "bg", "enter_at": 0, "exit_at": 5, "easing": "none"},
+      {"id": "icon", "enter_at": 0.2, "exit_at": 4.5, "easing": "expoOut"},
+      {"id": "title", "enter_at": 0.4, "exit_at": 4.5, "easing": "expoOut"},
+      {"id": "accent", "enter_at": 0.7, "exit_at": 4.5, "easing": "expoOut"}
+    ]
+  }
+}
+```
+
+**支持的缓动函数：**
+
+| easing | 效果 | 适用场景 |
+|--------|------|---------|
+| none | 无动画，直接出现/消失 | 背景元素 |
+| expoOut | 快速入场，缓慢停止 | 标题、主要元素 |
+| easeOut | 平滑入场 | 一般元素 |
+| easeOutBack | 入场后微微回弹 | 卡片、列表项 |
+| easeIn | 缓慢开始 | 退场动画 |
+| expoInOut | 平滑进出 | 过渡元素 |
+| linear | 匀速 | 进度条 |
+
+**自动生成：** 如果 slides.json 中没有 timeline 字段，模板会根据镜头类型自动生成默认时间线。
+
+---
+
+### BGM + Ducking 混音
+
+为视频添加背景音乐，并在旁白播放时自动降低背景音乐音量（sidechain compression）。
+
+```bash
+python video_pipeline.py slides.json --bgm music.mp3 --output output/
+```
+
+**FFmpeg 混音命令：**
+
+```bash
+ffmpeg -i video.mp4 -i bgm.mp3 -i narration.mp3 \
+  -filter_complex "\
+    [1:a]volume=0.3,atrim=0:{{duration}},afade=t=in:st=0:d=0.3,afade=t=out:st={{duration-1}}:d=1[bgm];\
+    [bgm][2:a]sidechaincompress=threshold=0.1:ratio=4:attack=5:release=50[mixed]" \
+  -map 0:v -map "[mixed]" -c:v copy -shortest output.mp4
+```
+
+**参数说明：**
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| bgm_volume | 0.3 | BGM基础音量 |
+| duck_threshold | 0.1 | 触发压制的音量阈值 |
+| duck_ratio | 4 | 压制比例（4=旁白时BGM降到1/4） |
+| attack | 5ms | 压制启动时间 |
+| release | 50ms | 压制恢复时间 |
+
+---
+
+### 多格式导出
+
+```bash
+# 默认MP4 (25fps)
+python video_pipeline.py slides.json --format mp4
+
+# 60fps高帧率（适合运动较多的视频）
+python video_pipeline.py slides.json --format mp4_60fps
+
+# GIF动图（适合公众号文章内嵌）
+python video_pipeline.py slides.json --format gif
+```
+
+| 格式 | 帧率 | 分辨率 | 适用场景 |
+|------|------|--------|---------|
+| mp4 | 25fps | 1080×1920 | 视频号上传（默认） |
+| mp4_60fps | 60fps | 1080×1920 | 高帧率需求 |
+| gif | 10fps | 540×N | 公众号文章内嵌 |
+
+---
+
+### 多风格模板（--style）
+
+4套精心设计的视觉风格，通过 `--style` 参数切换：
+
+```bash
+python video_pipeline.py slides.json --style dark     # 深色科技风（默认）
+python video_pipeline.py slides.json --style warm     # 暖色人文风
+python video_pipeline.py slides.json --style minimal  # 极简黑白风
+python video_pipeline.py slides.json --style nature   # 自然深绿风
+```
+
+| 风格 | 主色 | 背景 | 适用内容 |
+|------|------|------|---------|
+| dark | #E94560 珊瑚红 | #0F0F23 深蓝黑 | 技术、AI、编程 |
+| warm | #D4763A 赭石橙 | #FDF6EC 奶油白 | 人文、教育、生活 |
+| minimal | #333333 纯黑 | #FFFFFF 纯白 | 设计、哲学、极简 |
+| nature | #C9A84C 金色 | #0D1F0D 深绿 | 中医、养生、自然 |
+
+---
+
+### 品牌素材协议
+
+三步协议规范品牌素材的采集和使用：
+
+1. **问** - 扫描文章中的品牌信号（标题、配色、关键词）
+2. **提取** - 从信号中提炼品牌要素（颜色、字体、图标偏好）
+3. **固化** - 生成 brand-spec.json，供视频模板和图片生成使用
+
+```bash
+# 从文章自动提取品牌素材
+python brand_extractor.py --article output/article.md
+python brand_extractor.py --url https://mp.weixin.qq.com/s/xxx
+```
+
+**brand-spec.json 结构：**
+
+```json
+{
+  "brand": { "name": "", "tagline": "", "description": "" },
+  "colors": { "primary": "#E94560", "secondary": "#F0C27F", ... },
+  "fonts": { "heading": "...", "body": "...", "mono": "..." },
+  "icons": { "style": "stroke", "preferred": ["brain", "lightbulb"] },
+  "rules": {
+    "no_gradient_text": true,
+    "no_emoji_icons": true,
+    "no_purple_primary": true,
+    "max_colors_per_slide": 3,
+    "min_contrast_ratio": 4.5
+  }
+}
+```
+
+---
+
+### 反AI Slop 视觉规则
+
+避免生成具有典型AI风格缺陷的视频：
+
+| 规则 | 说明 |
+|------|------|
+| 禁止紫色渐变 | 不使用紫色作为主色或渐变 |
+| 禁止emoji图标 | 用线条图标替代emoji |
+| 每帧最多3色 | 控制色彩数量，避免花哨 |
+| 卡片必须有边框 | 避免无边框的悬浮感 |
+| 背景必须有纹理 | 网格/渐变/圆环，避免纯色平面 |
+| 最小对比度4.5:1 | 确保文字可读性 |
+| 禁止渐变文字 | 文字用纯色，不用渐变填充 |
+
+---
+
+## v2 完整用法
+
+```bash
+# 基础用法（与v1兼容）
+python article_to_video.py --url https://mp.weixin.qq.com/s/xxx
+
+# 指定风格
+python article_to_video.py --url https://mp.weixin.qq.com/s/xxx --style warm
+
+# 添加BGM
+python article_to_video.py --url https://mp.weixin.qq.com/s/xxx --bgm music.mp3
+
+# 导出GIF
+python article_to_video.py --url https://mp.weixin.qq.com/s/xxx --format gif
+
+# 60fps + BGM + 暖色风格
+python article_to_video.py --url https://mp.weixin.qq.com/s/xxx --style warm --bgm music.mp3 --format mp4_60fps
+
+# 直接用slides.json生成视频
+python video_pipeline.py output/slides.json --style dark --bgm bgm.mp3 --format mp4
+```

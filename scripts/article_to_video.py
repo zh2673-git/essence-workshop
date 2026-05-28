@@ -83,17 +83,78 @@ def classify_slide_type(section):
     return "bullet"
 
 
+def generate_timeline(slide):
+    dur = slide.get("duration", 10)
+    elements = []
+    stype = slide.get("type", "bullet")
+
+    if stype == "title":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "icon", "enter_at": 0.2, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "title", "enter_at": 0.4, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.7, "exit_at": dur - 0.5, "easing": "expoOut"})
+        if slide.get("subtitle"):
+            elements.append({"id": "subtitle", "enter_at": 0.9, "exit_at": dur - 0.5, "easing": "expoOut"})
+    elif stype == "bullet":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "heading", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        for i, _ in enumerate(slide.get("items", [])):
+            elements.append({"id": f"item_{i}", "enter_at": 0.4 + i * 0.25, "exit_at": dur - 0.5, "easing": "easeOutBack"})
+    elif stype == "quote":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "openQuote", "enter_at": 0.2, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "card", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "text", "enter_at": 0.6, "exit_at": dur - 0.5, "easing": "expoOut"})
+        if slide.get("source"):
+            elements.append({"id": "source", "enter_at": 0.9, "exit_at": dur - 0.5, "easing": "expoOut"})
+    elif stype == "compare":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "heading", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "leftCol", "enter_at": 0.4, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "rightCol", "enter_at": 0.5, "exit_at": dur - 0.5, "easing": "expoOut"})
+        left_items = slide.get("left", [])
+        right_items = slide.get("right", [])
+        max_items = max(len(left_items), len(right_items))
+        for i in range(max_items):
+            if i < len(left_items):
+                elements.append({"id": f"left_{i}", "enter_at": 0.6 + i * 0.12, "exit_at": dur - 0.5, "easing": "easeOut"})
+            if i < len(right_items):
+                elements.append({"id": f"right_{i}", "enter_at": 0.6 + i * 0.12, "exit_at": dur - 0.5, "easing": "easeOut"})
+    elif stype == "steps":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "heading", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        for i, _ in enumerate(slide.get("steps", [])):
+            elements.append({"id": f"step_{i}", "enter_at": 0.4 + i * 0.3, "exit_at": dur - 0.5, "easing": "easeOutBack"})
+    elif stype == "summary":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "icon", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "heading", "enter_at": 0.2, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.4, "exit_at": dur - 0.5, "easing": "expoOut"})
+        for i, _ in enumerate(slide.get("items", [])):
+            elements.append({"id": f"item_{i}", "enter_at": 0.5 + i * 0.15, "exit_at": dur - 0.5, "easing": "easeOut"})
+    else:
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "heading", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+
+    return {"duration": dur, "elements": elements}
+
+
 def slides_to_json(sections, article_title=""):
     slides = []
 
     if article_title:
-        slides.append({
+        title_slide = {
             "type": "title",
             "title": article_title,
             "subtitle": "",
             "duration": 6,
             "narration": article_title,
-        })
+        }
+        title_slide["timeline"] = generate_timeline(title_slide)
+        slides.append(title_slide)
 
     for section in sections:
         slide_type = classify_slide_type(section)
@@ -101,23 +162,27 @@ def slides_to_json(sections, article_title=""):
         content = section["content"]
 
         if slide_type == "title":
-            slides.append({
+            slide = {
                 "type": "title",
                 "title": heading,
                 "subtitle": "",
                 "duration": 5,
                 "narration": heading,
-            })
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
 
         elif slide_type == "quote":
             quote_text = " ".join(c[1] for c in content if c[0] == "quote")
-            slides.append({
+            slide = {
                 "type": "quote",
                 "text": quote_text,
                 "source": heading,
                 "duration": 6,
                 "narration": quote_text,
-            })
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
 
         elif slide_type == "steps":
             steps = []
@@ -128,13 +193,15 @@ def slides_to_json(sections, article_title=""):
                     steps[-1]["desc"] += " " + c[1]
             if steps:
                 narration = "，".join(s["desc"] for s in steps)
-                slides.append({
+                slide = {
                     "type": "steps",
                     "title": heading or "步骤",
                     "steps": steps[:5],
                     "duration": max(8, len(steps) * 4),
                     "narration": narration,
-                })
+                }
+                slide["timeline"] = generate_timeline(slide)
+                slides.append(slide)
 
         elif slide_type == "bullet":
             items = []
@@ -148,13 +215,15 @@ def slides_to_json(sections, article_title=""):
 
             if items:
                 narration = "，".join(items)
-                slides.append({
+                slide = {
                     "type": "bullet",
                     "title": heading or "要点",
                     "items": items[:5],
                     "duration": max(8, len(items) * 4),
                     "narration": narration,
-                })
+                }
+                slide["timeline"] = generate_timeline(slide)
+                slides.append(slide)
 
     if len(slides) > 1:
         summary_items = []
@@ -167,13 +236,15 @@ def slides_to_json(sections, article_title=""):
                 summary_items.append(s["text"][:30])
 
         if summary_items:
-            slides.append({
+            summary_slide = {
                 "type": "summary",
                 "title": "总结",
                 "items": summary_items[:4],
                 "duration": 10,
                 "narration": "总结一下。" + "，".join(summary_items[:4]),
-            })
+            }
+            summary_slide["timeline"] = generate_timeline(summary_slide)
+            slides.append(summary_slide)
 
     return {"slides": slides}
 
@@ -246,6 +317,12 @@ def main():
     parser.add_argument("--save-article", type=str, default="", help="同时保存文章为Markdown")
     parser.add_argument("--save-slides", action="store_true", help="保存slides.json到输出目录")
     parser.add_argument("--template", "-t", default=None, help="自定义HTML模板路径")
+    parser.add_argument("--style", default="dark", choices=["dark", "warm", "minimal", "nature"],
+                        help="视觉风格: dark(深色), warm(暖色), minimal(极简), nature(自然)")
+    parser.add_argument("--bgm", default=None,
+                        help="背景音乐文件路径(MP3/WAV)，旁白时自动降低音量")
+    parser.add_argument("--format", default="mp4", choices=["mp4", "mp4_60fps", "gif"],
+                        help="输出格式: mp4(25fps), mp4_60fps(60帧), gif")
 
     args = parser.parse_args()
 
@@ -310,6 +387,9 @@ def main():
         width=args.width,
         height=args.height,
         compress=args.compress,
+        style=args.style,
+        bgm=args.bgm,
+        fmt=args.format,
     )
 
     print(f"\n[DONE] Article → Video complete!")

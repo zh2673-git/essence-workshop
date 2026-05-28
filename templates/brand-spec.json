@@ -1,0 +1,48 @@
+{
+  "brand": {
+    "name": "",
+    "tagline": "",
+    "description": ""
+  },
+  "colors": {
+    "primary": "#E94560",
+    "secondary": "#F0C27F",
+    "accent": "#00D2FF",
+    "background_dark": "#0F0F23",
+    "background_light": "#FAF7F2",
+    "text_primary": "#F0F0F0",
+    "text_secondary": "#7A7A9E",
+    "success": "#4ECDC4",
+    "warning": "#FFE66D"
+  },
+  "fonts": {
+    "heading": "'PingFang SC', 'Microsoft YaHei', sans-serif",
+    "body": "'PingFang SC', 'Microsoft YaHei', sans-serif",
+    "mono": "'JetBrains Mono', 'Fira Code', monospace"
+  },
+  "icons": {
+    "style": "stroke",
+    "weight": 2,
+    "preferred": ["brain", "lightbulb", "target", "layers", "zap", "check", "arrow", "scale", "diamond", "hexagon"]
+  },
+  "spacing": {
+    "card_radius": 32,
+    "card_padding": 40,
+    "element_gap": 24
+  },
+  "animation": {
+    "default_easing": "expoOut",
+    "enter_duration": 0.5,
+    "exit_duration": 0.4,
+    "stagger_delay": 0.25
+  },
+  "rules": {
+    "no_gradient_text": true,
+    "no_emoji_icons": true,
+    "no_purple_primary": true,
+    "max_colors_per_slide": 3,
+    "min_contrast_ratio": 4.5,
+    "card_must_have_border": true,
+    "background_must_have_texture": true
+  }
+}
