@@ -192,9 +192,12 @@ essence-workshop/
 │   ├── fact-checking.md                  # 材料验证与引用溯源
 │   └── code-reading-guide.md             # 代码阅读辅助指南
 ├── scripts/                              # 可执行脚本
+│   ├── wechat_client.py                  # 微信API客户端（token+上传+草稿+文章拉取）
+│   ├── wechat_converter.py               # Markdown→微信HTML转换器（3主题+内联样式）
+│   ├── wechat_publish.py                 # 公众号发布管线（转换+封面+推送草稿）
+│   ├── article_fetcher.py                # 公众号文章拉取（API+URL）
 │   ├── video-template.html               # Canvas卡片翻页HTML模板
 │   ├── video_pipeline.py                 # 视频生成管线（录制+TTS+FFmpeg）
-│   ├── article_fetcher.py                # 公众号文章拉取（API+URL）
 │   ├── article_to_video.py               # 文章转视频（拉取→拆镜头→视频）
 │   └── example-slides.json               # 示例镜头JSON
 ├── workflows/                            # 5个场景工作流

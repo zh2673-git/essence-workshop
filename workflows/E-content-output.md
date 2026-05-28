@@ -195,7 +195,7 @@ data/
 ## 步骤5：检查文章
 
 ```bash
-wechat-pub inspect article.md --json
+python scripts/wechat_publish.py article.md --auto-cover
 ```
 
 ---
@@ -214,7 +214,7 @@ wechat-pub inspect article.md --json
 ## 步骤7：生成封面
 
 ```bash
-wechat-pub generate-cover --article article.md --format png --json
+python scripts/wechat_publish.py article.md --auto-cover
 ```
 
 ---
@@ -222,7 +222,7 @@ wechat-pub generate-cover --article article.md --format png --json
 ## 步骤8：转换+推送
 
 ```bash
-wechat-pub publish article.md --auto-cover --author "公众号名"
+python scripts/wechat_publish.py article.md --auto-cover --author "公众号名"
 ```
 
 ---
@@ -360,7 +360,7 @@ python scripts/article_fetcher.py --media-id XXXXX --save output/article.md
 
 - 走微信公众号官方API，稳定可靠
 - 仅限自己公众号的已发布文章
-- 自动复用 `wechat-pub` 的配置（AppID/AppSecret）
+- 自动读取 `~/.config/essence-workshop/config.yaml` 配置（AppID/AppSecret）
 
 #### 方式二：文章URL抓取（备选）
 

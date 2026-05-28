@@ -22,14 +22,14 @@ import tempfile
 
 def get_wechat_client():
     try:
-        from wechat_pub.wechat import WeChatClient
+        from wechat_client import WeChatClient
         client = WeChatClient()
         if not client.is_configured():
-            print("ERROR: wechat-pub not configured. Run: wechat-pub config init")
+            print("ERROR: WeChat not configured. Create ~/.config/essence-workshop/config.yaml")
             sys.exit(1)
         return client
     except ImportError:
-        print("ERROR: wechat-pub not installed. Run: pip install wechat-pub")
+        print("ERROR: wechat_client.py not found in scripts/")
         sys.exit(1)
 
 
@@ -39,67 +39,13 @@ def get_access_token():
 
 
 def list_published_articles(count=10, offset=0):
-    import httpx
-
-    token = get_access_token()
-    resp = httpx.post(
-        "https://api.weixin.qq.com/cgi-bin/material/batchget_material",
-        params={"access_token": token},
-        json={"type": "news", "offset": offset, "count": count},
-        timeout=15,
-    )
-    data = resp.json()
-
-    if "item" not in data:
-        errcode = data.get("errcode", -1)
-        errmsg = data.get("errmsg", "unknown")
-        print(f"ERROR: [{errcode}] {errmsg}")
-        return []
-
-    articles = []
-    for item in data["item"]:
-        for article in item.get("content", {}).get("news_item", []):
-            articles.append({
-                "media_id": item.get("media_id", ""),
-                "title": article.get("title", ""),
-                "author": article.get("author", ""),
-                "digest": article.get("digest", ""),
-                "url": article.get("url", ""),
-                "update_time": item.get("update_time", 0),
-            })
-
-    return articles
+    client = get_wechat_client()
+    return client.list_published_articles(count=count, offset=offset)
 
 
 def get_article_content(media_id):
-    import httpx
-
-    token = get_access_token()
-    resp = httpx.post(
-        "https://api.weixin.qq.com/cgi-bin/material/get_material",
-        params={"access_token": token},
-        json={"media_id": media_id},
-        timeout=15,
-    )
-    data = resp.json()
-
-    if "news_item" not in data:
-        errcode = data.get("errcode", -1)
-        errmsg = data.get("errmsg", "unknown")
-        print(f"ERROR: [{errcode}] {errmsg}")
-        return None
-
-    articles = []
-    for article in data["news_item"]:
-        articles.append({
-            "title": article.get("title", ""),
-            "author": article.get("author", ""),
-            "digest": article.get("digest", ""),
-            "content": article.get("content", ""),
-            "url": article.get("url", ""),
-        })
-
-    return articles
+    client = get_wechat_client()
+    return client.get_article_content(media_id)
 
 
 def html_to_markdown(html):

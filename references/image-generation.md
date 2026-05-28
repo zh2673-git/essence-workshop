@@ -72,7 +72,7 @@
 1. SVG 不能直接在微信文章中显示（微信仅支持 JPG/PNG/GIF）
 2. 本地路径图片不能直接显示，必须上传到微信 CDN
 3. **SVG→PNG 转换优先用 Playwright 渲染**——cairosvg 无法正确渲染中文字体
-4. `wechat-pub publish` 内置的 cairosvg 转换仅适用于纯英文/数字的 SVG
+4. SVG 封面生成使用纯 Python 实现，无需外部依赖
 
 ### SVG 通用模板
 
@@ -189,10 +189,7 @@ animate();
 ### 录制命令
 
 ```bash
-wechat-pub record-gif animation.html -o output/images/demo.gif
-wechat-pub record-gif animation.html --fps 8 --duration 6 --width 500 -o output/images/demo.gif
-wechat-pub record-gif animation.html --selector "#my-canvas" --scale 2.0 -o output/images/demo.gif
-wechat-pub record-gif animation.html --json
+python scripts/wechat_publish.py article.md --auto-cover
 ```
 
 ### Canvas 动画设计规范
