@@ -1,5 +1,7 @@
 # Essence Workshop
 
+**[🇨🇳 中文](README.md)** ｜ **[🇬🇧 English](README_EN.md)**
+
 > **Cognition → Design → Development → Output** — A full-pipeline system
 
 A unified workshop integrating **Essence Exploration**, **Essence Distillation**, and **WeChat Publishing**. Built on the **Three-Stage Methodology** (What → Why → How) and the **Class-Attribute-Method-Route** model, with **Gradient Understanding** for progressive cognition.
