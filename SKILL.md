@@ -1,11 +1,12 @@
 ---
 name: 本质工坊
 description: |
-  融合「本质探索」「本质蒸馏」「公众号发布」三合一的认知→设计→开发→输出系统。
+  融合「本质探索」「本质蒸馏」「公众号发布」「视频号生成」四合一的认知→设计→开发→输出系统。
   基于三阶方法论（是什么-为什么-怎么做）和类-属性-方法-路由模型，融合坡度理解渐进式认知方法。
   支持5大场景：知识探索、人物蒸馏、项目开发、项目解析、内容输出。
-  输出阶段支持多种风格：论文风格、蒸馏Skill风格、对话风格，以及预留扩展。
-  触发词：「探索XX」「蒸馏XX」「开发XX」「分析XX」「写公众号」「发布文章」「输出文章」。
+  输出阶段支持多渠道：微信公众号（图文）、微信视频号（短视频）。
+  输出风格支持：论文风格、蒸馏Skill风格、对话风格，以及预留扩展。
+  触发词：「探索XX」「蒸馏XX」「开发XX」「分析XX」「写公众号」「发布文章」「做视频」「视频号」。
   模糊需求也触发：「我想提升决策质量」「帮我理解XX」「设计一个XX系统」。
 ---
 
@@ -16,6 +17,8 @@ description: |
 > **设计思想**：项目 = 类，模块 = 属性，接口 = 契约，路由 = 方法分发
 >
 > **蒸馏公式**：三阶方法论（是什么→为什么→怎么做）× 坡度理解 × 类-属性-方法-路由
+>
+> **输出渠道**：微信公众号（图文） / 微信视频号（Canvas卡片翻页+TTS短视频）
 
 ---
 
@@ -35,7 +38,7 @@ description: |
 │   │ B:蒸馏   │ → 人物蒸馏 → 认知操作系统Skill                   │
 │   │ C:开发   │ → 项目开发 → 设计文档+可运行代码                 │
 │   │ D:解析   │ → 项目解析 → 项目理解文档                        │
-│   │ E:输出   │ → 内容输出 → 多渠道发布（公众号/预留）            │
+│   │ E:输出   │ → 内容输出 → 多渠道发布（公众号/视频号）            │
 │   └──────────┘                                                   │
 │                                                                  │
 │   ┌──────────────────────────────────────────┐                  │
@@ -57,7 +60,7 @@ description: |
 | **B: 人物蒸馏** | 「蒸馏XX」「提炼XX思维」「造skill」 | 蒸馏认知操作系统 | 认知操作系统Skill | [workflows/B-person-distillation.md](workflows/B-person-distillation.md) |
 | **C: 项目开发** | 「开发XX」「设计XX系统」「构建XX」 | 从零构建系统 | 设计文档+可运行代码 | [workflows/C-project-development.md](workflows/C-project-development.md) |
 | **D: 项目解析** | 「分析XX项目」「拆解XX代码」 | 理解已有系统 | 项目理解文档 | [workflows/D-project-analysis.md](workflows/D-project-analysis.md) |
-| **E: 内容输出** | 「写公众号」「发布文章」「输出文章」 | 多渠道内容发布 | 公众号文章/其他渠道 | [workflows/E-content-output.md](workflows/E-content-output.md) |
+| **E: 内容输出** | 「写公众号」「发布文章」「做视频」「视频号」 | 多渠道内容发布 | 公众号文章/视频号视频 | [workflows/E-content-output.md](workflows/E-content-output.md) |
 
 ### 场景间流转
 
@@ -113,6 +116,7 @@ E(内容输出) → 输出时发现需要深入理解 → A(知识探索)
 | **写作风格规范** | 真实、自然、不端着，禁止AI味 | [references/writing-style-guide.md](references/writing-style-guide.md) |
 | **微信安全排版** | 只用原生Markdown，禁用:::block | [references/wechat-formatting.md](references/wechat-formatting.md) |
 | **配图方案** | SVG→PNG首选，Canvas→GIF动态，AI生图备选 | [references/image-generation.md](references/image-generation.md) |
+| **视频生成** | Canvas卡片翻页+Playwright录制+Edge TTS+FFmpeg | [references/video-generation.md](references/video-generation.md) |
 | **材料验证** | 引用必须真实，出处必须可查 | [references/fact-checking.md](references/fact-checking.md) |
 | **代码阅读辅助** | 三层认知模型 + 分层阅读法 | [references/code-reading-guide.md](references/code-reading-guide.md) |
 
@@ -136,6 +140,7 @@ E(内容输出) → 输出时发现需要深入理解 → A(知识探索)
 状态治理：单一状态源 = 项目级全局状态 + 模块级内部状态
 基础设施：四层框架 = 数据规矩 → 数据存储 → 数据流转 → 接口层
 编码纪律：先思后写 + 简洁优先 + 精准修改 + 目标驱动
+视频管线：文章 → 镜头拆分(slides.json) → Canvas渲染+Playwright录制(WebM) + Edge TTS(MP3) → FFmpeg合并(MP4)
 ```
 
 ---
@@ -181,15 +186,20 @@ essence-workshop/
 │   ├── skill-template.md                 # 认知操作系统Skill模板
 │   ├── writing-style-guide.md            # 写作风格规范
 │   ├── wechat-formatting.md              # 微信排版规范
-│   ├── image-generation.md               # 配图方案
+│   ├── image-generation.md               # 配图方案（公众号）
+│   ├── video-generation.md               # 视频生成方案（视频号）
 │   ├── fact-checking.md                  # 材料验证与引用溯源
 │   └── code-reading-guide.md             # 代码阅读辅助指南
+├── scripts/                              # 可执行脚本
+│   ├── video-template.html               # Canvas卡片翻页HTML模板
+│   ├── video_pipeline.py                 # 视频生成管线（录制+TTS+FFmpeg）
+│   └── example-slides.json               # 示例镜头JSON
 ├── workflows/                            # 5个场景工作流
 │   ├── A-knowledge-exploration.md        # 知识探索
 │   ├── B-person-distillation.md          # 人物蒸馏
 │   ├── C-project-development.md          # 新项目开发
 │   ├── D-project-analysis.md             # 现有项目解析
-│   └── E-content-output.md              # 内容输出（含风格选择系统+多渠道）
+│   └── E-content-output.md              # 内容输出（含风格选择系统+多渠道：公众号/视频号）
 ├── templates/                            # 文档模板
 │   ├── knowledge-note.md                 # 知识探索笔记
 │   ├── project-essence.md                # 项目本质分析

@@ -7,6 +7,7 @@
 ## 触发条件
 
 - 用户说「写公众号」「发布文章」「输出文章」
+- 用户说「做视频」「生成视频」「视频号」
 - 场景A/B/C/D执行完成后，用户选择输出
 - 用户直接提供内容要求发布
 
@@ -17,15 +18,24 @@
 ```
 步骤0：确定输入来源
 步骤1：判断输入类型（完整文章 / AI聊天记录 / 笔记 / 零散想法 / 场景A/B/C/D产出）
+步骤1.5：选择输出渠道（微信公众号 / 微信视频号）
 步骤2：选择输出风格（论文风格 / 对话风格 / 蒸馏Skill风格 / 预留扩展）
 步骤3：风格改写
 步骤3.5：材料验证与引用溯源
 步骤4：渠道适配排版
-步骤4.5：自动生成并插入配图
-步骤5：检查文章
-步骤6：字数检查
-步骤7：生成封面
+步骤4.5：自动生成并插入配图（公众号）/ 生成视频画面（视频号）
+步骤5：检查文章 / 检查视频
+步骤6：字数检查 / 视频时长检查
+步骤7：生成封面 / 生成视频封面帧
 步骤8：转换+推送
+```
+
+### 渠道分流
+
+```
+步骤1.5 选择渠道：
+├── 微信公众号 → 步骤4~8（图文管线，见下方详细步骤）
+└── 微信视频号 → 步骤V1~V5（视频管线，见「视频号输出流程」章节）
 ```
 
 ---
@@ -148,7 +158,19 @@ data/
 - 优先原生 Markdown 语法
 - emoji + 加粗辅助视觉
 
-### 渠道2：（预留扩展）
+### 渠道2：微信视频号（当前支持）
+
+详见 [references/video-generation.md](../references/video-generation.md)
+
+**核心约束**：
+- 视频画幅 1080×1920（9:16竖屏）
+- 时长1-3分钟（知识类最佳）
+- 必须有TTS旁白
+- Canvas卡片翻页风格，复用claude-warm配色
+
+**视频管线**：Canvas渲染 → Playwright录制 → Edge TTS → FFmpeg合并
+
+### 渠道3：（预留扩展）
 
 后续可添加：知乎、掘金、Notion、PDF等渠道适配。
 
@@ -215,3 +237,101 @@ wechat-pub publish article.md --auto-cover --author "公众号名"
 8. **确认后再推送**：先 preview 让用户确认效果
 9. **文件存放**：改写稿统一保存在 `output/` 文件夹下
 10. **避免 AI 味**：严格遵循写作风格规范中的禁用表达列表
+11. **渠道选择**：用户说「公众号」走图文管线，说「视频号/视频」走视频管线
+
+---
+
+## 视频号输出流程
+
+> 当步骤1.5选择「微信视频号」时，执行以下流程替代步骤4~8。
+
+详见 [references/video-generation.md](../references/video-generation.md)
+
+### 步骤V1：内容精简与镜头拆分
+
+**核心任务**：把7000-8000字的文章精简为500-1000字的旁白，拆分为10-20个镜头。
+
+#### 拆分规则
+
+1. 按 ## H2 章节拆分，每个章节1-3个镜头
+2. 每个镜头分配类型：标题卡 / 要点卡 / 对比卡 / 流程卡 / 金句卡 / 总结卡
+3. 每个镜头撰写口语化旁白（短句、每句不超过20字）
+4. 旁白总字数控制在500-1000字
+
+#### 镜头类型选择决策
+
+```
+内容是什么？
+├── 章节标题 → 标题卡
+├── 列举要点（3-5条）→ 要点卡
+├── A vs B 对比 → 对比卡
+├── 步骤/流程 → 流程卡
+├── 一句话核心观点 → 金句卡
+└── 章节末尾/全文结尾 → 总结卡
+```
+
+#### 输出格式
+
+输出 `slides.json`，格式见 [references/video-generation.md](../references/video-generation.md) 的「镜头JSON格式」章节。
+
+### 步骤V2：TTS旁白生成
+
+```bash
+# 使用管线脚本自动生成
+python scripts/video_pipeline.py slides.json --output output/video/ --voice zh-CN-YunxiNeural
+```
+
+**语音选择**：
+- 知识讲解类 → `zh-CN-YunxiNeural`（年轻男性，沉稳）
+- 生活轻松类 → `zh-CN-XiaoxiaoNeural`（年轻女性，活泼）
+- 观点输出类 → `zh-CN-YunjianNeural`（成熟男性，有力）
+
+### 步骤V3：Canvas渲染+录制
+
+管线脚本自动完成：
+1. 读取 `slides.json`
+2. 加载 `scripts/video-template.html` 模板
+3. Playwright 录制 Canvas 动画为 WebM
+
+**自定义模板**：如需自定义视觉风格，修改 `scripts/video-template.html` 中的配色和字体。
+
+### 步骤V4：音频合成+合并
+
+管线脚本自动完成：
+1. Edge TTS 生成每段旁白 MP3
+2. FFmpeg 拼接所有旁白
+3. 根据音频时长自动调整镜头时长
+4. FFmpeg 合并视频+音频为最终 MP4
+
+### 步骤V5：质量检查
+
+| 检查项 | 标准 | 处理方式 |
+|--------|------|---------|
+| 视频时长 | 1-3分钟 | 超长则精简镜头，过短则补充 |
+| 文件大小 | ≤50MB | 超限则用 `--compress` 压缩 |
+| 画面清晰 | 1080p | 确保 device_scale_factor=2 |
+| 旁白完整 | 每个镜头有旁白 | 缺失则补充 narration 字段 |
+| 字幕可读 | 文字不溢出 | 调整字号或精简文字 |
+
+### 完整命令
+
+```bash
+# 一键生成视频
+python scripts/video_pipeline.py output/slides.json --output output/video/
+
+# 指定语音和压缩
+python scripts/video_pipeline.py output/slides.json --output output/video/ --voice zh-CN-YunxiNeural --compress
+
+# 横屏模式
+python scripts/video_pipeline.py output/slides.json --output output/video/ --width 1920 --height 1080
+```
+
+### 公众号+视频号双输出
+
+当用户需要同时输出公众号文章和视频号视频时：
+
+```
+1. 先完成公众号图文管线（步骤4~8），产出 article.md
+2. 从 article.md 提取核心内容，执行步骤V1~V5，产出 final.mp4
+3. 两者保存在同一 output/ 目录下
+```
