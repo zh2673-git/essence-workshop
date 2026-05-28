@@ -68,16 +68,37 @@ def generate_tts(narrations, output_dir, voice="zh-CN-YunxiNeural", rate="+0%"):
     os.makedirs(output_dir, exist_ok=True)
     audio_files = []
 
-    for i, text in enumerate(narrations):
-        if not text or not text.strip():
-            continue
-        output_path = os.path.join(output_dir, f"narration_{i:03d}.mp3")
-        print(f"  [TTS] Generating narration {i + 1}/{len(narrations)}: {text[:40]}...")
+    async def _generate_one(text, output_path, max_retries=3):
+        for attempt in range(max_retries):
+            try:
+                communicate = edge_tts.Communicate(text, voice, rate=rate)
+                await communicate.save(output_path)
+                if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                    return True
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    wait = 2 ** attempt
+                    print(f"    [RETRY] Attempt {attempt + 1} failed: {e}, retrying in {wait}s...")
+                    await asyncio.sleep(wait)
+                else:
+                    print(f"    [ERROR] Failed after {max_retries} attempts: {e}")
+                    return False
+        return False
 
-        communicate = edge_tts.Communicate(text, voice, rate=rate)
-        asyncio.run(communicate.save(output_path))
-        audio_files.append(output_path)
+    async def _generate_all():
+        for i, text in enumerate(narrations):
+            if not text or not text.strip():
+                continue
+            output_path = os.path.join(output_dir, f"narration_{i:03d}.mp3")
+            print(f"  [TTS] Generating narration {i + 1}/{len(narrations)}: {text[:40]}...")
 
+            success = await _generate_one(text, output_path)
+            if success:
+                audio_files.append(output_path)
+            else:
+                print(f"    [SKIP] Narration {i + 1} failed, will use silent gap")
+
+    asyncio.run(_generate_all())
     return audio_files
 
 

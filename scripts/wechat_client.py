@@ -244,45 +244,89 @@ class WeChatClient:
 
     def list_published_articles(self, count: int = 10, offset: int = 0) -> list[dict]:
         token = self.get_access_token()
+
         resp = httpx.post(
-            f"{self._base}/cgi-bin/material/batchget_material",
+            f"{self._base}/cgi-bin/freepublish/batchget",
             params={"access_token": token},
-            json={"type": "news", "offset": offset, "count": count},
+            json={"offset": offset, "count": count, "no_content": 1},
             timeout=15,
         )
         data = resp.json()
 
-        if "item" not in data:
-            errcode = data.get("errcode", -1)
-            errmsg = data.get("errmsg", "unknown")
-            raise RuntimeError(f"获取文章列表失败: [{errcode}] {errmsg}")
+        if "item" in data:
+            articles = []
+            for item in data["item"]:
+                news_item = item.get("content", {}).get("news_item", [])
+                for article in news_item:
+                    articles.append({
+                        "media_id": item.get("article_id", ""),
+                        "title": article.get("title", ""),
+                        "author": article.get("author", ""),
+                        "digest": article.get("digest", ""),
+                        "url": article.get("url", ""),
+                        "update_time": item.get("update_time", 0),
+                    })
+            return articles
 
-        articles = []
-        for item in data["item"]:
-            for article in item.get("content", {}).get("news_item", []):
-                articles.append({
-                    "media_id": item.get("media_id", ""),
-                    "title": article.get("title", ""),
-                    "author": article.get("author", ""),
-                    "digest": article.get("digest", ""),
-                    "url": article.get("url", ""),
-                    "update_time": item.get("update_time", 0),
-                })
-        return articles
+        errcode = data.get("errcode", -1)
+        if errcode == 48001:
+            resp2 = httpx.post(
+                f"{self._base}/cgi-bin/material/batchget_material",
+                params={"access_token": token},
+                json={"type": "news", "offset": offset, "count": count},
+                timeout=15,
+            )
+            data2 = resp2.json()
+            if "item" in data2:
+                articles = []
+                for item in data2["item"]:
+                    for article in item.get("content", {}).get("news_item", []):
+                        articles.append({
+                            "media_id": item.get("media_id", ""),
+                            "title": article.get("title", ""),
+                            "author": article.get("author", ""),
+                            "digest": article.get("digest", ""),
+                            "url": article.get("url", ""),
+                            "update_time": item.get("update_time", 0),
+                        })
+                return articles
 
-    def get_article_content(self, media_id: str) -> list[dict]:
+            errcode2 = data2.get("errcode", -1)
+            errmsg2 = data2.get("errmsg", "unknown")
+            raise RuntimeError(f"获取文章列表失败(素材接口): [{errcode2}] {errmsg2}")
+
+        errmsg = data.get("errmsg", "unknown")
+        raise RuntimeError(f"获取文章列表失败: [{errcode}] {errmsg}")
+
+    def get_article_content(self, article_id: str) -> list[dict]:
         token = self.get_access_token()
+
         resp = httpx.post(
-            f"{self._base}/cgi-bin/material/get_material",
+            f"{self._base}/cgi-bin/freepublish/getarticle",
             params={"access_token": token},
-            json={"media_id": media_id},
+            json={"article_id": article_id},
             timeout=15,
         )
         data = resp.json()
 
-        if "news_item" not in data:
-            errcode = data.get("errcode", -1)
-            errmsg = data.get("errmsg", "unknown")
-            raise RuntimeError(f"获取文章内容失败: [{errcode}] {errmsg}")
+        if "news_item" in data:
+            return data["news_item"]
 
-        return data["news_item"]
+        errcode = data.get("errcode", -1)
+        if errcode == 48001:
+            resp2 = httpx.post(
+                f"{self._base}/cgi-bin/material/get_material",
+                params={"access_token": token},
+                json={"media_id": article_id},
+                timeout=15,
+            )
+            data2 = resp2.json()
+            if "news_item" in data2:
+                return data2["news_item"]
+
+            errcode2 = data2.get("errcode", -1)
+            errmsg2 = data2.get("errmsg", "unknown")
+            raise RuntimeError(f"获取文章内容失败(素材接口): [{errcode2}] {errmsg2}")
+
+        errmsg = data.get("errmsg", "unknown")
+        raise RuntimeError(f"获取文章内容失败: [{errcode}] {errmsg}")

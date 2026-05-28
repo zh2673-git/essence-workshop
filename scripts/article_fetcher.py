@@ -1,15 +1,25 @@
 """
 本质工坊 · 公众号文章拉取
 支持两种方式：
-  1. API方式：从自己公众号拉取已发布文章列表，选择后获取正文
-  2. 链接方式：直接给公众号文章URL，抓取正文
+  1. URL方式（默认推荐）：直接给公众号文章URL，抓取正文
+     - 适用于任何公众号的已发布文章
+     - 无权限要求，稳定可靠
+  2. API方式（受权限制约）：从自己公众号拉取已发布文章列表
+     - 需要认证服务号才能使用 freepublish 接口
+     - 订阅号/未认证服务号只能使用 material 接口（仅含API上传的素材）
+     - 需要配置 ~/.config/essence-workshop/config.yaml（AppID/AppSecret）
+
+API权限制约说明：
+  - freepublish/batchget（已发布文章列表）：需认证服务号，否则返回 48001
+  - material/batchget_material（素材管理）：基础权限，但只能看到API上传的素材
+  - 后台直接发布的文章不在素材管理中，只能通过URL方式获取
 
 用法:
-  python article_fetcher.py --list                    列出最近文章
-  python article_fetcher.py --list --count 20         列出最近20篇
-  python article_fetcher.py --media-id XXXXX          按media_id拉取正文
-  python article_fetcher.py --url https://mp.weixin.qq.com/s/xxx  按链接抓取
-  python article_fetcher.py --media-id XXXXX --save output/article.md  保存为文件
+  python article_fetcher.py --url https://mp.weixin.qq.com/s/xxx  按链接抓取（推荐）
+  python article_fetcher.py --list                                列出已发布文章（需API权限）
+  python article_fetcher.py --list --count 20                     列出最近20篇
+  python article_fetcher.py --media-id XXXXX                      按media_id拉取正文（需API权限）
+  python article_fetcher.py --url https://mp.weixin.qq.com/s/xxx --save output/article.md  保存为文件
 """
 
 import argparse

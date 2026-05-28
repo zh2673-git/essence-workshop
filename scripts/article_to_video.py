@@ -1,16 +1,24 @@
 """
 本质工坊 · 公众号文章转视频
-从公众号文章（API拉取或URL抓取）自动生成视频号短视频
+从公众号文章（URL抓取或API拉取）自动生成视频号短视频
 
 完整链路：
   文章正文 → 拆分为镜头(slides.json) → TTS旁白 → Canvas录制 → FFmpeg合并 → MP4
 
+文章获取方式：
+  1. URL方式（默认推荐）：提供公众号文章链接，抓取正文
+     - 适用于任何公众号的已发布文章，无权限要求
+  2. API方式（受权限制约）：通过media_id拉取
+     - 需认证服务号才能使用 freepublish 接口
+     - 订阅号/未认证服务号只能看到API上传的素材
+  3. 本地文件：直接提供Markdown文件路径
+
 用法:
-  python article_to_video.py --media-id XXXXX                          从公众号拉取文章并生成视频
-  python article_to_video.py --url https://mp.weixin.qq.com/s/xxx      从URL抓取文章并生成视频
+  python article_to_video.py --url https://mp.weixin.qq.com/s/xxx      从URL抓取文章并生成视频（推荐）
   python article_to_video.py --article output/article.md               从本地Markdown生成视频
-  python article_to_video.py --media-id XXXXX --voice zh-CN-YunxiNeural
-  python article_to_video.py --media-id XXXXX --save-article output/article.md  同时保存文章
+  python article_to_video.py --media-id XXXXX                          从公众号拉取文章并生成视频（需API权限）
+  python article_to_video.py --url https://mp.weixin.qq.com/s/xxx --voice zh-CN-YunxiNeural
+  python article_to_video.py --url https://mp.weixin.qq.com/s/xxx --save-article output/article.md
 """
 
 import argparse
@@ -223,9 +231,9 @@ def load_article_from_file(file_path):
 def main():
     parser = argparse.ArgumentParser(description="本质工坊 · 公众号文章转视频")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--media-id", type=str, help="公众号文章media_id（API拉取）")
-    group.add_argument("--url", type=str, help="公众号文章URL（链接抓取）")
+    group.add_argument("--url", type=str, help="公众号文章URL（推荐，无权限要求）")
     group.add_argument("--article", type=str, help="本地Markdown文章路径")
+    group.add_argument("--media-id", type=str, help="公众号文章media_id（需API权限，认证服务号）")
 
     parser.add_argument("--output", "-o", default="output/video/", help="视频输出目录")
     parser.add_argument("--voice", "-v", default="zh-CN-YunxiNeural",
@@ -242,12 +250,12 @@ def main():
     args = parser.parse_args()
 
     print("[1/3] Fetching article...")
-    if args.media_id:
-        article = fetch_article_by_media_id(args.media_id)
-    elif args.url:
+    if args.url:
         article = fetch_article_by_url(args.url)
     elif args.article:
         article = load_article_from_file(args.article)
+    elif args.media_id:
+        article = fetch_article_by_media_id(args.media_id)
     else:
         print("ERROR: No article source specified.")
         sys.exit(1)

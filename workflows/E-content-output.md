@@ -342,13 +342,34 @@ python scripts/video_pipeline.py output/slides.json --output output/video/ --wid
 
 ## 文章转视频流程
 
-> 当用户提供公众号文章（media_id / URL / 本地文件）并要求生成视频时，执行以下流程。
+> 当用户提供公众号文章（URL / 本地文件 / media_id）并要求生成视频时，执行以下流程。
 
 ### 步骤F1：拉取文章
 
-**两种方式**：
+**三种方式**（按推荐优先级排列）：
 
-#### 方式一：公众号API（默认，稳定）
+#### 方式一：文章URL抓取（默认推荐）
+
+```bash
+# 直接给公众号文章链接
+python scripts/article_fetcher.py --url "https://mp.weixin.qq.com/s/xxxxx" --save output/article.md
+```
+
+- **推荐理由**：适用于任何公众号的已发布文章，无权限要求，稳定可靠
+- 通过抓取页面提取正文，转为Markdown
+- 微信改版可能需要适配
+
+#### 方式二：本地Markdown文件
+
+```bash
+# 直接指定本地文件
+python scripts/article_to_video.py --article output/article.md
+```
+
+- 适用于已有Markdown文章的场景
+- 无需网络请求
+
+#### 方式三：公众号API（受权限制约）
 
 ```bash
 # 列出最近文章，用户选择
@@ -358,20 +379,18 @@ python scripts/article_fetcher.py --list --count 10
 python scripts/article_fetcher.py --media-id XXXXX --save output/article.md
 ```
 
-- 走微信公众号官方API，稳定可靠
-- 仅限自己公众号的已发布文章
-- 自动读取 `~/.config/essence-workshop/config.yaml` 配置（AppID/AppSecret）
+**⚠️ API权限制约说明**：
 
-#### 方式二：文章URL抓取（备选）
+| 接口 | 权限要求 | 能获取的内容 | 限制 |
+|------|---------|------------|------|
+| `freepublish/batchget` | 认证服务号 | 已发布文章列表 | 订阅号/未认证服务号返回 48001 |
+| `material/batchget_material` | 基础权限 | API上传的素材 | 后台直接发布的文章不在其中 |
+| `freepublish/getarticle` | 认证服务号 | 已发布文章正文 | 订阅号/未认证服务号返回 48001 |
 
-```bash
-# 直接给公众号文章链接
-python scripts/article_fetcher.py --url "https://mp.weixin.qq.com/s/xxxxx" --save output/article.md
-```
-
-- 适用于任何公众号的文章
-- 通过抓取页面提取正文，转为Markdown
-- 微信改版可能需要适配
+- 订阅号和未认证服务号**无法通过API获取已发布文章列表**
+- 素材管理接口只能看到通过API上传的素材，**后台直接发布的文章不可见**
+- 需要配置 `~/.config/essence-workshop/config.yaml`（AppID/AppSecret）
+- 代码已实现自动降级：优先使用 freepublish，48001 时降级到 material
 
 ### 步骤F2：文章拆镜头
 
@@ -392,17 +411,17 @@ python scripts/article_fetcher.py --url "https://mp.weixin.qq.com/s/xxxxx" --sav
 ### 一键命令
 
 ```bash
-# 从公众号API拉取文章并生成视频
-python scripts/article_to_video.py --media-id XXXXX
-
-# 从URL抓取文章并生成视频
+# 从URL抓取文章并生成视频（推荐）
 python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxxxx"
 
 # 从本地Markdown生成视频
 python scripts/article_to_video.py --article output/article.md
 
+# 从公众号API拉取文章并生成视频（需认证服务号）
+python scripts/article_to_video.py --media-id XXXXX
+
 # 指定语音和保存文章
-python scripts/article_to_video.py --media-id XXXXX --voice zh-CN-YunxiNeural --save-article output/article.md
+python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxxxx" --voice zh-CN-YunxiNeural --save-article output/article.md
 
 # 压缩视频
 python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxxxx" --compress
@@ -414,10 +433,10 @@ python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxxxx" --co
 用户说「把这篇文章做成视频」
     ↓
 判断来源：
-├── 给了media_id → article_fetcher.py --media-id → 正文
-├── 给了URL → article_fetcher.py --url → 正文
+├── 给了URL → article_fetcher.py --url → 正文（推荐，无权限要求）
 ├── 给了本地文件 → 直接读取
-└── 什么都没给 → article_fetcher.py --list → 用户选择 → 正文
+├── 给了media_id → article_fetcher.py --media-id → 正文（需认证服务号）
+└── 什么都没给 → 提示用户提供文章URL
     ↓
 article_to_video.py 自动执行：
     正文(Markdown) → 拆镜头(slides.json) → TTS + 录制 + 合并 → final.mp4
