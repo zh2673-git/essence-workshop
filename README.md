@@ -2,6 +2,8 @@
 
 > **认知 → 设计 → 开发 → 输出** 全链路系统
 
+[English](README_EN.md)
+
 融合「本质探索」「本质蒸馏」「公众号发布」三合一的认知工坊。基于**三阶方法论**（是什么-为什么-怎么做）和**类-属性-方法-路由**模型，融合**坡度理解**渐进式认知方法。
 
 ---
@@ -68,7 +70,16 @@ essence-workshop/
 │   ├── C-project-development.md          # 新项目开发
 │   ├── D-project-analysis.md             # 现有项目解析
 │   └── E-content-output.md               # 内容输出（含风格选择系统+多渠道）
-├── templates/                            # 7个文档模板
+├── scripts/                              # 可执行脚本
+│   ├── wechat_client.py                  # 微信API客户端（token+上传+草稿+文章拉取）
+│   ├── wechat_converter.py               # Markdown→微信HTML转换器（3主题+内联样式）
+│   ├── wechat_publish.py                 # 公众号发布管线（转换+封面+推送草稿）
+│   ├── article_fetcher.py                # 公众号文章拉取（API+URL）
+│   ├── video-template.html               # Canvas卡片翻页HTML模板
+│   ├── video_pipeline.py                 # 视频生成管线（录制+TTS+FFmpeg）
+│   ├── article_to_video.py               # 文章转视频（拉取→拆镜头→视频）
+│   └── example-slides.json               # 示例镜头JSON
+├── templates/                            # 文档模板
 ├── examples/                             # 8个蒸馏实例（自包含）
 └── output/                               # 运行时输出目录
 ```
@@ -100,15 +111,15 @@ essence-workshop/
 
 ## 与其他仓库的关系
 
-本仓库是以下三个仓库的统一整合：
+本仓库整合了以下三个仓库的核心能力，现已完全自包含，不依赖外部项目：
 
 | 源仓库 | 角色 | 贡献内容 |
 |--------|------|---------|
 | [essence-programming](https://github.com/zh2673-git/essence-programming) | 认知与设计引擎 | 三阶方法论、设计原则、知识探索、项目开发、项目解析 |
 | [essence-distillation-skill](https://github.com/zh2673-git/essence-distillation-skill) | 认知蒸馏引擎 | 7Agent调研、根因追溯、人物蒸馏、8个实例 |
-| [md2wechat-py](https://github.com/zh2673-git/md2wechat-py) | 内容输出引擎 | 写作风格、微信排版、配图方案、公众号推送CLI |
+| [md2wechat-py](https://github.com/zh2673-git/md2wechat-py) | 内容输出引擎 | 写作风格、微信排版、配图方案、公众号推送（已内化为自包含模块） |
 
-三个源仓库已同步重构为精简版（SKILL.md拆分），可独立使用。
+公众号相关功能已内化为 `scripts/` 下的三个自包含模块（`wechat_client.py` / `wechat_converter.py` / `wechat_publish.py`），无需安装 `wechat-pub` 或 `md2wechat-py`。
 
 ---
 
