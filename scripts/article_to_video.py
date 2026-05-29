@@ -83,6 +83,36 @@ def classify_slide_type(section):
     return "bullet"
 
 
+def detect_visual_style(sections):
+    text = "\n".join(
+        s["heading"] + " " + " ".join(c[1] for c in s["content"])
+        for s in sections
+    )
+
+    tech_keywords = ["AI", "编程", "代码", "算法", "技术", "Agent", "API", "模型",
+                     "训练", "推理", "部署", "架构", "框架", "开源", "GPT", "LLM",
+                     "深度学习", "机器学习", "神经网络", "transformer"]
+    edu_keywords = ["教育", "学习", "成长", "阅读", "写作", "学校", "课程",
+                    "方法", "练习", "习惯", "知识", "技能", "提升", "入门"]
+    compare_keywords = ["对比", "vs", "差异", "优劣", "选择", "比较", "区别",
+                        "哪个", "更好", "替代", "竞品", "优劣", "分析"]
+    philosophy_keywords = ["哲学", "思考", "本质", "意义", "价值", "人生",
+                          "存在", "意识", "自由", "真理", "智慧", "境界"]
+
+    scores = {
+        "tech": sum(text.count(k) for k in tech_keywords),
+        "edu": sum(text.count(k) for k in edu_keywords),
+        "compare": sum(text.count(k) for k in compare_keywords),
+        "philosophy": sum(text.count(k) for k in philosophy_keywords),
+    }
+
+    best = max(scores, key=scores.get)
+    if scores[best] == 0:
+        return "tech"
+
+    return best
+
+
 def generate_timeline(slide):
     dur = slide.get("duration", 10)
     elements = []
@@ -319,8 +349,13 @@ def main():
     parser.add_argument("--template", "-t", default=None, help="自定义HTML模板路径")
     parser.add_argument("--style", default="dark", choices=["dark", "warm", "minimal", "nature"],
                         help="视觉风格: dark(深色), warm(暖色), minimal(极简), nature(自然)")
+    parser.add_argument("--visual-style", default="auto", choices=["auto", "tech", "edu", "compare", "philosophy"],
+                        dest="visual_style",
+                        help="Cinematic视觉语言: auto(自动推断), tech, edu, compare, philosophy")
     parser.add_argument("--bgm", default=None,
                         help="背景音乐文件路径(MP3/WAV)，旁白时自动降低音量")
+    parser.add_argument("--sfx-dir", default=None, dest="sfx_dir",
+                        help="SFX音效目录(包含whoosh.mp3, sparkle.mp3等)")
     parser.add_argument("--format", default="mp4", choices=["mp4", "mp4_60fps", "gif"],
                         help="输出格式: mp4(25fps), mp4_60fps(60帧), gif")
 
@@ -378,6 +413,11 @@ def main():
     print("\n[3/3] Generating video...")
     from video_pipeline import generate_video
 
+    visual_style = args.visual_style
+    if visual_style == "auto":
+        visual_style = detect_visual_style(sections)
+        print(f"  [VISUAL] Auto-detected visual style: {visual_style}")
+
     final_path = generate_video(
         slides_path=slides_path,
         output_dir=args.output,
@@ -390,6 +430,8 @@ def main():
         style=args.style,
         bgm=args.bgm,
         fmt=args.format,
+        visual_style=visual_style,
+        sfx_dir=args.sfx_dir,
     )
 
     print(f"\n[DONE] Article → Video complete!")

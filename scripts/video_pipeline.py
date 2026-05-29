@@ -24,6 +24,7 @@ DEFAULT_TEMPLATE = os.path.join(SCRIPT_DIR, "video-template.html")
 
 VALID_STYLES = ["dark", "warm", "minimal", "nature"]
 VALID_FORMATS = ["mp4", "mp4_60fps", "gif"]
+VALID_VISUAL_STYLES = ["tech", "edu", "compare", "philosophy"]
 
 
 def find_ffmpeg():
@@ -216,7 +217,7 @@ def adjust_slide_durations(slides, audio_path):
     return slides
 
 
-def record_video(slides, template_html, output_path, width=1080, height=1920, style="dark"):
+def record_video(slides, template_html, output_path, width=1080, height=1920, style="dark", visual_style="tech"):
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as p:
@@ -235,6 +236,7 @@ def record_video(slides, template_html, output_path, width=1080, height=1920, st
 
         page.evaluate(f"window.slidesData = {json.dumps({'slides': slides}, ensure_ascii=False)}")
         page.evaluate(f"window.themeName = '{style}'")
+        page.evaluate(f"window.visualStyle = '{visual_style}'")
         page.evaluate("window.startPresentation()")
 
         total_duration = sum(s.get("duration", 10) for s in slides)
@@ -307,6 +309,191 @@ def merge_with_bgm_ducking(video_path, narration_path, bgm_path, output_path,
     return output_path
 
 
+SFX_CUE_PRESETS = {
+    "tech": [
+        {"time": 0.10, "name": "whoosh", "volume": 0.55},
+        {"time": 3.0, "name": "enter", "volume": 0.55},
+        {"time": 4.0, "name": "slide-in", "volume": 0.55},
+        {"time": 5.5, "name": "sparkle", "volume": 0.70},
+        {"time": 7.0, "name": "sparkle", "volume": 0.70},
+        {"time": 8.5, "name": "sparkle", "volume": 0.70},
+        {"time": 10.0, "name": "sparkle", "volume": 0.70},
+        {"time": 11.5, "name": "sparkle", "volume": 0.70},
+        {"time": 14.0, "name": "click", "volume": 0.55},
+        {"time": 17.8, "name": "logo-reveal", "volume": 0.85},
+    ],
+    "edu": [
+        {"time": 0.10, "name": "whoosh", "volume": 0.50},
+        {"time": 3.0, "name": "enter", "volume": 0.50},
+        {"time": 5.0, "name": "sparkle", "volume": 0.65},
+        {"time": 8.0, "name": "sparkle", "volume": 0.65},
+        {"time": 11.0, "name": "sparkle", "volume": 0.65},
+        {"time": 14.0, "name": "click", "volume": 0.50},
+        {"time": 17.8, "name": "logo-reveal", "volume": 0.80},
+    ],
+    "compare": [
+        {"time": 0.10, "name": "whoosh", "volume": 0.55},
+        {"time": 3.0, "name": "enter", "volume": 0.55},
+        {"time": 5.0, "name": "click", "volume": 0.60},
+        {"time": 8.0, "name": "click", "volume": 0.60},
+        {"time": 11.0, "name": "sparkle", "volume": 0.70},
+        {"time": 14.0, "name": "click", "volume": 0.55},
+        {"time": 17.8, "name": "logo-reveal", "volume": 0.85},
+    ],
+    "philosophy": [
+        {"time": 0.10, "name": "whoosh", "volume": 0.40},
+        {"time": 5.0, "name": "sparkle", "volume": 0.50},
+        {"time": 10.0, "name": "sparkle", "volume": 0.50},
+        {"time": 17.8, "name": "logo-reveal", "volume": 0.75},
+    ],
+}
+
+
+def _generate_sfx_track(sfx_cues, sfx_dir, duration, output_path):
+    if not sfx_cues or not sfx_dir or not os.path.isdir(sfx_dir):
+        return None
+
+    available = {}
+    for f in os.listdir(sfx_dir):
+        name = os.path.splitext(f)[0]
+        available[name] = os.path.join(sfx_dir, f)
+
+    valid_cues = []
+    for cue in sfx_cues:
+        if cue["time"] < duration and cue["name"] in available:
+            valid_cues.append(cue)
+
+    if not valid_cues:
+        return None
+
+    inputs = []
+    filter_parts = []
+    for i, cue in enumerate(valid_cues):
+        path = available[cue["name"]]
+        inputs.extend(["-i", path])
+        delay_ms = int(cue["time"] * 1000)
+        vol = cue.get("volume", 0.55)
+        filter_parts.append(
+            f"[{i + 1}:a]adelay={delay_ms}|{delay_ms},volume={vol}[sfx{i}]"
+        )
+
+    mix_inputs = "".join(f"[sfx{i}]" for i in range(len(valid_cues)))
+    filter_parts.append(f"{mix_inputs}amix=inputs={len(valid_cues)}:duration=longest[sfxout]")
+
+    filter_complex = ";".join(filter_parts)
+
+    cmd = [
+        FFMPEG, "-y",
+        "-f", "lavfi",
+        "-i", f"anullsrc=r=44100:cl=stereo",
+    ]
+    cmd.extend(inputs)
+    cmd.extend([
+        "-filter_complex", filter_complex,
+        "-map", "[sfxout]",
+        "-t", f"{duration:.2f}",
+        "-c:a", "aac",
+        "-b:a", "128k",
+        output_path,
+    ])
+
+    try:
+        subprocess.run(cmd, check=True, capture_output=True)
+        print(f"  [SFX] Generated SFX track: {output_path}")
+        return output_path
+    except subprocess.CalledProcessError as e:
+        print(f"  [WARN] SFX generation failed: {e}")
+        return None
+
+
+def merge_with_sfx(video_path, narration_path, bgm_path, sfx_cues, sfx_dir, output_path,
+                   bgm_volume=0.3, duck_threshold=0.1, duck_ratio=4):
+    duration = get_video_duration(video_path)
+    if duration is None:
+        duration = get_audio_duration(video_path)
+
+    sfx_path = None
+    if sfx_cues and sfx_dir:
+        sfx_tmp = os.path.join(os.path.dirname(output_path), "sfx_track.m4a")
+        sfx_path = _generate_sfx_track(sfx_cues, sfx_dir, duration, sfx_tmp)
+
+    if not sfx_path:
+        if bgm_path and os.path.exists(bgm_path):
+            return merge_with_bgm_ducking(video_path, narration_path, bgm_path, output_path,
+                                          bgm_volume, duck_threshold, duck_ratio)
+        elif narration_path and os.path.exists(narration_path):
+            return merge_video_audio(video_path, narration_path, output_path)
+        else:
+            return None
+
+    audio_inputs = []
+    filter_parts = []
+
+    input_idx = 1
+    if narration_path and os.path.exists(narration_path):
+        audio_inputs.extend(["-i", narration_path])
+        filter_parts.append(f"[{input_idx}:a]volume=1.0[narr]")
+        narr_idx = input_idx
+        input_idx += 1
+    else:
+        narr_idx = None
+
+    if bgm_path and os.path.exists(bgm_path):
+        audio_inputs.extend(["-i", bgm_path])
+        filter_parts.append(
+            f"[{input_idx}:a]volume={bgm_volume},atrim=0:{duration:.2f},"
+            f"afade=t=in:st=0:d=0.3,afade=t=out:st={max(0, duration - 1):.2f}:d=1[bgm]"
+        )
+        bgm_idx = input_idx
+        input_idx += 1
+    else:
+        bgm_idx = None
+
+    audio_inputs.extend(["-i", sfx_path])
+    filter_parts.append(f"[{input_idx}:a]volume=0.55[sfx]")
+    sfx_idx = input_idx
+    input_idx += 1
+
+    if narr_idx and bgm_idx:
+        filter_parts.append(
+            f"[bgm][narr]sidechaincompress=threshold={duck_threshold}:ratio={duck_ratio}:"
+            f"attack=5:release=50[bgm_ducked]"
+        )
+        filter_parts.append("[bgm_ducked][sfx]amix=inputs=2:duration=longest[mixed]")
+    elif narr_idx:
+        filter_parts.append(f"[narr][sfx]amix=inputs=2:duration=longest[mixed]")
+    elif bgm_idx:
+        filter_parts.append(f"[bgm][sfx]amix=inputs=2:duration=longest[mixed]")
+    else:
+        filter_parts.append(f"[sfx]acopy[mixed]")
+
+    filter_complex = ";".join(filter_parts)
+
+    cmd = [
+        FFMPEG, "-y",
+        "-i", video_path,
+    ]
+    cmd.extend(audio_inputs)
+    cmd.extend([
+        "-filter_complex", filter_complex,
+        "-map", "0:v",
+        "-map", "[mixed]",
+        "-c:v", "libx264",
+        "-preset", "medium",
+        "-crf", "23",
+        "-pix_fmt", "yuv420p",
+        "-c:a", "aac",
+        "-b:a", "128k",
+        "-shortest",
+        "-movflags", "+faststart",
+        output_path,
+    ])
+
+    subprocess.run(cmd, check=True, capture_output=True)
+    print(f"  [BGM+SFX] Output: {output_path}")
+    return output_path
+
+
 def export_gif(video_path, output_path, fps=10, width=540):
     cmd = [
         FFMPEG, "-y",
@@ -363,12 +550,16 @@ def compress_video(input_path, output_path, target_size_mb=50):
 
 def generate_video(slides_path, output_dir, template_html=None, voice="zh-CN-YunxiNeural",
                    rate="+0%", width=1080, height=1920, compress=False,
-                   style="dark", bgm=None, fmt="mp4"):
+                   style="dark", bgm=None, fmt="mp4", visual_style="tech", sfx_dir=None):
     check_dependencies()
 
     if style not in VALID_STYLES:
         print(f"  [WARN] Unknown style '{style}', using 'dark'")
         style = "dark"
+
+    if visual_style not in VALID_VISUAL_STYLES:
+        print(f"  [WARN] Unknown visual_style '{visual_style}', using 'tech'")
+        visual_style = "tech"
 
     if fmt not in VALID_FORMATS:
         print(f"  [WARN] Unknown format '{fmt}', using 'mp4'")
@@ -400,14 +591,21 @@ def generate_video(slides_path, output_dir, template_html=None, voice="zh-CN-Yun
         concat_audio_path = None
         print("  [WARN] No narrations generated, producing silent video")
 
-    print(f"[3/5] Recording Canvas animation (style={style})...")
+    print(f"[3/5] Recording Canvas animation (style={style}, visual={visual_style})...")
     raw_video_path = os.path.join(output_dir, "raw.webm")
-    record_video(slides, template_html, raw_video_path, width=width, height=height, style=style)
+    record_video(slides, template_html, raw_video_path, width=width, height=height,
+                 style=style, visual_style=visual_style)
 
     print("[4/5] Merging video and audio...")
     final_path = os.path.join(output_dir, "final.mp4")
 
-    if bgm and os.path.exists(bgm) and concat_audio_path and os.path.exists(concat_audio_path):
+    sfx_cues = SFX_CUE_PRESETS.get(visual_style)
+    has_sfx = sfx_dir and os.path.isdir(sfx_dir) and sfx_cues
+
+    if has_sfx:
+        print(f"  [SFX] Applying BGM+SFX with ducking (visual_style={visual_style})")
+        merge_with_sfx(raw_video_path, concat_audio_path, bgm, sfx_cues, sfx_dir, final_path)
+    elif bgm and os.path.exists(bgm) and concat_audio_path and os.path.exists(concat_audio_path):
         print(f"  [BGM] Applying BGM with ducking: {bgm}")
         merge_with_bgm_ducking(raw_video_path, concat_audio_path, bgm, final_path)
     elif concat_audio_path and os.path.exists(concat_audio_path):
@@ -445,9 +643,12 @@ def generate_video(slides_path, output_dir, template_html=None, voice="zh-CN-Yun
     print(f"  Output: {final_path}")
     print(f"  Size: {file_size_mb:.1f} MB")
     print(f"  Style: {style}")
+    print(f"  Visual: {visual_style}")
     print(f"  Format: {fmt}")
     if bgm:
         print(f"  BGM: {bgm}")
+    if has_sfx:
+        print(f"  SFX: {sfx_dir} ({len(sfx_cues)} cues)")
 
     return final_path
 
@@ -466,8 +667,13 @@ def main():
     parser.add_argument("--compress", action="store_true", help="Compress to 50MB limit")
     parser.add_argument("--style", default="dark", choices=VALID_STYLES,
                         help="Visual style: dark, warm, minimal, nature")
+    parser.add_argument("--visual-style", default="tech", choices=VALID_VISUAL_STYLES,
+                        dest="visual_style",
+                        help="Cinematic visual language: tech, edu, compare, philosophy")
     parser.add_argument("--bgm", default=None,
                         help="Background music file path (MP3/WAV). Auto ducking when narration plays.")
+    parser.add_argument("--sfx-dir", default=None, dest="sfx_dir",
+                        help="SFX audio directory (contains whoosh.mp3, sparkle.mp3, etc.)")
     parser.add_argument("--format", default="mp4", choices=VALID_FORMATS,
                         help="Output format: mp4 (25fps), mp4_60fps, gif")
 
@@ -484,6 +690,8 @@ def main():
         style=args.style,
         bgm=args.bgm,
         fmt=args.format,
+        visual_style=args.visual_style,
+        sfx_dir=args.sfx_dir,
     )
 
 
