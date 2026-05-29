@@ -74,17 +74,24 @@ def generate_cover_png(title, subtitle="", author="", theme="claude-warm", outpu
         return None
 
     try:
+        import math
+
         w, h = 900, 383
         center_x = 450
+        crop_l, crop_r = 259, 641
 
         if not output_path:
             output_dir = Path.cwd() / "output" / "images"
             output_dir.mkdir(parents=True, exist_ok=True)
-            output_path = str(output_dir / "cover.png")
+            safe_title = "".join(ch for ch in title[:20] if ch.isalnum() or ch in " _-") or "cover"
+            output_path = str(output_dir / f"cover_{safe_title}.png")
 
         bg_main = (28, 25, 23)
+        bg_mid = (37, 34, 32)
+        bg_deep = (17, 15, 13)
         accent = (201, 100, 66)
         gold = (212, 167, 106)
+        gold_light = (232, 201, 138)
         text_main = (245, 240, 235)
         text_sub = (168, 159, 149)
 
@@ -93,9 +100,13 @@ def generate_cover_png(title, subtitle="", author="", theme="claude-warm", outpu
 
         for y_px in range(h):
             t = y_px / h
-            r = int(bg_main[0] * (1 - t) + 17 * t)
-            g = int(bg_main[1] * (1 - t) + 15 * t)
-            b = int(bg_main[2] * (1 - t) + 13 * t)
+            t2 = (y_px / h) * 0.3
+            r = int(bg_main[0] * (1 - t) + bg_deep[0] * t + (bg_mid[0] - bg_main[0]) * t2)
+            g = int(bg_main[1] * (1 - t) + bg_deep[1] * t + (bg_mid[1] - bg_main[1]) * t2)
+            b = int(bg_main[2] * (1 - t) + bg_deep[2] * t + (bg_mid[2] - bg_main[2]) * t2)
+            r = max(0, min(255, r))
+            g = max(0, min(255, g))
+            b = max(0, min(255, b))
             draw.line([(0, y_px), (w, y_px)], fill=(r, g, b))
 
         overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
@@ -105,7 +116,95 @@ def generate_cover_png(title, subtitle="", author="", theme="claude-warm", outpu
             t = i / glow_r
             alpha = int(46 * (1 - t) ** 2)
             od.ellipse([center_x - i, 170 - i, center_x + i, 170 + i], fill=accent + (alpha,))
+
+        gr_cx, gr_cy = int(w * 0.78), int(h * 0.15)
+        glow_r2 = int(h * 0.8)
+        for i in range(glow_r2, 0, -2):
+            t = i / glow_r2
+            alpha = int(26 * (1 - t) ** 2)
+            od.ellipse([gr_cx - i, gr_cy - i, gr_cx + i, gr_cy + i], fill=gold + (alpha,))
         img = Image.alpha_composite(img, overlay)
+        draw = ImageDraw.Draw(img)
+
+        bl_overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        bld = ImageDraw.Draw(bl_overlay)
+        bl_cx, bl_cy = int(w * 0.22), int(h * 0.85)
+        glow_r3 = int(h * 0.6)
+        for i in range(glow_r3, 0, -2):
+            t = i / glow_r3
+            alpha = int(30 * (1 - t) ** 2)
+            bld.ellipse([bl_cx - i, bl_cy - i, bl_cx + i, bl_cy + i], fill=accent + (alpha,))
+        img = Image.alpha_composite(img, bl_overlay)
+        draw = ImageDraw.Draw(img)
+
+        draw.line([(w - 60, 40), (w - 60, h - 40)], fill=gold + (46,), width=1)
+        draw.line([(w - 45, 60), (w - 45, h - 60)], fill=gold + (26,), width=1)
+        draw.line([(60, 40), (60, h - 40)], fill=accent + (38,), width=1)
+        draw.line([(45, 60), (45, h - 60)], fill=accent + (20,), width=1)
+
+        orbit_overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        od2 = ImageDraw.Draw(orbit_overlay)
+        cx, cy = center_x, 175
+        rx, ry = 170, 45
+        angle1 = math.radians(-8)
+        for deg in range(0, 360, 2):
+            rad = math.radians(deg)
+            px = rx * math.cos(rad)
+            py = ry * math.sin(rad)
+            x_rot = cx + px * math.cos(angle1) - py * math.sin(angle1)
+            y_rot = cy + px * math.sin(angle1) + py * math.cos(angle1)
+            od2.ellipse([x_rot - 0.8, y_rot - 0.8, x_rot + 0.8, y_rot + 0.8], fill=gold + (56,))
+        angle2 = math.radians(22)
+        for deg in range(0, 360, 3):
+            rad = math.radians(deg)
+            px = rx * math.cos(rad)
+            py = ry * math.sin(rad)
+            x_rot = cx + px * math.cos(angle2) - py * math.sin(angle2)
+            y_rot = cy + px * math.sin(angle2) + py * math.cos(angle2)
+            od2.ellipse([x_rot - 0.5, y_rot - 0.5, x_rot + 0.5, y_rot + 0.5], fill=gold + (26,))
+        img = Image.alpha_composite(img, orbit_overlay)
+        draw = ImageDraw.Draw(img)
+
+        stars = [
+            (center_x - 120, 60, 1.8, gold_light + (128,)),
+            (center_x + 95, 52, 1.2, gold + (89,)),
+            (center_x + 140, 310, 1.5, gold_light + (102,)),
+            (center_x - 80, 300, 1.0, gold + (77,)),
+            (center_x - 155, 180, 0.8, gold + (51,)),
+            (center_x + 60, 250, 1.3, gold_light + (77,)),
+            (center_x - 30, 340, 0.7, gold + (64,)),
+        ]
+        for sx, sy, sr, sc in stars:
+            draw.ellipse([sx - sr, sy - sr, sx + sr, sy + sr], fill=sc)
+
+        moon_cx, moon_cy, moon_r = crop_r - 45, 52, 10
+        draw.ellipse([moon_cx - moon_r, moon_cy - moon_r, moon_cx + moon_r, moon_cy + moon_r], fill=gold + (38,))
+        offset = 4
+        draw.ellipse([moon_cx + offset - moon_r, moon_cy - offset - moon_r + 1,
+                      moon_cx + offset + moon_r, moon_cy - offset + moon_r + 1], fill=bg_main + (217,))
+
+        corner_len = 20
+        corner_pad = 12
+        corner_alpha = 115
+        corner_color = gold + (corner_alpha,)
+        draw.line([(crop_l + corner_pad, 8), (crop_l + corner_pad, 8 + corner_len)], fill=corner_color, width=2)
+        draw.line([(crop_l + corner_pad, 8), (crop_l + corner_pad + corner_len, 8)], fill=corner_color, width=2)
+        draw.line([(crop_r - corner_pad, 8), (crop_r - corner_pad, 8 + corner_len)], fill=corner_color, width=2)
+        draw.line([(crop_r - corner_pad - corner_len, 8), (crop_r - corner_pad, 8)], fill=corner_color, width=2)
+        draw.line([(crop_l + corner_pad, h - 8), (crop_l + corner_pad, h - 8 - corner_len)], fill=corner_color, width=2)
+        draw.line([(crop_l + corner_pad, h - 8), (crop_l + corner_pad + corner_len, h - 8)], fill=corner_color, width=2)
+        draw.line([(crop_r - corner_pad, h - 8), (crop_r - corner_pad, h - 8 - corner_len)], fill=corner_color, width=2)
+        draw.line([(crop_r - corner_pad - corner_len, h - 8), (crop_r - corner_pad, h - 8)], fill=corner_color, width=2)
+
+        line_overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        ld = ImageDraw.Draw(line_overlay)
+        for x_px in range(30, 870):
+            t = (x_px - 30) / 840.0
+            bell = max(0, 1.0 - abs(t - 0.5) * 2.5)
+            alpha = int(179 * bell)
+            ld.line([(x_px, 18), (x_px + 1, 18)], fill=gold + (alpha,), width=1)
+            ld.line([(x_px, h - 18), (x_px + 1, h - 18)], fill=gold + (alpha,), width=1)
+        img = Image.alpha_composite(img, line_overlay)
         draw = ImageDraw.Draw(img)
 
         draw.line([(center_x - 60, 148), (center_x + 60, 148)], fill=accent + (204,), width=3)
@@ -198,41 +297,42 @@ def publish(file_path, theme="claude-warm", cover="", title="", author="",
     cover_path = cover
     if not cover_path and auto_cover:
         print("Generating cover...")
-        _cairosvg_ok = False
-        try:
-            import cairosvg
-            _test_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10" fill="red"/></svg>'
-            cairosvg.svg2png(bytestring=_test_svg.encode())
-            _cairosvg_ok = True
-        except Exception:
-            pass
 
-        if _cairosvg_ok:
+        png_result = generate_cover_png(
+            title=article_title,
+            subtitle=article_digest,
+            author=article_author,
+            theme=theme,
+        )
+        if png_result:
+            cover_path = png_result
+            print(f"  Cover generated (PIL): {cover_path}")
+
+        if not cover_path:
+            _cairosvg_ok = False
             try:
                 import cairosvg
-                svg_path = generate_cover_svg(
-                    title=article_title,
-                    subtitle=article_digest,
-                    author=article_author,
-                    theme=theme,
-                )
-                png_path = svg_path.replace(".svg", ".png")
-                cairosvg.svg2png(url=svg_path, write_to=png_path)
-                cover_path = png_path
-                print(f"  Cover generated (SVG->PNG): {png_path}")
+                _test_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10" fill="red"/></svg>'
+                cairosvg.svg2png(bytestring=_test_svg.encode())
+                _cairosvg_ok = True
             except Exception:
                 pass
 
-        if not cover_path:
-            png_result = generate_cover_png(
-                title=article_title,
-                subtitle=article_digest,
-                author=article_author,
-                theme=theme,
-            )
-            if png_result:
-                cover_path = png_result
-                print(f"  Cover generated (PIL): {cover_path}")
+            if _cairosvg_ok:
+                try:
+                    import cairosvg
+                    svg_path = generate_cover_svg(
+                        title=article_title,
+                        subtitle=article_digest,
+                        author=article_author,
+                        theme=theme,
+                    )
+                    png_path = svg_path.replace(".svg", ".png")
+                    cairosvg.svg2png(url=svg_path, write_to=png_path)
+                    cover_path = png_path
+                    print(f"  Cover generated (SVG->PNG): {png_path}")
+                except Exception:
+                    pass
 
     img_replacements = []
     if upload_images:
