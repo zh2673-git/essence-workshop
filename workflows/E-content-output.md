@@ -320,14 +320,50 @@ python scripts/video_pipeline.py slides.json --output output/video/ --voice zh-C
 ### 完整命令
 
 ```bash
-# 一键生成视频
-python scripts/video_pipeline.py output/slides.json --output output/video/
+# 模式1：纯模板（默认，最简单）
+python scripts/video_pipeline.py output/slides.json --output output/video/ --style warm
+
+# 模式2：模板+品牌微调（指定品牌素材，在模板基础上覆写颜色）
+python scripts/video_pipeline.py output/slides.json --output output/video/ --style warm --brand-spec output/brand-spec.json
+
+# 模式3：纯品牌（不指定style，从brand-spec自动检测主题）
+python scripts/video_pipeline.py output/slides.json --output output/video/ --brand-spec output/brand-spec.json
 
 # 指定语音和压缩
 python scripts/video_pipeline.py output/slides.json --output output/video/ --voice zh-CN-YunxiNeural --compress
 
 # 横屏模式
 python scripts/video_pipeline.py output/slides.json --output output/video/ --width 1920 --height 1080
+```
+
+#### 品牌素材路由规则
+
+根据用户提示词自动选择模式：
+
+```
+用户说了什么？
+├── 只说了风格（暖色/深色/极简/自然）→ 纯模板模式 --style warm
+├── 提到「品牌」「品牌色」「品牌素材」→ 模板+品牌模式 --style warm --brand-spec xxx.json
+├── 提到「自动配色」「从文章提取颜色」→ 自动品牌模式 --auto-brand
+└── 什么都没说 → 纯模板模式 --style dark（默认）
+```
+
+**三种模式对比**：
+
+| 模式 | 命令 | 效果 | 适用场景 |
+|------|------|------|---------|
+| 纯模板 | `--style warm` | 直接用固定配色模板 | 快速出片，风格明确 |
+| 模板+品牌 | `--style warm --brand-spec xxx.json` | warm打底 + brand-spec覆写关键色 | 有品牌素材，想微调 |
+| 纯品牌 | `--brand-spec xxx.json`（不指定--style） | brand-spec自动选主题 + 覆写颜色 | 完全由品牌素材决定 |
+
+**article_to_video.py 品牌参数**：
+
+```bash
+# 自动从文章提取品牌素材并应用
+python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxx" --auto-brand
+
+# 手动指定品牌素材
+python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxx" --brand-spec output/brand-spec.json
 ```
 
 ### 公众号+视频号双输出
