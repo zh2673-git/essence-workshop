@@ -74,10 +74,10 @@ def generate_tts(narrations, output_dir, voice="zh-CN-YunxiNeural", rate="+0%"):
     os.makedirs(output_dir, exist_ok=True)
     audio_files = []
 
-    async def _generate_one(text, output_path, max_retries=3):
+    async def _generate_one(text, output_path, tts_rate="+0%", max_retries=3):
         for attempt in range(max_retries):
             try:
-                communicate = edge_tts.Communicate(text, voice, rate=rate)
+                communicate = edge_tts.Communicate(text, voice, rate=tts_rate)
                 await communicate.save(output_path)
                 if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
                     return True
@@ -98,7 +98,7 @@ def generate_tts(narrations, output_dir, voice="zh-CN-YunxiNeural", rate="+0%"):
             output_path = os.path.join(output_dir, f"narration_{i:03d}.mp3")
             print(f"  [TTS] Generating narration {i + 1}/{len(narrations)}: {text[:40]}...")
 
-            success = await _generate_one(text, output_path)
+            success = await _generate_one(text, output_path, tts_rate=rate)
             if success:
                 audio_files.append(output_path)
             else:
@@ -117,31 +117,60 @@ def concat_audios(audio_files, output_path):
         shutil.copy2(audio_files[0], output_path)
         return output_path
 
+    tmp_dir = os.path.join(os.path.dirname(output_path), "_concat_tmp")
+    os.makedirs(tmp_dir, exist_ok=True)
+
     try:
-        file_list_path = os.path.join(os.path.dirname(output_path), "filelist.txt")
+        file_list_path = os.path.join(tmp_dir, "filelist.txt")
         with open(file_list_path, "w", encoding="utf-8") as f:
             for af in audio_files:
-                af_escaped = os.path.abspath(af).replace("\\", "/")
-                f.write(f"file '{af_escaped}'\n")
-
+                af_abs = os.path.abspath(af).replace("\\", "/")
+                f.write(f"file '{af_abs}'\n")
         cmd = [
             FFMPEG, "-y",
-            "-f", "concat",
-            "-safe", "0",
+            "-f", "concat", "-safe", "0",
             "-i", file_list_path,
-            "-c:a", "aac",
-            "-b:a", "128k",
+            "-c:a", "libmp3lame", "-b:a", "128k",
+            "-ar", "24000", "-ac", "1",
             output_path,
         ]
         subprocess.run(cmd, check=True, capture_output=True)
         return output_path
-    except subprocess.CalledProcessError:
-        print("  [WARN] ffmpeg concat failed, falling back to binary concatenation...")
-        with open(output_path, "wb") as out_f:
-            for af in audio_files:
-                with open(af, "rb") as in_f:
-                    out_f.write(in_f.read())
-        return output_path
+    except Exception as e:
+        print(f"  [WARN] FFmpeg concat failed: {e}, trying WAV concat...")
+        try:
+            import wave
+            wav_files = []
+            for i, af in enumerate(audio_files):
+                wav_path = os.path.join(tmp_dir, f"_{i:03d}.wav")
+                cmd = [FFMPEG, "-y", "-i", af, "-ar", "24000", "-ac", "1", "-acodec", "pcm_s16le", wav_path]
+                subprocess.run(cmd, check=True, capture_output=True)
+                wav_files.append(wav_path)
+
+            merged_wav = os.path.join(tmp_dir, "merged.wav")
+            with wave.open(wav_files[0], 'rb') as first:
+                params = first.getparams()
+                all_frames = [first.readframes(first.getnframes())]
+
+            for wf in wav_files[1:]:
+                with wave.open(wf, 'rb') as f:
+                    all_frames.append(f.readframes(f.getnframes()))
+
+            with wave.open(merged_wav, 'wb') as out:
+                out.setparams(params)
+                for frames in all_frames:
+                    out.writeframes(frames)
+
+            cmd = [FFMPEG, "-y", "-i", merged_wav, "-c:a", "libmp3lame", "-b:a", "128k", output_path]
+            subprocess.run(cmd, check=True, capture_output=True)
+            return output_path
+        except Exception as e2:
+            print(f"  [WARN] All concat methods failed: {e2}")
+            raise RuntimeError(f"Audio concatenation failed: {e2}")
+    finally:
+        import shutil
+        if os.path.exists(tmp_dir):
+            shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 def get_ffprobe():
@@ -192,6 +221,16 @@ def get_video_duration(video_path):
         result = subprocess.run(cmd, capture_output=True, text=True)
         info = json.loads(result.stdout)
         return float(info["format"]["duration"])
+    cmd = [
+        FFMPEG, "-i", video_path,
+        "-f", "null", "-",
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    for line in result.stderr.split("\n"):
+        if "Duration" in line:
+            parts = line.split("Duration:")[1].split(",")[0].strip()
+            h, m, s = parts.split(":")
+            return float(h) * 3600 + float(m) * 60 + float(s)
     return None
 
 
@@ -217,6 +256,25 @@ def adjust_slide_durations(slides, audio_path):
     return slides
 
 
+def adjust_slide_durations_per_audio(slides, audio_files):
+    adjusted_count = 0
+    audio_idx = 0
+    for i, slide in enumerate(slides):
+        narration = slide.get("narration", "")
+        if narration and narration.strip() and audio_idx < len(audio_files):
+            try:
+                dur = get_audio_duration(audio_files[audio_idx])
+                slide["duration"] = max(3, round(dur, 2))
+                adjusted_count += 1
+            except Exception:
+                pass
+            audio_idx += 1
+
+    total = sum(s.get("duration", 10) for s in slides)
+    print(f"  [DURATION] Per-slide sync: {adjusted_count}/{len(slides)} slides matched, total {total:.1f}s")
+    return slides
+
+
 def record_video(slides, template_html, output_path, width=1080, height=1920, style="dark", visual_style="tech"):
     from playwright.sync_api import sync_playwright
 
@@ -230,6 +288,8 @@ def record_video(slides, template_html, output_path, width=1080, height=1920, st
         )
         page = context.new_page()
 
+        record_start = time.time()
+
         template_url = f"file:///{os.path.abspath(template_html).replace(os.sep, '/')}"
         page.goto(template_url)
         page.wait_for_timeout(500)
@@ -237,6 +297,10 @@ def record_video(slides, template_html, output_path, width=1080, height=1920, st
         page.evaluate(f"window.slidesData = {json.dumps({'slides': slides}, ensure_ascii=False)}")
         page.evaluate(f"window.themeName = '{style}'")
         page.evaluate(f"window.visualStyle = '{visual_style}'")
+
+        anim_start = time.time()
+        offset_seconds = anim_start - record_start
+
         page.evaluate("window.startPresentation()")
 
         total_duration = sum(s.get("duration", 10) for s in slides)
@@ -251,21 +315,55 @@ def record_video(slides, template_html, output_path, width=1080, height=1920, st
             import shutil
             shutil.move(video_path, output_path)
 
-    print(f"  [VIDEO] Recorded: {output_path}")
+    print(f"  [VIDEO] Recorded: {output_path} (blank prefix: {offset_seconds:.2f}s)")
+    return output_path, offset_seconds
+
+
+def prepare_video(raw_path, output_path, trim_start=0.0, target_duration=None):
+    video_dur = get_video_duration(raw_path)
+    if video_dur is None:
+        print("  [WARN] Could not get video duration, copying as-is")
+        import shutil
+        shutil.copy2(raw_path, output_path)
+        return output_path
+
+    effective_dur = max(0, video_dur - trim_start)
+
+    cmd = [FFMPEG, "-y"]
+
+    if trim_start > 0.3:
+        cmd.extend(["-ss", f"{trim_start:.3f}"])
+
+    cmd.extend(["-i", raw_path])
+
+    pts_factor = 1.0
+    if target_duration and effective_dur > 0 and abs(effective_dur - target_duration) > 0.5:
+        pts_factor = target_duration / effective_dur
+        cmd.extend(["-filter:v", f"setpts=PTS*{pts_factor:.6f}"])
+        print(f"  [PREPARE] Speed: {1/pts_factor:.4f}x ({effective_dur:.1f}s -> {target_duration:.1f}s)")
+
+    cmd.extend([
+        "-c:v", "libx264",
+        "-preset", "medium",
+        "-crf", "20",
+        "-pix_fmt", "yuv420p",
+        "-an",
+        "-movflags", "+faststart",
+        output_path,
+    ])
+    subprocess.run(cmd, check=True, capture_output=True)
+    print(f"  [PREPARE] Output: {output_path}")
     return output_path
 
 
-def merge_video_audio(video_path, audio_path, output_path):
+def merge_video_audio(video_path, audio_path, output_path, target_duration=None):
     cmd = [
         FFMPEG, "-y",
         "-i", video_path,
         "-i", audio_path,
-        "-c:v", "libx264",
-        "-preset", "medium",
-        "-crf", "23",
+        "-c:v", "copy",
         "-c:a", "aac",
         "-b:a", "128k",
-        "-pix_fmt", "yuv420p",
         "-shortest",
         "-movflags", "+faststart",
         output_path,
@@ -294,10 +392,7 @@ def merge_with_bgm_ducking(video_path, narration_path, bgm_path, output_path,
         ),
         "-map", "0:v",
         "-map", "[mixed]",
-        "-c:v", "libx264",
-        "-preset", "medium",
-        "-crf", "23",
-        "-pix_fmt", "yuv420p",
+        "-c:v", "copy",
         "-c:a", "aac",
         "-b:a", "128k",
         "-shortest",
@@ -478,10 +573,7 @@ def merge_with_sfx(video_path, narration_path, bgm_path, sfx_cues, sfx_dir, outp
         "-filter_complex", filter_complex,
         "-map", "0:v",
         "-map", "[mixed]",
-        "-c:v", "libx264",
-        "-preset", "medium",
-        "-crf", "23",
-        "-pix_fmt", "yuv420p",
+        "-c:v", "copy",
         "-c:a", "aac",
         "-b:a", "128k",
         "-shortest",
@@ -576,27 +668,42 @@ def generate_video(slides_path, output_dir, template_html=None, voice="zh-CN-Yun
         data = json.load(f)
     slides = data["slides"]
 
-    print(f"[1/5] Generating TTS narrations ({len(slides)} slides)...")
+    print(f"[1/6] Generating TTS narrations ({len(slides)} slides)...")
     narrations = [s.get("narration", "") for s in slides]
     audio_dir = os.path.join(output_dir, "audio")
     audio_files = generate_tts(narrations, audio_dir, voice=voice, rate=rate)
 
-    print("[2/5] Concatenating audio...")
+    print("[2/6] Concatenating audio...")
     concat_audio_path = os.path.join(output_dir, "narration.mp3")
     if audio_files:
         concat_audios(audio_files, concat_audio_path)
-        print("[2.5/5] Adjusting slide durations to match audio...")
-        slides = adjust_slide_durations(slides, concat_audio_path)
+        print("[2.5/6] Syncing slide durations to audio...")
+        slides = adjust_slide_durations_per_audio(slides, audio_files)
     else:
         concat_audio_path = None
         print("  [WARN] No narrations generated, producing silent video")
 
-    print(f"[3/5] Recording Canvas animation (style={style}, visual={visual_style})...")
+    print(f"[3/6] Recording Canvas animation (style={style}, visual={visual_style})...")
     raw_video_path = os.path.join(output_dir, "raw.webm")
-    record_video(slides, template_html, raw_video_path, width=width, height=height,
-                 style=style, visual_style=visual_style)
+    raw_video_path, offset_seconds = record_video(
+        slides, template_html, raw_video_path, width=width, height=height,
+        style=style, visual_style=visual_style)
 
-    print("[4/5] Merging video and audio...")
+    target_duration = sum(s.get("duration", 10) for s in slides)
+    if concat_audio_path and os.path.exists(concat_audio_path):
+        try:
+            audio_dur = get_audio_duration(concat_audio_path)
+            target_duration = audio_dur
+            print(f"  [SYNC] Audio duration: {audio_dur:.2f}s, using as target")
+        except Exception:
+            pass
+
+    print(f"[4/6] Preparing video (trim={offset_seconds:.2f}s, target={target_duration:.2f}s)...")
+    prepared_path = os.path.join(output_dir, "prepared.mp4")
+    prepare_video(raw_video_path, prepared_path,
+                  trim_start=offset_seconds, target_duration=target_duration)
+
+    print("[5/6] Merging video and audio...")
     final_path = os.path.join(output_dir, "final.mp4")
 
     sfx_cues = SFX_CUE_PRESETS.get(visual_style)
@@ -604,20 +711,17 @@ def generate_video(slides_path, output_dir, template_html=None, voice="zh-CN-Yun
 
     if has_sfx:
         print(f"  [SFX] Applying BGM+SFX with ducking (visual_style={visual_style})")
-        merge_with_sfx(raw_video_path, concat_audio_path, bgm, sfx_cues, sfx_dir, final_path)
+        merge_with_sfx(prepared_path, concat_audio_path, bgm, sfx_cues, sfx_dir, final_path)
     elif bgm and os.path.exists(bgm) and concat_audio_path and os.path.exists(concat_audio_path):
         print(f"  [BGM] Applying BGM with ducking: {bgm}")
-        merge_with_bgm_ducking(raw_video_path, concat_audio_path, bgm, final_path)
+        merge_with_bgm_ducking(prepared_path, concat_audio_path, bgm, final_path)
     elif concat_audio_path and os.path.exists(concat_audio_path):
-        merge_video_audio(raw_video_path, concat_audio_path, final_path)
+        merge_video_audio(prepared_path, concat_audio_path, final_path)
     else:
         cmd = [
             FFMPEG, "-y",
-            "-i", raw_video_path,
-            "-c:v", "libx264",
-            "-preset", "medium",
-            "-crf", "23",
-            "-pix_fmt", "yuv420p",
+            "-i", prepared_path,
+            "-c:v", "copy",
             "-movflags", "+faststart",
             "-an",
             final_path,
@@ -629,7 +733,7 @@ def generate_video(slides_path, output_dir, template_html=None, voice="zh-CN-Yun
         compress_video(final_path, compressed_path)
         final_path = compressed_path
 
-    print("[5/5] Exporting additional formats...")
+    print("[6/6] Exporting additional formats...")
     if fmt == "gif":
         gif_path = os.path.join(output_dir, "final.gif")
         export_gif(final_path, gif_path)

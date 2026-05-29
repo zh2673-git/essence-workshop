@@ -584,12 +584,14 @@ function renderTitle(slide, progress, idx, total, sprites) {
     ctx.save();
     const slideUp = (1 - sSub.progress) * 80 * S;
     ctx.globalAlpha = sSub.progress * (1 - sSub.exitProgress);
-    ctx.fillStyle = C.whiteDim; ctx.font = F.subtitle;
+    ctx.fillStyle = C.whiteDim; ctx.font = F.small; ctx.textAlign = 'center';
     const titleLines = wrapText(slide.title, 0, 0, W - 240*S, 130*S);
     const titleY = H*0.36;
-    const subY = titleY + titleLines.length*130*S + 120*S + slideUp;
-    const subLines = wrapText(slide.subtitle, 0, 0, W - 300*S, 70*S);
-    subLines.forEach((line, i) => { ctx.fillText(line.text, W/2, subY + i*70*S); });
+    let subY = titleY + titleLines.length*130*S + 100*S + slideUp;
+    const maxSubY = H * 0.58;
+    if (subY > maxSubY) subY = maxSubY;
+    const subLines = wrapText(slide.subtitle, 0, 0, W - 240*S, 60*S);
+    subLines.forEach((line, i) => { ctx.fillText(line.text, W/2, subY + i*60*S); });
     ctx.restore();
   }
 
@@ -682,10 +684,18 @@ function renderQuote(slide, progress, idx, total, sprites) {
 
   if (sSrc.visible && slide.source) {
     ctx.save(); ctx.globalAlpha = sSrc.progress * (1 - sSrc.exitProgress);
-    ctx.fillStyle = C.muted; ctx.font = F.source;
+    ctx.fillStyle = C.muted; ctx.font = F.source; ctx.textAlign = 'center';
+    ctx.font = F.quote;
     const quoteLines = wrapText(slide.text, 0, 0, W - 400*S, 120*S);
     const quoteY = H*0.42;
-    ctx.fillText(`\u2014\u2014 ${slide.source}`, W/2, quoteY + quoteLines.length*120*S + 80*S);
+    ctx.font = F.source;
+    const srcText = `\u2014\u2014 ${slide.source}`;
+    const srcLines = wrapText(srcText, 0, 0, W - 400*S, 55*S);
+    const srcY = quoteY + quoteLines.length*120*S + 80*S;
+    const cardBottom = H*0.28 + H*0.38 - 60*S;
+    const maxSrcY = cardBottom - (srcLines.length - 1) * 55*S;
+    const finalSrcY = Math.min(srcY, maxSrcY);
+    srcLines.forEach((line, i) => { ctx.fillText(line.text, W/2, finalSrcY + i*55*S); });
     ctx.restore();
   }
 
@@ -953,8 +963,8 @@ function buildSceneTimeline(slides) {
 function lerp(a, b, t) { return a + (b - a) * t; }
 
 function sceneOpacity(scene, globalT) {
-  const fadeIn = 0.6;
-  const fadeOut = 0.4;
+  const fadeIn = 0.25;
+  const fadeOut = 0.2;
   const e = scene.enter;
   const x = scene.exit;
 
@@ -1002,7 +1012,7 @@ function tick(ts) {
   drawVisualLangBg(elapsed);
 
   const activeScenes = sceneData.scenes.filter(sc =>
-    elapsed >= sc.enter - 0.6 && elapsed <= sc.exit + 0.4
+    elapsed >= sc.enter - 0.25 && elapsed <= sc.exit + 0.2
   );
 
   activeScenes.sort((a, b) => a.enter - b.enter);
