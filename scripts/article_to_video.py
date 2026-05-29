@@ -347,8 +347,8 @@ def main():
     parser.add_argument("--save-article", type=str, default="", help="同时保存文章为Markdown")
     parser.add_argument("--save-slides", action="store_true", help="保存slides.json到输出目录")
     parser.add_argument("--template", "-t", default=None, help="自定义HTML模板路径")
-    parser.add_argument("--style", default="dark", choices=["dark", "warm", "minimal", "nature"],
-                        help="视觉风格: dark(深色), warm(暖色), minimal(极简), nature(自然)")
+    parser.add_argument("--style", default=None,
+                        help="视觉风格: dark/warm/minimal/nature，不指定则自动从brand-spec检测")
     parser.add_argument("--visual-style", default="auto", choices=["auto", "tech", "edu", "compare", "philosophy"],
                         dest="visual_style",
                         help="Cinematic视觉语言: auto(自动推断), tech, edu, compare, philosophy")
@@ -358,6 +358,10 @@ def main():
                         help="SFX音效目录(包含whoosh.mp3, sparkle.mp3等)")
     parser.add_argument("--format", default="mp4", choices=["mp4", "mp4_60fps", "gif"],
                         help="输出格式: mp4(25fps), mp4_60fps(60帧), gif")
+    parser.add_argument("--brand-spec", default=None, dest="brand_spec",
+                        help="brand-spec.json路径，用于在主题基础上覆写颜色")
+    parser.add_argument("--auto-brand", action="store_true", dest="auto_brand",
+                        help="自动从文章提取品牌素材，生成brand-spec.json并应用")
 
     args = parser.parse_args()
 
@@ -418,6 +422,21 @@ def main():
         visual_style = detect_visual_style(sections)
         print(f"  [VISUAL] Auto-detected visual style: {visual_style}")
 
+    brand_spec_path = args.brand_spec
+
+    if args.auto_brand and article.get("markdown"):
+        sys.path.insert(0, SCRIPT_DIR)
+        from brand_extractor import extract_brand_from_markdown
+        print("  [BRAND] Auto-extracting brand spec from article...")
+        brand_spec = extract_brand_from_markdown(article["markdown"], article.get("title", ""))
+        brand_spec_save_path = os.path.join(output_dir, "brand-spec.json")
+        with open(brand_spec_save_path, "w", encoding="utf-8") as f:
+            json.dump(brand_spec, f, ensure_ascii=False, indent=2)
+        brand_spec_path = brand_spec_save_path
+        print(f"  [BRAND] Saved: {brand_spec_save_path}")
+        print(f"  [BRAND] Detected theme: {brand_spec.get('detected_theme', 'N/A')}")
+        print(f"  [BRAND] Primary color: {brand_spec['colors'].get('primary', 'N/A')}")
+
     final_path = generate_video(
         slides_path=slides_path,
         output_dir=args.output,
@@ -432,6 +451,7 @@ def main():
         fmt=args.format,
         visual_style=visual_style,
         sfx_dir=args.sfx_dir,
+        brand_spec_path=brand_spec_path,
     )
 
     print(f"\n[DONE] Article → Video complete!")

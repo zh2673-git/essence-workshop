@@ -275,7 +275,7 @@ def adjust_slide_durations_per_audio(slides, audio_files):
     return slides
 
 
-def record_video(slides, template_html, output_path, width=1080, height=1920, style="dark", visual_style="tech"):
+def record_video(slides, template_html, output_path, width=1080, height=1920, style="dark", visual_style="tech", brand_spec=None):
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as p:
@@ -297,6 +297,11 @@ def record_video(slides, template_html, output_path, width=1080, height=1920, st
         page.evaluate(f"window.slidesData = {json.dumps({'slides': slides}, ensure_ascii=False)}")
         page.evaluate(f"window.themeName = '{style}'")
         page.evaluate(f"window.visualStyle = '{visual_style}'")
+
+        if brand_spec:
+            page.evaluate(f"window.brandSpec = {json.dumps(brand_spec, ensure_ascii=False)}")
+        else:
+            page.evaluate("window.brandSpec = null")
 
         anim_start = time.time()
         offset_seconds = anim_start - record_start
@@ -642,10 +647,11 @@ def compress_video(input_path, output_path, target_size_mb=50):
 
 def generate_video(slides_path, output_dir, template_html=None, voice="zh-CN-YunxiNeural",
                    rate="+0%", width=1080, height=1920, compress=False,
-                   style="dark", bgm=None, fmt="mp4", visual_style="tech", sfx_dir=None):
+                   style=None, bgm=None, fmt="mp4", visual_style="tech", sfx_dir=None,
+                   brand_spec_path=None):
     check_dependencies()
 
-    if style not in VALID_STYLES:
+    if style is not None and style not in VALID_STYLES:
         print(f"  [WARN] Unknown style '{style}', using 'dark'")
         style = "dark"
 
@@ -659,6 +665,20 @@ def generate_video(slides_path, output_dir, template_html=None, voice="zh-CN-Yun
 
     if template_html is None:
         template_html = DEFAULT_TEMPLATE
+
+    brand_spec = None
+    if brand_spec_path and os.path.exists(brand_spec_path):
+        with open(brand_spec_path, "r", encoding="utf-8") as f:
+            brand_spec = json.load(f)
+        print(f"  [BRAND] Loaded brand spec: {brand_spec_path}")
+
+    if style is None:
+        if brand_spec and brand_spec.get("detected_theme"):
+            style = brand_spec["detected_theme"]
+            print(f"  [BRAND] Auto-detected theme from brand spec: {style}")
+        else:
+            style = "dark"
+            print(f"  [STYLE] No style specified, using default: dark")
 
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     output_dir = os.path.join(output_dir, timestamp)
@@ -687,7 +707,7 @@ def generate_video(slides_path, output_dir, template_html=None, voice="zh-CN-Yun
     raw_video_path = os.path.join(output_dir, "raw.webm")
     raw_video_path, offset_seconds = record_video(
         slides, template_html, raw_video_path, width=width, height=height,
-        style=style, visual_style=visual_style)
+        style=style, visual_style=visual_style, brand_spec=brand_spec)
 
     target_duration = sum(s.get("duration", 10) for s in slides)
     if concat_audio_path and os.path.exists(concat_audio_path):
@@ -769,8 +789,8 @@ def main():
     parser.add_argument("--width", default=1080, type=int, help="Video width")
     parser.add_argument("--height", default=1920, type=int, help="Video height")
     parser.add_argument("--compress", action="store_true", help="Compress to 50MB limit")
-    parser.add_argument("--style", default="dark", choices=VALID_STYLES,
-                        help="Visual style: dark, warm, minimal, nature")
+    parser.add_argument("--style", default=None,
+                        help="Visual style: dark, warm, minimal, nature. Auto-detected from brand-spec if omitted.")
     parser.add_argument("--visual-style", default="tech", choices=VALID_VISUAL_STYLES,
                         dest="visual_style",
                         help="Cinematic visual language: tech, edu, compare, philosophy")
@@ -780,6 +800,8 @@ def main():
                         help="SFX audio directory (contains whoosh.mp3, sparkle.mp3, etc.)")
     parser.add_argument("--format", default="mp4", choices=VALID_FORMATS,
                         help="Output format: mp4 (25fps), mp4_60fps, gif")
+    parser.add_argument("--brand-spec", default=None, dest="brand_spec",
+                        help="Path to brand-spec.json for color override on top of theme")
 
     args = parser.parse_args()
     generate_video(
@@ -796,6 +818,7 @@ def main():
         fmt=args.format,
         visual_style=args.visual_style,
         sfx_dir=args.sfx_dir,
+        brand_spec_path=args.brand_spec,
     )
 
 
