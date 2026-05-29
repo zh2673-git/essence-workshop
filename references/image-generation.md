@@ -154,10 +154,46 @@ except ImportError:
 |------|--------|--------|------|
 | 时长 | 3-6秒 | 8秒 | 越短越好 |
 | 帧率 | 8-10 fps | 15 fps | 公众号场景不需要高帧率 |
-| 宽度 | 400-600px | 600px | 手机屏幕宽度有限 |
+| Canvas逻辑尺寸 | 800×500 | 800×600 | 逻辑尺寸，实际渲染为2x |
+| DPR（设备像素比） | 2 | 2 | 确保文字清晰、不模糊 |
+| 实际像素尺寸 | 1600×1000 | 1600×1200 | 逻辑尺寸 × DPR |
 | 颜色 | 128色 | 256色 | 减少文件体积 |
-| 文件大小 | ≤1MB | 2MB | 超大GIF加载慢 |
+| 文件大小 | ≤1.5MB | 3MB | 高清GIF允许稍大 |
 | 每篇数量 | 0-1个 | 2个 | GIF是稀缺资源 |
+
+### Canvas 高清渲染标准（重要）
+
+为确保GIF中文字清晰、不溢出、不重叠，Canvas动画必须遵循以下标准：
+
+**1. DPR 2x 渲染**
+```javascript
+const DPR = 2;
+const W = 800, H = 500;  // 逻辑尺寸
+canvas.width = W * DPR;   // 实际像素 1600×1000
+canvas.height = H * DPR;
+canvas.style.width = W + 'px';
+canvas.style.height = H + 'px';
+ctx.scale(DPR, DPR);      // 所有绘制使用逻辑坐标
+```
+
+**2. 文字不溢出原则**
+- 所有文字使用 `textBaseline` 明确对齐方式（推荐 `'top'` 或 `'middle'`）
+- 文字位置计算时预留至少20px边距
+- 长文本使用 `ctx.measureText()` 检测宽度，超宽则换行或缩小字号
+- 圆角矩形内的文字，x坐标从 `rect.x + 20` 开始，不超过 `rect.x + rect.w - 20`
+
+**3. 文字不重叠原则**
+- 相邻文字行间距至少24px（15px字号）或28px（16px字号）
+- 标题与正文间距至少30px
+- 使用 `ctx.save()/ctx.restore()` 管理状态，避免 `globalAlpha` 污染
+
+**4. 录制时 viewport 设置**
+```python
+page = browser.new_page(
+    viewport={'width': 800, 'height': 500},  # 与Canvas逻辑尺寸一致
+    device_scale_factor=2  # 2x渲染
+)
+```
 
 ### Canvas 动画 HTML 模板
 
@@ -172,12 +208,20 @@ except ImportError:
 </style>
 </head>
 <body>
-<canvas id="canvas" width="600" height="400"></canvas>
+<canvas id="canvas"></canvas>
 <script>
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+const DPR = 2;
+const W = 800, H = 500;
+canvas.width = W * DPR;
+canvas.height = H * DPR;
+canvas.style.width = W + 'px';
+canvas.style.height = H + 'px';
+ctx.scale(DPR, DPR);
+
 function animate() {
-  // ... 绘制逻辑
+  // ... 绘制逻辑（使用逻辑坐标，DPR已通过scale处理）
   requestAnimationFrame(animate);
 }
 animate();
