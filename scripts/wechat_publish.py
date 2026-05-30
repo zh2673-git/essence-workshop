@@ -265,11 +265,47 @@ def _load_font(size, bold=False):
 
 
 def publish(file_path, theme="claude-warm", cover="", title="", author="",
-            auto_cover=False, min_chars=19000, upload_images=True, json_output=False):
+            auto_cover=False, min_chars=19000, upload_images=True, json_output=False,
+            check_plain_text=True, check_images=True):
     file_path = Path(file_path)
     if not file_path.exists():
         print(f"ERROR: 文件不存在: {file_path}")
         return {"success": False, "error": f"文件不存在: {file_path}"}
+
+    md_content = file_path.read_text(encoding="utf-8")
+
+    if check_plain_text:
+        md_no_frontmatter = re.sub(r'^---.*?---', '', md_content, flags=re.DOTALL).strip()
+        md_no_img = re.sub(r'!\[.*?\]\(.*?\)', '', md_no_frontmatter)
+        md_no_md = re.sub(r'[#*>\-|=`~\[\](){}]', '', md_no_img)
+        chinese_chars = len(re.findall(r'[\u4e00-\u9fff]', md_no_md))
+        english_words = len(re.findall(r'[a-zA-Z]+', md_no_md))
+        plain_text_count = chinese_chars + english_words
+        if plain_text_count < 7000:
+            print(f"WARNING: 纯文本仅 {plain_text_count} 字，未达 7000 字硬性要求")
+            print(f"  可用 --skip-plain-check 跳过检查")
+            if not json_output:
+                return {"success": False, "error": f"纯文本仅 {plain_text_count} 字，需 >= 7000 字",
+                        "plain_text_count": plain_text_count}
+        elif plain_text_count > 8000:
+            print(f"WARNING: 纯文本 {plain_text_count} 字，超过 8000 字上限，建议精简")
+
+    if check_images:
+        img_tags = re.findall(r'!\[.*?\]\(.*?\)', md_no_frontmatter if check_plain_text else md_content)
+        png_count = sum(1 for t in img_tags if '.png' in t.lower())
+        gif_count = sum(1 for t in img_tags if '.gif' in t.lower())
+        total_images = len(img_tags)
+        if total_images < 5:
+            print(f"WARNING: 配图仅 {total_images} 张，未达 5 张硬性要求（4 PNG + 1 GIF）")
+            if not json_output:
+                return {"success": False, "error": f"配图仅 {total_images} 张，需 5 张（4 PNG + 1 GIF）",
+                        "image_count": total_images, "png_count": png_count, "gif_count": gif_count}
+        if gif_count < 1:
+            print(f"WARNING: 缺少 GIF 动图，至少需要 1 张 GIF")
+            if not json_output:
+                return {"success": False, "error": "缺少 GIF 动图，至少需要 1 张 GIF",
+                        "image_count": total_images, "png_count": png_count, "gif_count": gif_count}
+        print(f"  配图检查通过: {png_count} PNG + {gif_count} GIF = {total_images} 张")
 
     result = convert_markdown(
         file_path=str(file_path),
@@ -473,6 +509,8 @@ def main():
     parser.add_argument("--min-chars", type=int, default=19000, help="正文最小字符数")
     parser.add_argument("--no-upload-images", action="store_true", help="不上传正文图片")
     parser.add_argument("--json", action="store_true", help="JSON 格式输出")
+    parser.add_argument("--skip-plain-check", action="store_true", help="跳过纯文本字数检查")
+    parser.add_argument("--skip-image-check", action="store_true", help="跳过配图数量检查")
 
     args = parser.parse_args()
 
@@ -486,6 +524,8 @@ def main():
         min_chars=args.min_chars,
         upload_images=not args.no_upload_images,
         json_output=args.json,
+        check_plain_text=not args.skip_plain_check,
+        check_images=not args.skip_image_check,
     )
 
 

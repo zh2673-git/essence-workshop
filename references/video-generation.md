@@ -86,10 +86,47 @@
       "source": "—— 孙子兵法",
       "duration": 6,
       "narration": "善战者，求之于势，不责于人。这就是审时度势的精髓。"
+    },
+    {
+      "type": "compare",
+      "title": "德治 vs 法治",
+      "leftLabel": "德治",
+      "rightLabel": "法治",
+      "left": ["依赖自觉", "内在驱动", "提升上限"],
+      "right": ["制度约束", "外在强制", "守住底线"],
+      "duration": 12,
+      "narration": "德治依赖自觉，法治依靠制度。二者缺一不可。"
+    },
+    {
+      "type": "steps",
+      "title": "三步走流程",
+      "steps": ["第一步：解蔽求真", "第二步：化性起伪", "第三步：隆礼重法"],
+      "duration": 15,
+      "narration": "三步走：先解蔽求真，再化性起伪，最后隆礼重法。"
+    },
+    {
+      "type": "summary",
+      "title": "核心要点回顾",
+      "items": ["化性起伪：逻辑起点", "隆礼重法：制度设计", "解蔽求真：认知前提"],
+      "duration": 10,
+      "narration": "核心要点：化性起伪是逻辑起点，隆礼重法是制度设计，解蔽求真是认知前提。"
     }
   ]
 }
 ```
+
+### 各类型镜头字段说明
+
+| 类型 | 必填字段 | 可选字段 | 说明 |
+|------|---------|---------|------|
+| title | type, title, duration, narration | subtitle | 标题卡 |
+| bullet | type, title, items, duration, narration | - | 要点卡，items为数组 |
+| quote | type, text, duration, narration | source | 金句卡 |
+| **compare** | type, title, **left**, **right**, duration, narration | **leftLabel**, **rightLabel** | 对比卡，left/right为数组，leftLabel/rightLabel为列标题（默认"A"/"B"） |
+| steps | type, title, steps, duration, narration | - | 流程卡，steps为数组 |
+| summary | type, title, items, duration, narration | - | 总结卡，items为数组 |
+
+**⚠️ compare 类型特别注意**：字段名必须是 `left` 和 `right`（不是 `items_left` / `items_right`），列标题用 `leftLabel` 和 `rightLabel`（不是 `left_label` / `right_label`）。
 
 ---
 
