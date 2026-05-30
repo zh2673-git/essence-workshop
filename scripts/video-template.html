@@ -196,12 +196,17 @@ function wrapText(text, x, y, maxW, lh) {
 }
 
 function drawText(text, x, y, maxW, opts = {}) {
-  const { font = F.body, color = C.white, align = 'left', lh = 70*S, maxLen = 0 } = opts;
+  const { font = F.body, color = C.white, align = 'left', lh = 70*S, maxLen = 0, maxY = 0 } = opts;
   ctx.fillStyle = color; ctx.font = font; ctx.textAlign = align;
   const display = maxLen && text.length > maxLen ? text.substring(0, maxLen) + '...' : text;
   const lines = wrapText(display, 0, 0, maxW, lh);
-  lines.forEach((line, i) => { ctx.fillText(line.text, x, y + i * lh); });
-  return lines.length;
+  const limit = maxY > 0 ? Math.max(1, Math.floor((maxY - y) / lh)) : lines.length;
+  lines.slice(0, limit).forEach((line, i) => {
+    const isLast = i === limit - 1;
+    const txt = (limit < lines.length && isLast) ? line.text + '...' : line.text;
+    ctx.fillText(txt, x, y + i * lh);
+  });
+  return Math.min(lines.length, limit);
 }
 
 function drawCircle(x, y, r, fill, stroke) {
@@ -595,10 +600,23 @@ RENDERERS.title = function(slide, progress, idx, total, sprites) {
   });
   withSprite(sprites, 'title', (s) => {
     const slideUp = (1-s.progress)*80*S;
-    const titleLines = wrapText(slide.title, 0, 0, W-240*S, 130*S);
-    const titleY = H*0.36 - (titleLines.length-1)*65*S + slideUp;
-    ctx.fillStyle = C.white; ctx.font = F.hero; ctx.textAlign = 'center';
-    titleLines.forEach((line,i) => ctx.fillText(line.text, W/2, titleY+i*130*S));
+    const maxTitleW = W - 240*S;
+    ctx.font = F.hero;
+    let titleLh = 130*S, titleFont = F.hero;
+    let titleLines = wrapText(slide.title, 0, 0, maxTitleW, titleLh);
+    if (titleLines.length > 2) {
+      titleFont = F.title; titleLh = 100*S;
+      ctx.font = titleFont;
+      titleLines = wrapText(slide.title, 0, 0, maxTitleW, titleLh);
+    }
+    if (titleLines.length > 3) {
+      titleFont = F.bodyBold; titleLh = 80*S;
+      ctx.font = titleFont;
+      titleLines = wrapText(slide.title, 0, 0, maxTitleW, titleLh);
+    }
+    const titleY = H*0.36 - (titleLines.length-1)*titleLh*0.5 + slideUp;
+    ctx.fillStyle = C.white; ctx.font = titleFont; ctx.textAlign = 'center';
+    titleLines.forEach((line,i) => ctx.fillText(line.text, W/2, titleY+i*titleLh));
   });
   withSprite(sprites, 'accent', () => {
     const titleLines = wrapText(slide.title, 0, 0, W-240*S, 130*S);
@@ -609,7 +627,7 @@ RENDERERS.title = function(slide, progress, idx, total, sprites) {
     const titleLines = wrapText(slide.title, 0, 0, W-240*S, 130*S);
     let subY = H*0.36 + titleLines.length*130*S + 100*S;
     subY = Math.min(subY, H*0.58);
-    drawText(slide.subtitle, W/2, subY, W-240*S, {font:F.small, color:C.whiteDim, align:'center', lh:60*S});
+    drawText(slide.subtitle, W/2, subY, W-240*S, {font:F.small, color:C.whiteDim, align:'center', lh:60*S, maxY:H*0.72});
   });
   footer(progress, idx, total);
 };
@@ -622,17 +640,22 @@ RENDERERS.bullet = function(slide, progress, idx, total, sprites) {
   withSprite(sprites, 'accent', () => drawAccentLine(W/2-140*S, 240*S, 280*S));
   drawIcon('target', W/2, 340*S, 80*S, C.cyanDim);
   const items = slide.items || [];
+  const n = items.length;
+  const availH = H - 500*S - 160*S;
+  const maxItemH = 280*S, maxSpacing = 360*S;
+  const itemH = Math.min(maxItemH, Math.max(180*S, availH / n - 40*S));
+  const spacing = Math.min(maxSpacing, itemH + 80*S);
   items.forEach((item, i) => {
     withSprite(sprites, `item_${i}`, (s) => {
       const slideIn = (1-s.progress)*100*S;
-      const iy = 500*S + i*360*S;
-      drawBigNumber(`${i+1}`, W-200*S, iy+180*S, C.accent);
-      drawGlassCard(100*S+slideIn, iy, W-200*S, 280*S, {
+      const iy = 500*S + i*spacing;
+      drawBigNumber(`${i+1}`, W-200*S, iy+itemH*0.65, C.accent);
+      drawGlassCard(100*S+slideIn, iy, W-200*S, itemH, {
         glow: i%2===0 ? C.accentGlow : C.cyanDim,
         border: i%2===0 ? 'rgba(233,69,96,0.15)' : 'rgba(0,210,255,0.15)',
       });
-      drawIcon(getSceneIcon('bullet',i), 200*S+slideIn, iy+140*S, 60*S, i%2===0?C.accent:C.cyan);
-      drawText(item, 280*S+slideIn, iy+140*S, W-440*S, {maxLen:20, lh:70*S});
+      drawIcon(getSceneIcon('bullet',i), 200*S+slideIn, iy+itemH*0.5, 60*S, i%2===0?C.accent:C.cyan);
+      drawText(item, 280*S+slideIn, iy+itemH*0.5, W-440*S, {maxLen:20, lh:Math.min(70*S, itemH*0.35), maxY:iy+itemH-20*S});
     });
   });
   footer(progress, idx, total);
@@ -682,15 +705,20 @@ RENDERERS.compare = function(slide, progress, idx, total, sprites) {
   withSprite(sprites, 'accent', () => drawAccentLine(W/2-140*S, 220*S, 280*S));
   drawIcon('scale', W/2, 320*S, 90*S, C.goldDim);
   const leftItems = slide.left||[], rightItems = slide.right||[];
+  const maxN = Math.max(leftItems.length, rightItems.length);
   const colW = (W-260*S)/2, leftX = 80*S, rightX = W/2+50*S;
-  const colStartY = 440*S, itemH = 200*S, itemGap = 40*S;
+  const colStartY = 440*S;
+  const availH = H - colStartY - 200*S;
+  const itemH = Math.min(200*S, Math.max(120*S, availH / maxN - 40*S));
+  const itemGap = Math.min(40*S, itemH * 0.2);
+  const colH = maxN*(itemH+itemGap)+160*S;
   withSprite(sprites, 'leftCol', () => {
-    drawGlassCard(leftX, colStartY, colW, leftItems.length*(itemH+itemGap)+160*S, {glow:C.cyanDim, border:'rgba(0,210,255,0.12)'});
+    drawGlassCard(leftX, colStartY, colW, colH, {glow:C.cyanDim, border:'rgba(0,210,255,0.12)'});
     ctx.fillStyle = C.cyan; ctx.font = F.bodyBold; ctx.textAlign = 'center';
     ctx.fillText(slide.leftLabel||'A', leftX+colW/2, colStartY+80*S);
   });
   withSprite(sprites, 'rightCol', () => {
-    drawGlassCard(rightX, colStartY, colW, rightItems.length*(itemH+itemGap)+160*S, {glow:C.accentGlow, border:'rgba(233,69,96,0.12)'});
+    drawGlassCard(rightX, colStartY, colW, colH, {glow:C.accentGlow, border:'rgba(233,69,96,0.12)'});
     ctx.fillStyle = C.accent; ctx.font = F.bodyBold; ctx.textAlign = 'center';
     ctx.fillText(slide.rightLabel||'B', rightX+colW/2, colStartY+80*S);
   });
@@ -698,14 +726,14 @@ RENDERERS.compare = function(slide, progress, idx, total, sprites) {
     withSprite(sprites, `left_${i}`, () => {
       const iy = colStartY+160*S+i*(itemH+itemGap);
       drawGlassCard(leftX+30*S, iy, colW-60*S, itemH, {fill:'rgba(0,210,255,0.04)', border:'rgba(0,210,255,0.1)'});
-      drawText(item, leftX+colW/2, iy+itemH/2, colW-120*S, {maxLen:12, align:'center', lh:65*S});
+      drawText(item, leftX+colW/2, iy+itemH/2, colW-120*S, {maxLen:12, align:'center', lh:Math.min(65*S, itemH*0.35), maxY:iy+itemH-10*S});
     });
   });
   rightItems.forEach((item,i) => {
     withSprite(sprites, `right_${i}`, () => {
       const iy = colStartY+160*S+i*(itemH+itemGap);
       drawGlassCard(rightX+30*S, iy, colW-60*S, itemH, {fill:'rgba(233,69,96,0.04)', border:'rgba(233,69,96,0.1)'});
-      drawText(item, rightX+colW/2, iy+itemH/2, colW-120*S, {maxLen:12, align:'center', lh:65*S});
+      drawText(item, rightX+colW/2, iy+itemH/2, colW-120*S, {maxLen:12, align:'center', lh:Math.min(65*S, itemH*0.35), maxY:iy+itemH-10*S});
     });
   });
   footer(progress, idx, total);
@@ -719,7 +747,12 @@ RENDERERS.steps = function(slide, progress, idx, total, sprites) {
   withSprite(sprites, 'accent', () => drawAccentLine(W/2-140*S, 220*S, 280*S));
   drawIcon('layers', W/2, 320*S, 80*S, C.goldDim);
   const steps = slide.steps||[];
-  const stepStartY = 480*S, stepSpacing = 500*S, cardW = W-200*S, cardH = 400*S, cardX = 100*S;
+  const n = steps.length;
+  const stepStartY = 480*S, cardW = W-200*S, cardX = 100*S;
+  const availH = H - stepStartY - 200*S;
+  const maxCardH = 400*S, maxSpacing = 500*S;
+  const cardH = Math.min(maxCardH, Math.max(200*S, availH / n - 100*S));
+  const stepSpacing = Math.min(maxSpacing, cardH + 100*S);
   const stepColors = [C.accent, C.gold, C.cyan, C.success, C.warn];
   steps.forEach((step, i) => {
     withSprite(sprites, `step_${i}`, (s) => {
@@ -730,8 +763,9 @@ RENDERERS.steps = function(slide, progress, idx, total, sprites) {
       ctx.fillStyle = '#FFFFFF'; ctx.font = F.stepNum; ctx.textAlign = 'center';
       ctx.fillText(`${i+1}`, cardX+120*S, sy+115*S);
       ctx.fillStyle = C.white; ctx.font = F.bodyBold; ctx.textAlign = 'left';
-      ctx.fillText(step.title||step, cardX+220*S, sy+110*S);
-      if (step.desc) drawText(step.desc, cardX+220*S, sy+200*S, cardW-300*S, {color:C.whiteDim, lh:65*S});
+      const stepTitle = typeof step === 'string' ? step : (step.title||'');
+      ctx.fillText(stepTitle, cardX+220*S, sy+110*S);
+      if (step.desc) drawText(step.desc, cardX+220*S, sy+200*S, cardW-300*S, {color:C.whiteDim, lh:65*S, maxY:sy+cardH-20*S});
       if (i < steps.length-1) {
         ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 3*S; ctx.setLineDash([12*S,8*S]);
         ctx.beginPath(); ctx.moveTo(cardX+120*S, sy+cardH+10*S); ctx.lineTo(cardX+120*S, sy+stepSpacing-10*S); ctx.stroke(); ctx.setLineDash([]);
@@ -754,7 +788,12 @@ RENDERERS.summary = function(slide, progress, idx, total, sprites) {
   });
   withSprite(sprites, 'accent', () => drawAccentLine(W/2-140*S, H*0.2+40*S, 280*S));
   const items = slide.items||[];
-  const itemStartY = H*0.28, itemSpacing = 320*S, cardW = W-200*S, cardH = 240*S, cardX = 100*S;
+  const n = items.length;
+  const itemStartY = H*0.28, cardW = W-200*S, cardX = 100*S;
+  const availH = H - itemStartY - 200*S;
+  const maxCardH = 240*S, maxSpacing = 320*S;
+  const cardH = Math.min(maxCardH, Math.max(140*S, availH / n - 40*S));
+  const itemSpacing = Math.min(maxSpacing, cardH + 80*S);
   items.forEach((item, i) => {
     withSprite(sprites, `item_${i}`, () => {
       const iy = itemStartY + i*itemSpacing;
@@ -762,7 +801,7 @@ RENDERERS.summary = function(slide, progress, idx, total, sprites) {
       drawCircle(cardX+100*S, iy+cardH/2, 30*S, C.success, null);
       ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 4*S; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(cardX+86*S,iy+cardH/2); ctx.lineTo(cardX+96*S,iy+cardH/2+12*S); ctx.lineTo(cardX+116*S,iy+cardH/2-10*S); ctx.stroke();
-      drawText(item, cardX+180*S, iy+cardH/2, cardW-240*S, {maxLen:18, lh:65*S});
+      drawText(item, cardX+180*S, iy+cardH/2, cardW-240*S, {maxLen:18, lh:Math.min(65*S, cardH*0.3), maxY:iy+cardH-10*S});
     });
   });
   footer(progress, idx, total);
@@ -779,11 +818,11 @@ RENDERERS.stat = function(slide, progress, idx, total, sprites) {
     ctx.fillText(slide.value||'0', W/2, H*0.38);
   });
   withSprite(sprites, 'label', () => {
-    drawText(slide.label||'', W/2, H*0.48, W-240*S, {font:F.body, color:C.whiteDim, align:'center', lh:65*S});
+    drawText(slide.label||'', W/2, H*0.48, W-240*S, {font:F.body, color:C.whiteDim, align:'center', lh:65*S, maxY:H*0.56});
   });
   withSprite(sprites, 'sublabel', () => {
     if (!slide.sublabel) return;
-    drawText(slide.sublabel, W/2, H*0.56, W-240*S, {font:F.small, color:C.muted, align:'center', lh:55*S});
+    drawText(slide.sublabel, W/2, H*0.56, W-240*S, {font:F.small, color:C.muted, align:'center', lh:55*S, maxY:H*0.65});
   });
   drawIcon('zap', W/2, H*0.68, 60*S, C.goldDim);
   footer(progress, idx, total);
@@ -800,11 +839,12 @@ RENDERERS.chart = function(slide, progress, idx, total, sprites) {
     const chartType = slide.chartType || 'bar';
     if (chartType === 'donut') {
       drawDonutChart(W/2, H*0.45, 220*S, data, progress);
-      const legendY = H*0.65;
+      const legendY = H*0.65, maxLegendY = H - 200*S;
       const colors = [C.accent, C.cyan, C.gold, C.success, C.warn];
       data.forEach((d, i) => {
         const lx = 120*S + (i % 3) * (W-240*S) / 3;
         const ly = legendY + Math.floor(i/3) * 60*S;
+        if (ly > maxLegendY) return;
         ctx.fillStyle = colors[i%colors.length];
         ctx.beginPath(); ctx.arc(lx+16*S, ly, 16*S, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = C.white; ctx.font = F.small; ctx.textAlign = 'left';
@@ -823,9 +863,30 @@ RENDERERS.timeline = function(slide, progress, idx, total, sprites) {
     drawText(slide.title, W/2, 180*S, W-200*S, {font:F.title, color:C.white, align:'center'});
   });
   withSprite(sprites, 'accent', () => drawAccentLine(W/2-140*S, 220*S, 280*S));
+  const events = slide.events||[];
+  const n = events.length;
+  const axisX = W*0.28, axisStartY = 360*S, axisEndY = H-400*S;
+  const availH = axisEndY - axisStartY;
+  const eventSpacing = Math.min(280*S, availH / Math.max(n, 1));
   withSprite(sprites, 'axis', () => {
-    const events = slide.events || [];
-    drawTimelineAxis(W*0.35, 380*S, H-600*S, events, progress);
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 3*S;
+    ctx.beginPath(); ctx.moveTo(axisX, axisStartY); ctx.lineTo(axisX, axisStartY+n*eventSpacing); ctx.stroke();
+    events.forEach((ev, i) => {
+      const ey = axisStartY + i*eventSpacing;
+      drawCircle(axisX, ey, 12*S, C.accent, null);
+      if (i < n-1) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 2*S; ctx.setLineDash([6*S,4*S]);
+        ctx.beginPath(); ctx.moveTo(axisX+12*S, ey); ctx.lineTo(axisX+12*S, ey+eventSpacing); ctx.stroke(); ctx.setLineDash([]);
+      }
+    });
+  });
+  events.forEach((ev, i) => {
+    withSprite(sprites, `event_${i}`, () => {
+      const ey = axisStartY + i*eventSpacing;
+      ctx.fillStyle = C.accent; ctx.font = F.bodyBold; ctx.textAlign = 'left';
+      ctx.fillText(ev.year||ev.time||`${i+1}`, axisX+40*S, ey+8*S);
+      drawText(ev.event||ev.text||'', axisX+40*S, ey+60*S, W-axisX-200*S, {color:C.whiteDim, lh:55*S, maxY:ey+eventSpacing-10*S});
+    });
   });
   footer(progress, idx, total);
 };
@@ -840,12 +901,14 @@ RENDERERS.focus = function(slide, progress, idx, total, sprites) {
     ctx.save();
     ctx.translate(W/2, H*0.38); ctx.scale(scale, scale); ctx.translate(-W/2, -H*0.38);
     ctx.fillStyle = C.accent; ctx.font = F.hero; ctx.textAlign = 'center';
-    ctx.fillText(slide.keyword||'', W/2, H*0.42);
+    const kwLines = wrapText(slide.keyword||'', 0, 0, W-240*S, 130*S);
+    if (kwLines.length > 1) { ctx.font = F.title; }
+    kwLines.forEach((line,i) => ctx.fillText(line.text, W/2, H*0.42+i*100*S));
     ctx.restore();
     drawAccentLine(W/2-160*S, H*0.46, 320*S);
   });
   withSprite(sprites, 'explanation', () => {
-    drawText(slide.explanation||'', W/2, H*0.54, W-240*S, {font:F.body, color:C.white, align:'center', lh:70*S});
+    drawText(slide.explanation||'', W/2, H*0.54, W-240*S, {font:F.body, color:C.white, align:'center', lh:70*S, maxY:H*0.78});
   });
   withSprite(sprites, 'callout', () => {
     ctx.strokeStyle = C.gold; ctx.lineWidth = 2*S; ctx.setLineDash([8*S,6*S]);
@@ -856,10 +919,15 @@ RENDERERS.focus = function(slide, progress, idx, total, sprites) {
 
 RENDERERS.qa = function(slide, progress, idx, total, sprites) {
   setupScene('qa', progress, isTopScene);
+  const qMaxW = W - 320*S, qLh = 70*S;
+  ctx.font = F.bodyBold;
+  const qLines = wrapText(slide.question||'', 0, 0, qMaxW, qLh);
+  const qCardH = Math.max(H*0.22, qLines.length*qLh + 280*S);
+  const qCardY = Math.max(H*0.12, H*0.35 - qCardH/2);
   withSprite(sprites, 'question', () => {
-    drawGlassCard(120*S, H*0.2, W-240*S, H*0.3, {glow:C.accentGlow, border:'rgba(233,69,96,0.15)'});
-    drawIcon('question', W/2, H*0.28, 100*S, C.accent);
-    drawText(slide.question||'', W/2, H*0.4, W-320*S, {font:F.bodyBold, color:C.white, align:'center', lh:70*S});
+    drawGlassCard(120*S, qCardY, W-240*S, qCardH, {glow:C.accentGlow, border:'rgba(233,69,96,0.15)'});
+    drawIcon('question', W/2, qCardY+100*S, 100*S, C.accent);
+    drawText(slide.question||'', W/2, qCardY+220*S, qMaxW, {font:F.bodyBold, color:C.white, align:'center', lh:qLh, maxY:qCardY+qCardH-40*S});
   });
   withSprite(sprites, 'flip', () => {
     ctx.save();
@@ -867,10 +935,14 @@ RENDERERS.qa = function(slide, progress, idx, total, sprites) {
     ctx.translate(W/2, H*0.6); ctx.scale(1, Math.abs(Math.cos(flipProgress*Math.PI))); ctx.translate(-W/2, -H*0.6);
     ctx.restore();
   });
+  ctx.font = F.bodyBold;
+  const aLines = wrapText(slide.answer||'', 0, 0, qMaxW, qLh);
+  const aCardH = Math.max(H*0.18, aLines.length*qLh + 240*S);
+  const aCardY = Math.min(H*0.65, H - aCardH - 200*S);
   withSprite(sprites, 'answer', () => {
-    drawGlassCard(120*S, H*0.52, W-240*S, H*0.25, {glow:'rgba(78,205,196,0.12)', border:'rgba(78,205,196,0.15)'});
-    drawIcon('check', W/2, H*0.58, 80*S, C.success);
-    drawText(slide.answer||'', W/2, H*0.68, W-320*S, {font:F.bodyBold, color:C.white, align:'center', lh:70*S});
+    drawGlassCard(120*S, aCardY, W-240*S, aCardH, {glow:'rgba(78,205,196,0.12)', border:'rgba(78,205,196,0.15)'});
+    drawIcon('check', W/2, aCardY+80*S, 80*S, C.success);
+    drawText(slide.answer||'', W/2, aCardY+200*S, qMaxW, {font:F.bodyBold, color:C.white, align:'center', lh:qLh, maxY:aCardY+aCardH-40*S});
   });
   footer(progress, idx, total);
 };
