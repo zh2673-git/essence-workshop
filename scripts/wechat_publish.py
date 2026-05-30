@@ -14,6 +14,7 @@
 
 import argparse
 import json
+import os
 import re
 import sys
 import tempfile
@@ -280,7 +281,14 @@ def publish(file_path, theme="claude-warm", cover="", title="", author="",
         print(f"ERROR: 转换失败: {result.get('error', 'unknown')}")
         return result
 
-    article_title = result["title"] or title or "未命名文章"
+    article_title = result["title"] or title or ""
+    if not article_title:
+        print("ERROR: frontmatter 中 title 为空，推送后标题将显示为「未命名文章」")
+        print("  请在 Markdown 文件头部添加 frontmatter:")
+        print("  ---")
+        print("  title: 你的文章标题")
+        print("  ---")
+        return {"success": False, "error": "frontmatter title 为空，推送前必须补充"}
     article_author = result["author"] or author or ""
     article_digest = result["digest"] or ""
     html = result["html"]
@@ -309,30 +317,27 @@ def publish(file_path, theme="claude-warm", cover="", title="", author="",
             print(f"  Cover generated (PIL): {cover_path}")
 
         if not cover_path:
-            _cairosvg_ok = False
             try:
-                import cairosvg
-                _test_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10" fill="red"/></svg>'
-                cairosvg.svg2png(bytestring=_test_svg.encode())
-                _cairosvg_ok = True
+                from playwright.sync_api import sync_playwright
+                svg_path = generate_cover_svg(
+                    title=article_title,
+                    subtitle=article_digest,
+                    author=article_author,
+                    theme=theme,
+                )
+                png_path = svg_path.replace(".svg", ".png")
+                with sync_playwright() as pw:
+                    br = pw.chromium.launch()
+                    pg = br.new_page(device_scale_factor=2)
+                    svg_abs = os.path.abspath(svg_path).replace(os.sep, '/')
+                    pg.goto(f'file:///{svg_abs}', timeout=30000)
+                    pg.wait_for_timeout(200)
+                    pg.screenshot(path=png_path, full_page=True)
+                    br.close()
+                cover_path = png_path
+                print(f"  Cover generated (SVG->PNG via Playwright): {png_path}")
             except Exception:
                 pass
-
-            if _cairosvg_ok:
-                try:
-                    import cairosvg
-                    svg_path = generate_cover_svg(
-                        title=article_title,
-                        subtitle=article_digest,
-                        author=article_author,
-                        theme=theme,
-                    )
-                    png_path = svg_path.replace(".svg", ".png")
-                    cairosvg.svg2png(url=svg_path, write_to=png_path)
-                    cover_path = png_path
-                    print(f"  Cover generated (SVG->PNG): {png_path}")
-                except Exception:
-                    pass
 
     img_replacements = []
     if upload_images:
@@ -359,16 +364,25 @@ def publish(file_path, theme="claude-warm", cover="", title="", author="",
                     upload_path = local_path
 
                     if local_path.lower().endswith('.svg'):
-                        if not _cairosvg_ok:
-                            print(f"  WARNING: Skip SVG (no Cairo): {img_src}")
-                            continue
                         try:
-                            import cairosvg
+                            from playwright.sync_api import sync_playwright
                             png_path = local_path.replace('.svg', '_upload.png')
-                            cairosvg.svg2png(url=local_path, write_to=png_path)
+                            with sync_playwright() as pw:
+                                br = pw.chromium.launch()
+                                pg = br.new_page(device_scale_factor=2)
+                                svg_abs = os.path.abspath(local_path).replace(os.sep, '/')
+                                pg.goto(f'file:///{svg_abs}', timeout=30000)
+                                pg.wait_for_timeout(200)
+                                el = pg.query_selector('svg')
+                                if el:
+                                    box = el.bounding_box()
+                                    if box:
+                                        pg.set_viewport_size({"width": int(box['width']) + 20, "height": int(box['height']) + 20})
+                                pg.screenshot(path=png_path, full_page=True)
+                                br.close()
                             upload_path = png_path
-                        except Exception:
-                            print(f"  WARNING: SVG convert failed: {img_src}")
+                        except Exception as svg_err:
+                            print(f"  WARNING: SVG convert failed (Playwright): {img_src} ({svg_err})")
                             continue
 
                     try:

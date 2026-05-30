@@ -150,6 +150,25 @@ def fetch_article_by_url(url):
     }
 
 
+def validate_article(article_data):
+    warnings = []
+    title = article_data.get("title", "")
+    markdown = article_data.get("content_markdown", "")
+
+    if not title:
+        warnings.append("标题为空，抓取可能失败")
+    if len(markdown) < 500:
+        warnings.append(f"正文仅 {len(markdown)} 字符，抓取内容可能不完整")
+    h2_count = len(re.findall(r'^##\s+', markdown, re.MULTILINE))
+    if h2_count < 2:
+        warnings.append(f"仅 {h2_count} 个二级标题，Markdown 结构可能丢失")
+
+    for w in warnings:
+        print(f"  WARNING: {w}")
+
+    return len(warnings) == 0, warnings
+
+
 def save_article(article_data, output_path):
     title = article_data.get("title", "Untitled")
     author = article_data.get("author", "")
@@ -243,6 +262,8 @@ def main():
         article = fetch_article_by_url(args.url)
         if not article:
             return
+
+        validate_article(article)
 
         if args.json:
             print(json.dumps(article, ensure_ascii=False, indent=2))

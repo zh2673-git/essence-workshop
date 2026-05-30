@@ -359,11 +359,49 @@ examples/[person-name]/
 - 路由机制必须可执行（不同问题类型调用不同模型组合）
 - 根因追溯必须体现在Skill中（不只是「他怎么想」，还有「他为什么这么想」）
 
+### 产出清单
+
+Phase 3 完成后，`examples/[person-name]/` 目录必须包含以下文件：
+
+| 文件 | 必须 | 说明 |
+|------|------|------|
+| `SKILL.md` | ✅ | 认知操作系统（核心产物） |
+| `README.md` | ✅ | 概述+核心模型+文件结构+使用方式 |
+| `references/research/0X-xxx.md` | ✅ | 7个Agent的调研结果 |
+| `references/essence/0X-xxx.md` | ✅ | 三阶蒸馏结果 |
+| `references/sources/` | 按需 | 一手素材 |
+
+**README.md 模板**：
+
+```markdown
+# [人名] · 认知操作系统
+
+> 一句话定义此人的认知本质
+
+## 核心心智模型
+
+| 模型 | 一句话 | 适用场景 |
+|------|--------|---------|
+| 模型1 | ... | ... |
+| 模型2 | ... | ... |
+
+## 文件结构
+
+- `SKILL.md` — 完整认知操作系统
+- `references/research/` — 7维度调研原始数据
+- `references/essence/` — 三阶蒸馏过程
+
+## 使用方式
+
+在对话中提及「用[人名]的视角」「[人名]会怎么看」即可激活此Skill。
+```
+
 构建完成后，**自动执行实例注册**：
 
 1. 确认 `examples/[person-name]/SKILL.md` 存在且frontmatter正确
-2. 确认新实例在Phase 0B的候选推荐中可被扫描到（扫描 `examples/` 目录）
-3. 更新 `README.md` 中的蒸馏实例列表
+2. 确认 `examples/[person-name]/README.md` 存在
+3. 确认新实例在Phase 0B的候选推荐中可被扫描到（扫描 `examples/` 目录）
+4. 更新 `README.md` 中的蒸馏实例列表
 
 **注意**：few-shot示例不在Phase 3生成，而是在Phase 4.5中基于实战验证结果生成后写入。
 

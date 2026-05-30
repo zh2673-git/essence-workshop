@@ -330,6 +330,17 @@ FFmpeg 需要单独安装：
 - macOS: `brew install ffmpeg`
 - Linux: `sudo apt install ffmpeg`
 
+### ⚠️ 启动时依赖检查
+
+运行视频管线前必须检查以下依赖是否可用，缺失则给出安装命令并退出：
+
+| 依赖 | 检查方式 | 缺失提示 |
+|------|---------|---------|
+| FFmpeg | `ffmpeg -version` | `winget install FFmpeg` (Windows) / `brew install ffmpeg` (macOS) |
+| Playwright | `python -c "from playwright.sync_api import sync_playwright"` | `pip install playwright && playwright install chromium` |
+| Edge TTS | `python -c "import edge_tts"` | `pip install edge-tts` |
+| Pillow | `python -c "from PIL import Image"` | `pip install Pillow` |
+
 ---
 
 ## 与公众号方案的对照

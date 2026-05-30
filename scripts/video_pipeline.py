@@ -58,6 +58,10 @@ def check_dependencies():
         import edge_tts
     except ImportError:
         missing.append("edge-tts (pip install edge-tts)")
+    try:
+        from PIL import Image
+    except ImportError:
+        missing.append("Pillow (pip install Pillow)")
     FFMPEG = find_ffmpeg()
     if FFMPEG is None:
         missing.append("ffmpeg (install via conda: conda install -c conda-forge ffmpeg, or pip install imageio-ffmpeg)")

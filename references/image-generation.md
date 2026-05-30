@@ -71,8 +71,9 @@
 
 1. SVG 不能直接在微信文章中显示（微信仅支持 JPG/PNG/GIF）
 2. 本地路径图片不能直接显示，必须上传到微信 CDN
-3. **SVG→PNG 转换优先用 Playwright 渲染**——cairosvg 无法正确渲染中文字体
-4. SVG 封面生成使用纯 Python 实现，无需外部依赖
+3. **⚠️ SVG→PNG 转换必须用 Playwright 渲染**——cairosvg 无法正确渲染中文字体（会回退为衬线字体）。Playwright 不可用时才降级到 cairosvg
+4. **⚠️ Playwright 必须使用 base64 编码方式加载 SVG**，不要用 `file:///` 方式（部分 SVG 渲染异常）
+5. SVG 封面生成使用纯 Python 实现，无需外部依赖
 
 ### SVG 通用模板
 
@@ -102,6 +103,15 @@
 | 文字（主） | `#3C2415` | 标题文字 |
 | 文字（次） | `#666` | 正文说明文字 |
 
+### SVG 文字溢出检查规则（重要）
+
+SVG 手写时容易出现文字超出框外的问题，必须遵循以下规则：
+
+1. **框高度计算**：框高度 ≥ 文字行数 × 行高 + 上下 padding（至少各 20px）
+2. **多行文字用 `<tspan>`**：使用 `<tspan x="..." dy="行高">` 逐行排列，而非绝对 y 坐标，避免行间距不一致
+3. **文字宽度检查**：长文本用浏览器开发者工具检查是否超出框边界
+4. **生成后视觉验证**：SVG→PNG 后必须检查文字是否在框内、字体是否正确
+
 ### SVG→PNG 转换脚本
 
 ```python
@@ -129,7 +139,7 @@ try:
         browser.close()
 except ImportError:
     import cairosvg
-    print("WARNING: Playwright not available, falling back to cairosvg...")
+    print("WARNING: Playwright not available, falling back to cairosvg (中文字体可能异常)...")
     for svg_file in svgs:
         png_file = svg_file.replace('.svg', '.png')
         cairosvg.svg2png(url=svg_file, write_to=png_file, scale=3)
@@ -143,10 +153,11 @@ except ImportError:
 
 微信不支持 JavaScript（Canvas 无法运行）、不支持 `<video>` 自动播放、不支持 SVG 动画。**GIF 动图是公众号中展示动态内容的唯一方式。**
 
-### 触发条件（必须同时满足）
+### 触发条件
 
-1. 文章内容描述了一个**变化过程**
+1. 文章内容描述了一个**变化过程**（循环/迭代/状态转换/运动）
 2. 静态图**无法完整表达**该过程的语义
+3. **⚠️ 强制规则**：如果文章描述了"循环/迭代/状态转换"类概念（如自然选择的变异→选择→保留循环），**必须**生成至少1个GIF，不能用静态图替代
 
 ### GIF 参数约束
 
@@ -195,7 +206,15 @@ page = browser.new_page(
 )
 ```
 
-### Canvas 动画 HTML 模板
+### ⚠️ 帧步进模式（必须使用）
+
+**为什么不能用 requestAnimationFrame 自动播放？**
+
+`requestAnimationFrame` 以约60fps运行，40帧动画在0.67秒内就跑完了。而截图脚本通常每200ms截一次，6秒内只能捕获3-4个不同的动画帧，剩余截图都是静态最终帧——GIF看起来就是一张静态图片。
+
+**必须使用帧步进模式**：HTML动画暴露 `window.stepFrame(f)` 和 `window.getTotalFrames()` 接口，由Python脚本精确控制每一帧的渲染。
+
+### Canvas 帧步进 HTML 模板
 
 ```html
 <!DOCTYPE html>
@@ -220,28 +239,106 @@ canvas.style.width = W + 'px';
 canvas.style.height = H + 'px';
 ctx.scale(DPR, DPR);
 
-function animate() {
+const TOTAL_FRAMES = 60;
+let currentFrame = 0;
+
+function drawFrame(f) {
+  ctx.clearRect(0, 0, W, H);
+  const progress = f / TOTAL_FRAMES;
   // ... 绘制逻辑（使用逻辑坐标，DPR已通过scale处理）
-  requestAnimationFrame(animate);
+  // progress 从 0 到 1，控制动画进度
 }
-animate();
+
+// 帧步进接口（必须暴露）
+window.stepFrame = function(f) {
+  currentFrame = Math.max(0, Math.min(f, TOTAL_FRAMES - 1));
+  drawFrame(currentFrame);
+};
+
+window.getTotalFrames = function() {
+  return TOTAL_FRAMES;
+};
+
+// 绘制首帧
+drawFrame(0);
 </script>
 </body>
 </html>
 ```
 
-### 录制命令
+### GIF 录制脚本（帧步进模式）
 
-```bash
-python scripts/wechat_publish.py article.md --auto-cover
+```python
+import os
+from PIL import Image
+from playwright.sync_api import sync_playwright
+
+def record_gif(html_path, output_path, frame_delay_ms=120, pause_frames=15):
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page(
+            viewport={'width': 800, 'height': 500},
+            device_scale_factor=2
+        )
+        page.goto(f'file:///{os.path.abspath(html_path)}', timeout=60000)
+        page.wait_for_timeout(500)
+
+        total_frames = page.evaluate('window.getTotalFrames()')
+        frames = []
+
+        for i in range(total_frames):
+            page.evaluate(f'window.stepFrame({i})')
+            page.wait_for_timeout(50)
+            screenshot = page.screenshot(timeout=60000)
+            from io import BytesIO
+            img = Image.open(BytesIO(screenshot))
+            frames.append(img.convert('RGB'))
+
+        for _ in range(pause_frames):
+            frames.append(frames[-1].copy())
+
+        frames[0].save(
+            output_path,
+            save_all=True,
+            append_images=frames[1:],
+            duration=frame_delay_ms,
+            loop=0,
+            optimize=True
+        )
+
+        browser.close()
+
+    file_size_kb = os.path.getsize(output_path) / 1024
+    print(f"GIF saved: {output_path} ({file_size_kb:.1f} KB, {len(frames)} frames)")
+
+    if file_size_kb < 100:
+        print(f"⚠️ WARNING: GIF is only {file_size_kb:.1f} KB — animation may not be working!")
+
+if __name__ == '__main__':
+    import sys
+    html_path = sys.argv[1] if len(sys.argv) > 1 else 'animation.html'
+    output_path = sys.argv[2] if len(sys.argv) > 2 else 'output.gif'
+    record_gif(html_path, output_path)
 ```
+
+### GIF 生成后质量自检
+
+生成GIF后必须执行以下检查：
+
+| 检查项 | 标准 | 异常处理 |
+|--------|------|---------|
+| 文件大小 | ≥100KB | <100KB 说明动画帧未正确捕获，需检查帧步进接口 |
+| 文件大小 | ≤3MB | >3MB 需减少帧数或降低分辨率 |
+| 帧数 | ≥20帧 | 帧数过少动画不流畅 |
+| 首帧内容 | 非空白 | 首帧空白说明 drawFrame(0) 有问题 |
+| 字体渲染 | 非衬线体 | 出现衬线体说明 DPR 设置有误 |
 
 ### Canvas 动画设计规范
 
 | 规范 | 说明 |
 |------|------|
-| **自动播放** | 动画必须在页面加载后自动开始 |
-| **循环播放** | 设置 `loop=0`（无限循环） |
+| **帧步进模式** | ⚠️ 必须使用帧步进模式，禁止 requestAnimationFrame 自动播放 |
+| **循环播放** | GIF 设置 `loop=0`（无限循环），末尾加 pause_frames 帧暂停 |
 | **配色一致** | 使用 claude-warm 主题配色 |
 | **文字标注** | 关键状态/步骤用文字标注在 Canvas 上 |
 | **简洁聚焦** | 一个 GIF 只展示一个变化过程 |

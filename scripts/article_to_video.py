@@ -401,9 +401,14 @@ def main():
     print(f"  Generated {num_slides} slides, estimated {total_duration}s")
 
     if num_slides < 3:
-        print("WARNING: Too few slides generated. The article may not be suitable for video.")
-    if num_slides > 20:
-        print("WARNING: Too many slides. Consider condensing the content.")
+        print("ERROR: Too few slides (<3). The article structure is too poor for video generation.")
+        print("  Possible causes: article has no H2 headings, content is too short, or Markdown is malformed.")
+        print("  Suggestion: use --article with a well-structured Markdown file instead of --url")
+        sys.exit(1)
+    if num_slides > 25:
+        print(f"WARNING: Too many slides ({num_slides}). Truncating to 25 for video length control.")
+        slides_data["slides"] = slides_data["slides"][:25]
+        num_slides = 25
 
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     output_dir = os.path.join(args.output, timestamp)
