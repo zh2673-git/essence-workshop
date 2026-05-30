@@ -60,6 +60,11 @@
 | **流程卡** | 步骤、流程、决策链 | 纵向步骤，逐个出现 | 15-25秒 |
 | **金句卡** | 一句话核心观点 | 大字居中，强调样式 | 5-8秒 |
 | **总结卡** | 章节末尾、全文结尾 | 要点回顾列表 | 10-15秒 |
+| **数据卡** | 关键数据、百分比、倍数 | 超大数字+环形进度+标签 | 5-8秒 |
+| **图表卡** | 数据对比、分布、排名 | 条形图/环形图+图例 | 10-15秒 |
+| **时间线卡** | 时间序列、发展历程 | 纵向时间轴+事件节点 | 10-20秒 |
+| **聚焦卡** | 核心概念、关键词强调 | 聚光灯遮罩+放大关键词 | 5-8秒 |
+| **问答卡** | Q&A、设问+回答 | 问题→翻转→答案 | 8-12秒 |
 
 ### 镜头JSON格式
 
@@ -125,6 +130,11 @@
 | **compare** | type, title, **left**, **right**, duration, narration | **leftLabel**, **rightLabel** | 对比卡，left/right为数组，leftLabel/rightLabel为列标题（默认"A"/"B"） |
 | steps | type, title, steps, duration, narration | - | 流程卡，steps为数组 |
 | summary | type, title, items, duration, narration | - | 总结卡，items为数组 |
+| **stat** | type, **value**, **label**, duration, narration | sublabel | 数据卡，value为显示数字，label为描述，sublabel为副描述 |
+| **chart** | type, title, **data**, duration, narration | chartType | 图表卡，data为[{label,value,color}]，chartType为bar(默认)/donut |
+| **timeline** | type, title, **events**, duration, narration | - | 时间线卡，events为[{year,title,desc}] |
+| **focus** | type, **keyword**, **explanation**, duration, narration | - | 聚焦卡，keyword为放大关键词，explanation为解释文本 |
+| **qa** | type, **question**, **answer**, duration, narration | - | 问答卡，question为问题，answer为答案，自动翻转动画 |
 
 **⚠️ compare 类型特别注意**：字段名必须是 `left` 和 `right`（不是 `items_left` / `items_right`），列标题用 `leftLabel` 和 `rightLabel`（不是 `left_label` / `right_label`）。
 

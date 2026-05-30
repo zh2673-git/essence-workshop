@@ -68,17 +68,34 @@ def split_into_slides(markdown, title=""):
 
 def classify_slide_type(section):
     content = section["content"]
+    heading = section.get("heading", "")
     has_bullets = any(c[0] == "bullet" for c in content)
     has_steps = any(c[0] == "step" for c in content)
     has_quotes = any(c[0] == "quote" for c in content)
+    text_items = [c[1] for c in content if c[0] == "text"]
 
+    stat_pattern = re.compile(r'\d+[.%万亿]|\d+倍|\d+[个条项]')
+    has_stat = any(stat_pattern.search(t) for t in text_items) and len(text_items) <= 3
+
+    qa_pattern = re.compile(r'^(.{2,15})[？?](.{2,})$')
+    qa_match = None
+    for t in text_items:
+        m = qa_pattern.match(t)
+        if m:
+            qa_match = m
+            break
+
+    if qa_match:
+        return "qa"
+    if has_stat and not has_bullets and not has_steps:
+        return "stat"
     if has_steps and not has_bullets:
         return "steps"
     if has_bullets:
         return "bullet"
     if has_quotes and len(content) <= 2:
         return "quote"
-    if len(content) == 0 and section["heading"]:
+    if len(content) == 0 and heading:
         return "title"
     return "bullet"
 
@@ -165,6 +182,34 @@ def generate_timeline(slide):
         elements.append({"id": "accent", "enter_at": 0.4, "exit_at": dur - 0.5, "easing": "expoOut"})
         for i, _ in enumerate(slide.get("items", [])):
             elements.append({"id": f"item_{i}", "enter_at": 0.5 + i * 0.15, "exit_at": dur - 0.5, "easing": "easeOut"})
+    elif stype == "stat":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "ring", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut", "idle": "breathe"})
+        elements.append({"id": "value", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "label", "enter_at": 0.6, "exit_at": dur - 0.5, "easing": "expoOut"})
+        if slide.get("sublabel"):
+            elements.append({"id": "sublabel", "enter_at": 0.8, "exit_at": dur - 0.5, "easing": "expoOut"})
+    elif stype == "chart":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "heading", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "chart", "enter_at": 0.4, "exit_at": dur - 0.5, "easing": "expoOut"})
+    elif stype == "timeline":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "heading", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "axis", "enter_at": 0.4, "exit_at": dur - 0.5, "easing": "expoOut"})
+    elif stype == "focus":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "mask", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "keyword", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "explanation", "enter_at": 0.6, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "callout", "enter_at": 0.8, "exit_at": dur - 0.5, "easing": "expoOut"})
+    elif stype == "qa":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "question", "enter_at": 0.1, "exit_at": dur * 0.45, "easing": "expoOut"})
+        elements.append({"id": "flip", "enter_at": dur * 0.45, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "answer", "enter_at": dur * 0.5, "exit_at": dur - 0.5, "easing": "expoOut"})
     else:
         elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
         elements.append({"id": "heading", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
@@ -232,6 +277,36 @@ def slides_to_json(sections, article_title=""):
                 }
                 slide["timeline"] = generate_timeline(slide)
                 slides.append(slide)
+
+        elif slide_type == "stat":
+            stat_text = " ".join(c[1] for c in content)
+            num_match = re.search(r'(\d+[.%万亿]?万?亿?)', stat_text)
+            value = num_match.group(1) if num_match else "100%"
+            slide = {
+                "type": "stat",
+                "value": value,
+                "label": heading or stat_text[:30],
+                "sublabel": stat_text[:40] if len(stat_text) > 30 else "",
+                "duration": 6,
+                "narration": stat_text,
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
+
+        elif slide_type == "qa":
+            qa_text = " ".join(c[1] for c in content)
+            qa_match = re.search(r'^(.{2,15})[？?](.{2,})$', qa_text)
+            question = qa_match.group(1) + "？" if qa_match else heading
+            answer = qa_match.group(2) if qa_match else qa_text
+            slide = {
+                "type": "qa",
+                "question": question,
+                "answer": answer,
+                "duration": 8,
+                "narration": f"{question}答案是，{answer}",
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
 
         elif slide_type == "bullet":
             items = []

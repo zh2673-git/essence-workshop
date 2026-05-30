@@ -5,18 +5,8 @@
 <meta name="viewport" content="width=1080">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: #1A1A2E;
-    width: 1080px;
-    height: 1920px;
-    overflow: hidden;
-    font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
-  }
-  #canvas {
-    display: block;
-    width: 1080px;
-    height: 1920px;
-  }
+  body { background: #1A1A2E; width: 1080px; height: 1920px; overflow: hidden; font-family: 'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif; }
+  #canvas { display: block; width: 1080px; height: 1920px; }
 </style>
 </head>
 <body>
@@ -24,104 +14,91 @@
 <script>
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const W = 2160;
-const H = 3840;
-const S = 2;
+const W = 2160, H = 3840, S = 2;
 
 const THEMES = {
   dark: {
-    bg1: '#0F0F23', bg2: '#1A1A2E', bg3: '#16213E',
-    accent: '#E94560', accentGlow: 'rgba(233,69,96,0.15)',
-    gold: '#F0C27F', goldDim: 'rgba(240,194,127,0.3)',
-    cyan: '#00D2FF', cyanDim: 'rgba(0,210,255,0.15)',
-    white: '#F0F0F0', whiteDim: 'rgba(240,240,240,0.6)',
-    muted: '#7A7A9E',
-    cardBg: 'rgba(255,255,255,0.04)', cardBorder: 'rgba(255,255,255,0.08)',
-    success: '#4ECDC4', warn: '#FFE66D',
+    bg1:'#0F0F23',bg2:'#1A1A2E',bg3:'#16213E',
+    accent:'#E94560',accentGlow:'rgba(233,69,96,0.15)',
+    gold:'#F0C27F',goldDim:'rgba(240,194,127,0.3)',
+    cyan:'#00D2FF',cyanDim:'rgba(0,210,255,0.15)',
+    white:'#F0F0F0',whiteDim:'rgba(240,240,240,0.6)',
+    muted:'#7A7A9E',
+    cardBg:'rgba(255,255,255,0.04)',cardBorder:'rgba(255,255,255,0.08)',
+    success:'#4ECDC4',warn:'#FFE66D',
   },
   warm: {
-    bg1: '#FDF6EC', bg2: '#FAF0E1', bg3: '#F5E6D0',
-    accent: '#D4763A', accentGlow: 'rgba(212,118,58,0.12)',
-    gold: '#8B5E3C', goldDim: 'rgba(139,94,60,0.25)',
-    cyan: '#5B8C5A', cyanDim: 'rgba(91,140,90,0.12)',
-    white: '#3C2415', whiteDim: 'rgba(60,36,21,0.6)',
-    muted: '#8B7355',
-    cardBg: 'rgba(255,255,255,0.7)', cardBorder: 'rgba(139,94,60,0.12)',
-    success: '#5B8C5A', warn: '#D4763A',
+    bg1:'#FDF6EC',bg2:'#FAF0E1',bg3:'#F5E6D0',
+    accent:'#D4763A',accentGlow:'rgba(212,118,58,0.12)',
+    gold:'#8B5E3C',goldDim:'rgba(139,94,60,0.25)',
+    cyan:'#5B8C5A',cyanDim:'rgba(91,140,90,0.12)',
+    white:'#3C2415',whiteDim:'rgba(60,36,21,0.6)',
+    muted:'#8B7355',
+    cardBg:'rgba(255,255,255,0.7)',cardBorder:'rgba(139,94,60,0.12)',
+    success:'#5B8C5A',warn:'#D4763A',
   },
   minimal: {
-    bg1: '#FFFFFF', bg2: '#FAFAFA', bg3: '#F5F5F5',
-    accent: '#333333', accentGlow: 'rgba(51,51,51,0.08)',
-    gold: '#666666', goldDim: 'rgba(102,102,102,0.2)',
-    cyan: '#888888', cyanDim: 'rgba(136,136,136,0.1)',
-    white: '#111111', whiteDim: 'rgba(17,17,17,0.6)',
-    muted: '#999999',
-    cardBg: 'rgba(0,0,0,0.02)', cardBorder: 'rgba(0,0,0,0.06)',
-    success: '#2D8C3C', warn: '#CC8800',
+    bg1:'#FFFFFF',bg2:'#FAFAFA',bg3:'#F5F5F5',
+    accent:'#333333',accentGlow:'rgba(51,51,51,0.08)',
+    gold:'#666666',goldDim:'rgba(102,102,102,0.2)',
+    cyan:'#888888',cyanDim:'rgba(136,136,136,0.1)',
+    white:'#111111',whiteDim:'rgba(17,17,17,0.6)',
+    muted:'#999999',
+    cardBg:'rgba(0,0,0,0.02)',cardBorder:'rgba(0,0,0,0.06)',
+    success:'#2D8C3C',warn:'#CC8800',
   },
   nature: {
-    bg1: '#0D1F0D', bg2: '#142814', bg3: '#1A331A',
-    accent: '#C9A84C', accentGlow: 'rgba(201,168,76,0.12)',
-    gold: '#8FAA6B', goldDim: 'rgba(143,170,107,0.25)',
-    cyan: '#6BA3A0', cyanDim: 'rgba(107,163,160,0.12)',
-    white: '#E8E4D8', whiteDim: 'rgba(232,228,216,0.6)',
-    muted: '#7A8B6A',
-    cardBg: 'rgba(255,255,255,0.04)', cardBorder: 'rgba(201,168,76,0.1)',
-    success: '#8FAA6B', warn: '#C9A84C',
+    bg1:'#0D1F0D',bg2:'#142814',bg3:'#1A331A',
+    accent:'#C9A84C',accentGlow:'rgba(201,168,76,0.12)',
+    gold:'#8FAA6B',goldDim:'rgba(143,170,107,0.25)',
+    cyan:'#6BA3A0',cyanDim:'rgba(107,163,160,0.12)',
+    white:'#E8E4D8',whiteDim:'rgba(232,228,216,0.6)',
+    muted:'#7A8B6A',
+    cardBg:'rgba(255,255,255,0.04)',cardBorder:'rgba(201,168,76,0.1)',
+    success:'#8FAA6B',warn:'#C9A84C',
   },
 };
-
 let C = THEMES.dark;
 
 const F = {
-  hero: `800 ${100*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
-  title: `bold ${72*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
-  subtitle: `${48*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
-  body: `${52*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
-  bodyBold: `bold ${52*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
-  small: `${40*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
-  quote: `bold ${80*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
-  source: `${40*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
-  bigNum: `800 ${160*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
-  stepNum: `bold ${48*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
-  slideNum: `${32*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
-  label: `bold ${36*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  hero:`800 ${100*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  title:`bold ${72*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  subtitle:`${48*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  body:`${52*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  bodyBold:`bold ${52*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  small:`${40*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  quote:`bold ${80*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  source:`${40*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  bigNum:`800 ${160*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  stepNum:`bold ${48*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  slideNum:`${32*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  label:`bold ${36*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  statNum:`800 ${240*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  statLabel:`${44*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
+  yearNum:`bold ${56*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
 };
 
 function applyEasing(t, type) {
-  if (t <= 0) return 0;
-  if (t >= 1) return 1;
+  if (t <= 0) return 0; if (t >= 1) return 1;
   switch (type) {
-    case 'expoOut': return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-    case 'expoInOut': return t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2;
+    case 'expoOut': return 1 - Math.pow(2, -10 * t);
+    case 'expoInOut': return t < 0.5 ? Math.pow(2, 20*t-10)/2 : (2 - Math.pow(2, -20*t+10))/2;
     case 'easeOut': return 1 - Math.pow(1 - t, 3);
-    case 'easeOutBack': { const c = 1.7; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); }
-    case 'overshoot': { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
-    case 'anticipation': {
-      if (t < 0.2) return -0.3 * (t / 0.2) * (t / 0.2);
-      const a = (t - 0.2) / 0.8;
-      return -0.012 + 1.012 * a * a * (3 - 2 * a);
-    }
-    case 'spring': {
-      const c = (2 * Math.PI) / 3;
-      return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c) + 1;
-    }
-    case 'easeIn': return t * t * t;
+    case 'easeOutBack': { const c=1.7; return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2); }
+    case 'overshoot': { const c1=1.70158,c3=c1+1; return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2); }
+    case 'anticipation': { if(t<0.2)return -0.3*(t/0.2)*(t/0.2); const a=(t-0.2)/0.8; return -0.012+1.012*a*a*(3-2*a); }
+    case 'spring': { const c=(2*Math.PI)/3; return Math.pow(2,-10*t)*Math.sin((t*10-0.75)*c)+1; }
+    case 'easeIn': return t*t*t;
     case 'linear': return t;
-    case 'none':
-    default: return t >= 1 ? 1 : 0;
+    case 'none': default: return t >= 1 ? 1 : 0;
   }
 }
 
 class Sprite {
-  constructor(id, enterAt, exitAt, easing) {
-    this.id = id;
-    this.enterAt = enterAt;
-    this.exitAt = exitAt;
-    this.easing = easing || 'expoOut';
-    this.progress = 0;
-    this.exitProgress = 0;
-    this.visible = false;
+  constructor(id, enterAt, exitAt, easing, idle) {
+    this.id = id; this.enterAt = enterAt; this.exitAt = exitAt;
+    this.easing = easing || 'expoOut'; this.idle = idle || 'none';
+    this.progress = 0; this.exitProgress = 0; this.visible = false; this.localTime = 0;
   }
   update(time, duration) {
     const enterP = (time - this.enterAt) / Math.max(0.01, 0.5);
@@ -129,936 +106,853 @@ class Sprite {
     if (this.exitAt != null && this.exitAt < duration) {
       const exitP = (time - this.exitAt) / Math.max(0.01, 0.4);
       this.exitProgress = applyEasing(Math.max(0, Math.min(1, exitP)), 'easeIn');
-    } else {
-      this.exitProgress = 0;
-    }
+    } else { this.exitProgress = 0; }
     this.visible = time >= this.enterAt && (this.exitAt == null || time < this.exitAt + 0.5);
+    this.localTime = Math.max(0, time - this.enterAt);
   }
+  idleAlpha() { return this.idle === 'glow' ? 0.85 + Math.sin(this.localTime * 2) * 0.15 : 1; }
+  idleScale() {
+    switch(this.idle) {
+      case 'breathe': return 1 + Math.sin(this.localTime * 2) * 0.02;
+      case 'pulse': return 1 + Math.sin(this.localTime * 3) * 0.04;
+      default: return 1;
+    }
+  }
+  idleY() { return this.idle === 'float' ? Math.sin(this.localTime * 1.5) * 8 * S : 0; }
 }
 
 function buildSprites(slide) {
   const tl = slide.timeline;
   if (!tl || !tl.elements) return null;
   const sprites = {};
-  tl.elements.forEach(el => {
-    sprites[el.id] = new Sprite(el.id, el.enter_at, el.exit_at, el.easing);
-  });
+  tl.elements.forEach(el => { sprites[el.id] = new Sprite(el.id, el.enter_at, el.exit_at, el.easing, el.idle); });
   return sprites;
 }
 
-function autoTimeline(slide) {
-  const dur = slide.duration || 10;
-  const elements = [];
-  const type = slide.type;
+function sp(sprites, id) {
+  if (!sprites || !sprites[id]) return { progress: 1, exitProgress: 0, visible: true, idleAlpha:()=>1, idleScale:()=>1, idleY:()=>0 };
+  return sprites[id];
+}
 
-  if (type === 'title') {
-    elements.push({ id: 'bg', enter_at: 0, exit_at: dur, easing: 'none' });
-    elements.push({ id: 'icon', enter_at: 0.2, exit_at: dur - 0.5, easing: 'expoOut' });
-    elements.push({ id: 'title', enter_at: 0.4, exit_at: dur - 0.5, easing: 'expoOut' });
-    elements.push({ id: 'accent', enter_at: 0.7, exit_at: dur - 0.5, easing: 'expoOut' });
-    if (slide.subtitle) elements.push({ id: 'subtitle', enter_at: 0.9, exit_at: dur - 0.5, easing: 'expoOut' });
-  } else if (type === 'bullet') {
-    elements.push({ id: 'bg', enter_at: 0, exit_at: dur, easing: 'none' });
-    elements.push({ id: 'heading', enter_at: 0.1, exit_at: dur - 0.5, easing: 'expoOut' });
-    elements.push({ id: 'accent', enter_at: 0.3, exit_at: dur - 0.5, easing: 'expoOut' });
-    const items = slide.items || [];
-    items.forEach((_, i) => {
-      elements.push({ id: `item_${i}`, enter_at: 0.4 + i * 0.25, exit_at: dur - 0.5, easing: 'easeOutBack' });
-    });
-  } else if (type === 'quote') {
-    elements.push({ id: 'bg', enter_at: 0, exit_at: dur, easing: 'none' });
-    elements.push({ id: 'openQuote', enter_at: 0.2, exit_at: dur - 0.5, easing: 'expoOut' });
-    elements.push({ id: 'card', enter_at: 0.3, exit_at: dur - 0.5, easing: 'expoOut' });
-    elements.push({ id: 'text', enter_at: 0.6, exit_at: dur - 0.5, easing: 'expoOut' });
-    if (slide.source) elements.push({ id: 'source', enter_at: 0.9, exit_at: dur - 0.5, easing: 'expoOut' });
-  } else if (type === 'compare') {
-    elements.push({ id: 'bg', enter_at: 0, exit_at: dur, easing: 'none' });
-    elements.push({ id: 'heading', enter_at: 0.1, exit_at: dur - 0.5, easing: 'expoOut' });
-    elements.push({ id: 'accent', enter_at: 0.3, exit_at: dur - 0.5, easing: 'expoOut' });
-    elements.push({ id: 'leftCol', enter_at: 0.4, exit_at: dur - 0.5, easing: 'expoOut' });
-    elements.push({ id: 'rightCol', enter_at: 0.5, exit_at: dur - 0.5, easing: 'expoOut' });
-    const leftItems = slide.left || [];
-    const rightItems = slide.right || [];
-    const maxItems = Math.max(leftItems.length, rightItems.length);
-    for (let i = 0; i < maxItems; i++) {
-      if (i < leftItems.length) elements.push({ id: `left_${i}`, enter_at: 0.6 + i * 0.12, exit_at: dur - 0.5, easing: 'easeOut' });
-      if (i < rightItems.length) elements.push({ id: `right_${i}`, enter_at: 0.6 + i * 0.12, exit_at: dur - 0.5, easing: 'easeOut' });
-    }
-  } else if (type === 'steps') {
-    elements.push({ id: 'bg', enter_at: 0, exit_at: dur, easing: 'none' });
-    elements.push({ id: 'heading', enter_at: 0.1, exit_at: dur - 0.5, easing: 'expoOut' });
-    elements.push({ id: 'accent', enter_at: 0.3, exit_at: dur - 0.5, easing: 'expoOut' });
-    const steps = slide.steps || [];
-    steps.forEach((_, i) => {
-      elements.push({ id: `step_${i}`, enter_at: 0.4 + i * 0.3, exit_at: dur - 0.5, easing: 'easeOutBack' });
-    });
-  } else if (type === 'summary') {
-    elements.push({ id: 'bg', enter_at: 0, exit_at: dur, easing: 'none' });
-    elements.push({ id: 'icon', enter_at: 0.1, exit_at: dur - 0.5, easing: 'expoOut' });
-    elements.push({ id: 'heading', enter_at: 0.2, exit_at: dur - 0.5, easing: 'expoOut' });
-    elements.push({ id: 'accent', enter_at: 0.4, exit_at: dur - 0.5, easing: 'expoOut' });
-    const items = slide.items || [];
-    items.forEach((_, i) => {
-      elements.push({ id: `item_${i}`, enter_at: 0.5 + i * 0.15, exit_at: dur - 0.5, easing: 'easeOut' });
-    });
-  } else {
-    elements.push({ id: 'bg', enter_at: 0, exit_at: dur, easing: 'none' });
-    elements.push({ id: 'heading', enter_at: 0.1, exit_at: dur - 0.5, easing: 'expoOut' });
+function withSprite(sprites, id, fn) {
+  const s = sp(sprites, id);
+  if (!s.visible) return s;
+  ctx.save();
+  ctx.globalAlpha = s.progress * (1 - s.exitProgress) * s.idleAlpha();
+  const sc = s.idleScale();
+  if (sc !== 1) { ctx.translate(W/2, H/2); ctx.scale(sc, sc); ctx.translate(-W/2, -H/2); }
+  const oy = s.idleY();
+  if (oy) ctx.translate(0, oy);
+  fn(s);
+  ctx.restore();
+  return s;
+}
+
+function alpha(color, a) {
+  if (color.startsWith('rgba')) return color.replace(/[\d.]+\)$/, a + ')');
+  if (color.startsWith('rgb')) return color.replace('rgb', 'rgba').replace(')', ',' + a + ')');
+  if (color.startsWith('#') && color.length === 7) {
+    const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
+    return `rgba(${r},${g},${b},${a})`;
   }
-
-  return { duration: dur, elements };
+  return color;
 }
 
 function clearCanvas() {
   const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, C.bg1);
-  g.addColorStop(0.5, C.bg2);
-  g.addColorStop(1, C.bg3);
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, H);
+  g.addColorStop(0, C.bg1); g.addColorStop(0.5, C.bg2); g.addColorStop(1, C.bg3);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 }
 
 function drawRRect(x, y, w, h, r) {
   ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
 }
 
 function drawGlassCard(x, y, w, h, opts = {}) {
   ctx.save();
-  if (opts.glow) {
-    ctx.shadowColor = opts.glow;
-    ctx.shadowBlur = 60 * S;
-  }
+  if (opts.glow) { ctx.shadowColor = opts.glow; ctx.shadowBlur = 60 * S; }
   ctx.fillStyle = opts.fill || C.cardBg;
-  drawRRect(x, y, w, h, opts.r || 32 * S);
-  ctx.fill();
-  ctx.strokeStyle = opts.border || C.cardBorder;
-  ctx.lineWidth = 2 * S;
-  drawRRect(x, y, w, h, opts.r || 32 * S);
-  ctx.stroke();
+  drawRRect(x, y, w, h, opts.r || 32*S); ctx.fill();
+  ctx.strokeStyle = opts.border || C.cardBorder; ctx.lineWidth = 2 * S;
+  drawRRect(x, y, w, h, opts.r || 32*S); ctx.stroke();
   ctx.restore();
 }
 
 function wrapText(text, x, y, maxW, lh) {
-  const chars = text.split('');
-  let line = '';
-  let curY = y;
-  const lines = [];
+  const chars = text.split(''); let line = '', curY = y; const lines = [];
   for (let i = 0; i < chars.length; i++) {
     const test = line + chars[i];
     if (ctx.measureText(test).width > maxW && line.length > 0) {
-      lines.push({ text: line, x, y: curY });
-      line = chars[i];
-      curY += lh;
-    } else {
-      line = test;
-    }
+      lines.push({text:line, x, y:curY}); line = chars[i]; curY += lh;
+    } else { line = test; }
   }
-  if (line) lines.push({ text: line, x, y: curY });
+  if (line) lines.push({text:line, x, y:curY});
   return lines;
 }
 
+function drawText(text, x, y, maxW, opts = {}) {
+  const { font = F.body, color = C.white, align = 'left', lh = 70*S, maxLen = 0 } = opts;
+  ctx.fillStyle = color; ctx.font = font; ctx.textAlign = align;
+  const display = maxLen && text.length > maxLen ? text.substring(0, maxLen) + '...' : text;
+  const lines = wrapText(display, 0, 0, maxW, lh);
+  lines.forEach((line, i) => { ctx.fillText(line.text, x, y + i * lh); });
+  return lines.length;
+}
+
 function drawCircle(x, y, r, fill, stroke) {
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
   if (fill) { ctx.fillStyle = fill; ctx.fill(); }
   if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2 * S; ctx.stroke(); }
 }
 
 function drawRing(x, y, r, progress, color, width) {
   ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-  ctx.lineWidth = width;
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
-  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = width;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(x, y, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*progress); ctx.stroke();
   ctx.restore();
 }
 
 function drawBgCircles(progress) {
-  ctx.save();
-  ctx.globalAlpha = 0.03;
+  ctx.save(); ctx.globalAlpha = 0.03;
   const t = progress * Math.PI * 2;
   for (let i = 0; i < 5; i++) {
-    const cx = W * 0.5 + Math.cos(t + i * 1.2) * W * 0.3;
-    const cy = H * 0.5 + Math.sin(t + i * 0.8) * H * 0.3;
-    const r = (200 + i * 80) * S;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = i % 2 === 0 ? C.accent : C.cyan;
-    ctx.lineWidth = 2 * S;
-    ctx.stroke();
+    const cx = W*0.5 + Math.cos(t+i*1.2)*W*0.3, cy = H*0.5 + Math.sin(t+i*0.8)*H*0.3, r = (200+i*80)*S;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.strokeStyle = i%2===0 ? C.accent : C.cyan; ctx.lineWidth = 2*S; ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawGrid() {
+  ctx.save(); ctx.globalAlpha = 0.02; ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 1;
+  const gap = 120 * S;
+  for (let x = 0; x < W; x += gap) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += gap) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  ctx.restore();
+}
+
+function drawDots() {
+  ctx.save(); ctx.globalAlpha = 0.03; ctx.fillStyle = C.muted;
+  const gap = 80 * S;
+  for (let x = gap; x < W; x += gap) for (let y = gap; y < H; y += gap) {
+    ctx.beginPath(); ctx.arc(x, y, 3*S, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawSlideCounter(current, total) {
+  ctx.fillStyle = C.muted; ctx.font = F.slideNum; ctx.textAlign = 'center';
+  ctx.fillText(`${current} / ${total}`, W/2, H - 60*S);
+}
+
+function drawProgressLine(progress) {
+  const y = H - 24*S, x1 = 120*S, x2 = W - 120*S, w = x2 - x1;
+  ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillRect(x1, y, w, 4*S);
+  const g = ctx.createLinearGradient(x1, y, x1 + w*progress, y);
+  g.addColorStop(0, C.accent); g.addColorStop(1, C.gold);
+  ctx.fillStyle = g; ctx.fillRect(x1, y, w*progress, 4*S);
+}
+
+function drawAccentLine(x, y, w) {
+  const g = ctx.createLinearGradient(x, y, x+w, y);
+  g.addColorStop(0, C.accent); g.addColorStop(0.5, C.gold); g.addColorStop(1, 'transparent');
+  ctx.fillStyle = g; ctx.fillRect(x, y, w, 4*S);
+}
+
+function drawBigNumber(num, x, y, color) {
+  ctx.save(); ctx.fillStyle = color || C.accent; ctx.font = F.bigNum; ctx.textAlign = 'center';
+  ctx.globalAlpha = 0.12; ctx.fillText(num, x, y); ctx.restore();
+}
+
+function drawIcon(type, x, y, size, color) {
+  ctx.save(); ctx.strokeStyle = color || C.accent; ctx.fillStyle = color || C.accent;
+  ctx.lineWidth = 4*S; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const s = size;
+  switch (type) {
+    case 'brain':
+      ctx.beginPath(); ctx.arc(x-s*0.15,y-s*0.08,s*0.28,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x+s*0.15,y-s*0.08,s*0.28,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x-s*0.08,y-s*0.36); ctx.quadraticCurveTo(x,y-s*0.18,x+s*0.08,y-s*0.36); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x-s*0.22,y+s*0.15); ctx.quadraticCurveTo(x,y+s*0.32,x+s*0.22,y+s*0.15); ctx.stroke();
+      break;
+    case 'lightbulb':
+      ctx.beginPath(); ctx.arc(x,y-s*0.1,s*0.3,Math.PI*1.1,Math.PI*-0.1); ctx.lineTo(x+s*0.12,y+s*0.2); ctx.lineTo(x-s*0.12,y+s*0.2); ctx.closePath(); ctx.stroke();
+      ctx.fillRect(x-s*0.1,y+s*0.24,s*0.2,s*0.06);
+      break;
+    case 'target':
+      drawCircle(x,y,s*0.35,null,color||C.accent); drawCircle(x,y,s*0.2,null,color||C.accent); drawCircle(x,y,s*0.06,color||C.accent);
+      break;
+    case 'layers':
+      for(let i=0;i<3;i++){const oy=y-s*0.2+i*s*0.16;ctx.beginPath();ctx.moveTo(x-s*0.28,oy);ctx.lineTo(x,oy-s*0.1);ctx.lineTo(x+s*0.28,oy);ctx.lineTo(x,oy+s*0.1);ctx.closePath();if(i===2)ctx.fill();else ctx.stroke();}
+      break;
+    case 'zap':
+      ctx.beginPath();ctx.moveTo(x+s*0.05,y-s*0.32);ctx.lineTo(x-s*0.12,y+s*0.02);ctx.lineTo(x+s*0.02,y+s*0.02);ctx.lineTo(x-s*0.05,y+s*0.32);ctx.lineTo(x+s*0.12,y-s*0.02);ctx.lineTo(x-s*0.02,y-s*0.02);ctx.closePath();ctx.fill();
+      break;
+    case 'check':
+      drawCircle(x,y,s*0.35,null,color||C.success);
+      ctx.beginPath();ctx.moveTo(x-s*0.15,y);ctx.lineTo(x-s*0.02,y+s*0.15);ctx.lineTo(x+s*0.18,y-s*0.12);ctx.stroke();
+      break;
+    case 'arrow':
+      ctx.beginPath();ctx.moveTo(x-s*0.2,y);ctx.lineTo(x+s*0.2,y);ctx.moveTo(x+s*0.06,y-s*0.12);ctx.lineTo(x+s*0.22,y);ctx.lineTo(x+s*0.06,y+s*0.12);ctx.stroke();
+      break;
+    case 'scale':
+      ctx.beginPath();ctx.moveTo(x,y-s*0.28);ctx.lineTo(x,y+s*0.22);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x-s*0.28,y-s*0.12);ctx.lineTo(x,y-s*0.28);ctx.lineTo(x+s*0.28,y-s*0.12);ctx.stroke();
+      drawCircle(x-s*0.22,y-s*0.02,s*0.08,null,color||C.accent);drawCircle(x+s*0.22,y-s*0.02,s*0.08,null,color||C.accent);
+      break;
+    case 'diamond':
+      ctx.beginPath();ctx.moveTo(x,y-s*0.3);ctx.lineTo(x+s*0.2,y);ctx.lineTo(x,y+s*0.3);ctx.lineTo(x-s*0.2,y);ctx.closePath();ctx.stroke();
+      drawCircle(x,y,s*0.06,color||C.accent);
+      break;
+    case 'hexagon':
+      ctx.beginPath();for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2-Math.PI/6;const px=x+Math.cos(a)*s*0.3;const py=y+Math.sin(a)*s*0.3;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}ctx.closePath();ctx.stroke();
+      break;
+    case 'question':
+      ctx.beginPath();ctx.arc(x,y-s*0.08,s*0.25,Math.PI*0.2,Math.PI*0.8,true);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x,y+s*0.17);ctx.lineTo(x,y+s*0.22);ctx.stroke();
+      drawCircle(x,y+s*0.32,s*0.03,color||C.accent);
+      break;
   }
   ctx.restore();
 }
 
 const VISUAL_LANG = {
   tech: {
-    drawBg: function(t) {
-      ctx.save();
-      ctx.globalAlpha = 0.04;
-      ctx.strokeStyle = C.cyan;
-      ctx.lineWidth = 1.5 * S;
-      for (let i = 0; i < 6; i++) {
-        const cx = W * 0.5 + Math.cos(t * 0.5 + i * Math.PI / 3) * W * 0.35;
-        const cy = H * 0.4 + Math.sin(t * 0.3 + i * Math.PI / 3) * H * 0.25;
-        const r = (120 + i * 60) * S;
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.stroke();
-        if (i < 3) {
-          const cx2 = W * 0.5 + Math.cos(t * 0.5 + (i + 3) * Math.PI / 3) * W * 0.35;
-          const cy2 = H * 0.4 + Math.sin(t * 0.3 + (i + 3) * Math.PI / 3) * H * 0.25;
-          ctx.beginPath();
-          ctx.moveTo(cx, cy);
-          ctx.lineTo(cx2, cy2);
-          ctx.stroke();
-        }
-      }
+    drawBg(t) {
+      ctx.save(); ctx.globalAlpha = 0.04; ctx.strokeStyle = C.cyan; ctx.lineWidth = 1.5*S;
+      for(let i=0;i<6;i++){const cx=W*0.5+Math.cos(t*0.5+i*Math.PI/3)*W*0.35,cy=H*0.4+Math.sin(t*0.3+i*Math.PI/3)*H*0.25,r=(120+i*60)*S;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();if(i<3){const cx2=W*0.5+Math.cos(t*0.5+(i+3)*Math.PI/3)*W*0.35,cy2=H*0.4+Math.sin(t*0.3+(i+3)*Math.PI/3)*H*0.25;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx2,cy2);ctx.stroke();}}
       ctx.restore();
     },
-    iconSet: ['brain', 'zap', 'diamond', 'hexagon', 'layers'],
-    accentEasing: 'expoOut',
-    enterEasing: 'spring',
+    iconSet:['brain','zap','diamond','hexagon','layers'],
+    accentEasing:'expoOut', enterEasing:'spring',
   },
   edu: {
-    drawBg: function(t) {
-      ctx.save();
-      ctx.globalAlpha = 0.04;
-      ctx.strokeStyle = C.gold;
-      ctx.lineWidth = 2 * S;
-      const stepW = W * 0.6;
-      const stepH = 80 * S;
-      const baseY = H * 0.65;
-      for (let i = 0; i < 5; i++) {
-        const x = W * 0.2 + i * (stepW / 5);
-        const y = baseY - i * stepH;
-        const w = stepW / 5 - 20 * S;
-        const h = stepH - 10 * S;
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + w, y);
-        ctx.lineTo(x + w, y - h);
-        ctx.stroke();
-        if (i < 4) {
-          ctx.beginPath();
-          ctx.moveTo(x + w, y - h / 2);
-          ctx.lineTo(x + w + 20 * S, y - h / 2);
-          ctx.stroke();
-        }
-      }
+    drawBg(t) {
+      ctx.save(); ctx.globalAlpha = 0.04; ctx.strokeStyle = C.gold; ctx.lineWidth = 2*S;
+      const stepW=W*0.6,stepH=80*S,baseY=H*0.65;
+      for(let i=0;i<5;i++){const x=W*0.2+i*(stepW/5),y=baseY-i*stepH,w=stepW/5-20*S,h=stepH-10*S;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+w,y);ctx.lineTo(x+w,y-h);ctx.stroke();if(i<4){ctx.beginPath();ctx.moveTo(x+w,y-h/2);ctx.lineTo(x+w+20*S,y-h/2);ctx.stroke();}}
       ctx.restore();
     },
-    iconSet: ['lightbulb', 'layers', 'check', 'arrow', 'target'],
-    accentEasing: 'anticipation',
-    enterEasing: 'overshoot',
+    iconSet:['lightbulb','layers','check','arrow','target'],
+    accentEasing:'anticipation', enterEasing:'overshoot',
   },
   compare: {
-    drawBg: function(t) {
-      ctx.save();
-      ctx.globalAlpha = 0.04;
-      ctx.strokeStyle = C.accent;
-      ctx.lineWidth = 2 * S;
-      ctx.setLineDash([10 * S, 10 * S]);
-      ctx.beginPath();
-      ctx.moveTo(W / 2, H * 0.1);
-      ctx.lineTo(W / 2, H * 0.9);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.strokeStyle = C.success;
-      ctx.beginPath();
-      ctx.arc(W * 0.25, H * 0.5, 100 * S, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.strokeStyle = C.warn;
-      ctx.beginPath();
-      ctx.arc(W * 0.75, H * 0.5, 100 * S, 0, Math.PI * 2);
-      ctx.stroke();
+    drawBg(t) {
+      ctx.save(); ctx.globalAlpha = 0.04; ctx.strokeStyle = C.accent; ctx.lineWidth = 2*S;
+      ctx.setLineDash([10*S,10*S]); ctx.beginPath(); ctx.moveTo(W/2,H*0.1); ctx.lineTo(W/2,H*0.9); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = C.success; ctx.beginPath(); ctx.arc(W*0.25,H*0.5,100*S,0,Math.PI*2); ctx.stroke();
+      ctx.strokeStyle = C.warn; ctx.beginPath(); ctx.arc(W*0.75,H*0.5,100*S,0,Math.PI*2); ctx.stroke();
       ctx.restore();
     },
-    iconSet: ['scale', 'diamond', 'check', 'zap', 'target'],
-    accentEasing: 'expoOut',
-    enterEasing: 'overshoot',
+    iconSet:['scale','diamond','check','zap','target'],
+    accentEasing:'expoOut', enterEasing:'overshoot',
   },
   philosophy: {
-    drawBg: function(t) {
-      ctx.save();
-      ctx.globalAlpha = 0.025;
-      ctx.strokeStyle = C.muted;
-      ctx.lineWidth = 1 * S;
-      const breath = Math.sin(t * 0.8) * 0.15 + 1;
-      for (let i = 0; i < 3; i++) {
-        const r = (300 + i * 200) * S * breath;
-        ctx.beginPath();
-        ctx.arc(W / 2, H * 0.45, r, 0, Math.PI * 2);
-        ctx.stroke();
-      }
+    drawBg(t) {
+      ctx.save(); ctx.globalAlpha = 0.025; ctx.strokeStyle = C.muted; ctx.lineWidth = 1*S;
+      const breath = Math.sin(t*0.8)*0.15+1;
+      for(let i=0;i<3;i++){const r=(300+i*200)*S*breath;ctx.beginPath();ctx.arc(W/2,H*0.45,r,0,Math.PI*2);ctx.stroke();}
       ctx.restore();
     },
-    iconSet: ['diamond', 'lightbulb', 'brain', 'scale', 'layers'],
-    accentEasing: 'easeInOut',
-    enterEasing: 'expoOut',
+    iconSet:['diamond','lightbulb','brain','scale','layers'],
+    accentEasing:'easeInOut', enterEasing:'expoOut',
   },
 };
 
-function getVisualLang() {
-  return VISUAL_LANG[window.visualStyle] || VISUAL_LANG.tech;
-}
+function getVisualLang() { return VISUAL_LANG[window.visualStyle] || VISUAL_LANG.tech; }
+function drawVisualLangBg(t) { const vl = getVisualLang(); if (vl.drawBg) vl.drawBg(t); }
+function getSceneIcon(sceneType, index) { const vl = getVisualLang(); return vl.iconSet[index % vl.iconSet.length]; }
 
-function drawVisualLangBg(t) {
-  const vl = getVisualLang();
-  if (vl.drawBg) vl.drawBg(t);
-}
-
-function getSceneIcon(sceneType, index) {
-  const vl = getVisualLang();
-  return vl.iconSet[index % vl.iconSet.length];
-}
-
-function drawGrid() {
-  ctx.save();
-  ctx.globalAlpha = 0.02;
-  ctx.strokeStyle = '#FFFFFF';
-  ctx.lineWidth = 1;
-  const gap = 120 * S;
-  for (let x = 0; x < W; x += gap) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-  }
-  for (let y = 0; y < H; y += gap) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function drawSlideCounter(current, total) {
-  ctx.fillStyle = C.muted;
-  ctx.font = F.slideNum;
-  ctx.textAlign = 'center';
-  ctx.fillText(`${current} / ${total}`, W / 2, H - 60 * S);
-}
-
-function drawProgressLine(progress) {
-  const y = H - 24 * S;
-  const x1 = 120 * S;
-  const x2 = W - 120 * S;
-  const w = x2 - x1;
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(x1, y, w, 4 * S);
-  const g = ctx.createLinearGradient(x1, y, x1 + w * progress, y);
-  g.addColorStop(0, C.accent);
-  g.addColorStop(1, C.gold);
-  ctx.fillStyle = g;
-  ctx.fillRect(x1, y, w * progress, 4 * S);
-}
-
-function drawIcon(type, x, y, size, color) {
-  ctx.save();
-  ctx.strokeStyle = color || C.accent;
-  ctx.fillStyle = color || C.accent;
-  ctx.lineWidth = 4 * S;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  const s = size;
-  switch (type) {
-    case 'brain':
-      ctx.beginPath(); ctx.arc(x - s*0.15, y - s*0.08, s*0.28, 0, Math.PI*2); ctx.stroke();
-      ctx.beginPath(); ctx.arc(x + s*0.15, y - s*0.08, s*0.28, 0, Math.PI*2); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(x - s*0.08, y - s*0.36); ctx.quadraticCurveTo(x, y - s*0.18, x + s*0.08, y - s*0.36); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(x - s*0.22, y + s*0.15); ctx.quadraticCurveTo(x, y + s*0.32, x + s*0.22, y + s*0.15); ctx.stroke();
-      break;
-    case 'lightbulb':
-      ctx.beginPath(); ctx.arc(x, y - s*0.1, s*0.3, Math.PI*1.1, Math.PI*-0.1); ctx.lineTo(x + s*0.12, y + s*0.2); ctx.lineTo(x - s*0.12, y + s*0.2); ctx.closePath(); ctx.stroke();
-      ctx.fillRect(x - s*0.1, y + s*0.24, s*0.2, s*0.06);
-      break;
-    case 'target':
-      drawCircle(x, y, s*0.35, null, color||C.accent); drawCircle(x, y, s*0.2, null, color||C.accent); drawCircle(x, y, s*0.06, color||C.accent);
-      break;
-    case 'layers':
-      for (let i = 0; i < 3; i++) {
-        const oy = y - s*0.2 + i*s*0.16;
-        ctx.beginPath(); ctx.moveTo(x - s*0.28, oy); ctx.lineTo(x, oy - s*0.1); ctx.lineTo(x + s*0.28, oy); ctx.lineTo(x, oy + s*0.1); ctx.closePath();
-        if (i === 2) ctx.fill(); else ctx.stroke();
-      }
-      break;
-    case 'zap':
-      ctx.beginPath(); ctx.moveTo(x+s*0.05,y-s*0.32); ctx.lineTo(x-s*0.12,y+s*0.02); ctx.lineTo(x+s*0.02,y+s*0.02); ctx.lineTo(x-s*0.05,y+s*0.32); ctx.lineTo(x+s*0.12,y-s*0.02); ctx.lineTo(x-s*0.02,y-s*0.02); ctx.closePath(); ctx.fill();
-      break;
-    case 'check':
-      drawCircle(x, y, s*0.35, null, color||C.success);
-      ctx.beginPath(); ctx.moveTo(x-s*0.15,y); ctx.lineTo(x-s*0.02,y+s*0.15); ctx.lineTo(x+s*0.18,y-s*0.12); ctx.stroke();
-      break;
-    case 'arrow':
-      ctx.beginPath(); ctx.moveTo(x-s*0.2,y); ctx.lineTo(x+s*0.2,y); ctx.moveTo(x+s*0.06,y-s*0.12); ctx.lineTo(x+s*0.22,y); ctx.lineTo(x+s*0.06,y+s*0.12); ctx.stroke();
-      break;
-    case 'scale':
-      ctx.beginPath(); ctx.moveTo(x,y-s*0.28); ctx.lineTo(x,y+s*0.22); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(x-s*0.28,y-s*0.12); ctx.lineTo(x,y-s*0.28); ctx.lineTo(x+s*0.28,y-s*0.12); ctx.stroke();
-      drawCircle(x-s*0.22,y-s*0.02,s*0.08,null,color||C.accent); drawCircle(x+s*0.22,y-s*0.02,s*0.08,null,color||C.accent);
-      break;
-    case 'diamond':
-      ctx.beginPath(); ctx.moveTo(x,y-s*0.3); ctx.lineTo(x+s*0.2,y); ctx.lineTo(x,y+s*0.3); ctx.lineTo(x-s*0.2,y); ctx.closePath(); ctx.stroke();
-      drawCircle(x,y,s*0.06,color||C.accent);
-      break;
-    case 'hexagon':
-      ctx.beginPath();
-      for (let i = 0; i < 6; i++) { const a=(i/6)*Math.PI*2-Math.PI/6; const px=x+Math.cos(a)*s*0.3; const py=y+Math.sin(a)*s*0.3; if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py); }
-      ctx.closePath(); ctx.stroke();
-      break;
-  }
-  ctx.restore();
-}
-
-function drawBigNumber(num, x, y, color) {
-  ctx.save(); ctx.fillStyle = color || C.accent; ctx.font = F.bigNum; ctx.textAlign = 'center'; ctx.globalAlpha = 0.12; ctx.fillText(num, x, y); ctx.restore();
-}
-
-function drawAccentLine(x, y, w) {
-  const g = ctx.createLinearGradient(x, y, x + w, y);
-  g.addColorStop(0, C.accent); g.addColorStop(0.5, C.gold); g.addColorStop(1, 'transparent');
-  ctx.fillStyle = g; ctx.fillRect(x, y, w, 4 * S);
-}
-
-function sp(sprites, id) {
-  if (!sprites || !sprites[id]) return { progress: 1, exitProgress: 0, visible: true };
-  return sprites[id];
-}
-
-const RENDERERS = {
-  title: renderTitle,
-  bullet: renderBullet,
-  quote: renderQuote,
-  compare: renderCompare,
-  steps: renderSteps,
-  summary: renderSummary,
+const SCENE_TEMPLATES = {
+  title:    { bg:'circles', camera:'zoomIn',  transition:'fade' },
+  bullet:   { bg:'grid',    camera:'none',    transition:'fade' },
+  quote:    { bg:'circles', camera:'zoomOut', transition:'fade' },
+  compare:  { bg:'grid',    camera:'none',    transition:'fade' },
+  steps:    { bg:'dots',    camera:'panDown', transition:'fade' },
+  summary:  { bg:'circles', camera:'zoomOut', transition:'fade' },
+  stat:     { bg:'grid',    camera:'breathe', transition:'fade' },
+  chart:    { bg:'grid',    camera:'none',    transition:'slideLeft' },
+  timeline: { bg:'dots',    camera:'panDown', transition:'fade' },
+  focus:    { bg:'none',    camera:'zoomIn',  transition:'fade' },
+  qa:       { bg:'grid',    camera:'none',    transition:'flip' },
 };
 
-function renderTitle(slide, progress, idx, total, sprites) {
-  clearCanvas(); drawGrid(); drawBgCircles(progress);
-
-  const sIcon = sp(sprites, 'icon');
-  const sTitle = sp(sprites, 'title');
-  const sAccent = sp(sprites, 'accent');
-  const sSub = sp(sprites, 'subtitle');
-
-  if (sIcon.visible) {
-    ctx.save(); ctx.globalAlpha = sIcon.progress * (1 - sIcon.exitProgress);
-    drawRing(W/2, H*0.18, 180*S, sIcon.progress, C.accent, 6*S);
-    drawIcon('brain', W/2, H*0.18, 160*S, C.accent);
-    ctx.restore();
+function setupScene(type, progress) {
+  clearCanvas();
+  const tpl = SCENE_TEMPLATES[type] || SCENE_TEMPLATES.bullet;
+  switch (tpl.bg) {
+    case 'grid': drawGrid(); break;
+    case 'circles': drawGrid(); drawBgCircles(progress); break;
+    case 'dots': drawDots(); break;
   }
-
-  if (sTitle.visible) {
-    ctx.save();
-    const slideUp = (1 - sTitle.progress) * 80 * S;
-    ctx.globalAlpha = sTitle.progress * (1 - sTitle.exitProgress);
-    ctx.fillStyle = C.white; ctx.font = F.hero; ctx.textAlign = 'center';
-    const titleLines = wrapText(slide.title, 0, 0, W - 240*S, 130*S);
-    const titleY = H*0.36 - (titleLines.length-1)*65*S + slideUp;
-    titleLines.forEach((line, i) => { ctx.fillText(line.text, W/2, titleY + i*130*S); });
-    ctx.restore();
-  }
-
-  if (sAccent.visible) {
-    ctx.save(); ctx.globalAlpha = sAccent.progress * (1 - sAccent.exitProgress);
-    const titleLines = wrapText(slide.title, 0, 0, W - 240*S, 130*S);
-    const titleY = H*0.36;
-    drawAccentLine(W/2 - 160*S, titleY + titleLines.length*130*S + 40*S, 320*S);
-    ctx.restore();
-  }
-
-  if (sSub.visible && slide.subtitle) {
-    ctx.save();
-    const slideUp = (1 - sSub.progress) * 80 * S;
-    ctx.globalAlpha = sSub.progress * (1 - sSub.exitProgress);
-    ctx.fillStyle = C.whiteDim; ctx.font = F.small; ctx.textAlign = 'center';
-    const titleLines = wrapText(slide.title, 0, 0, W - 240*S, 130*S);
-    const titleY = H*0.36;
-    let subY = titleY + titleLines.length*130*S + 100*S + slideUp;
-    const maxSubY = H * 0.58;
-    if (subY > maxSubY) subY = maxSubY;
-    const subLines = wrapText(slide.subtitle, 0, 0, W - 240*S, 60*S);
-    subLines.forEach((line, i) => { ctx.fillText(line.text, W/2, subY + i*60*S); });
-    ctx.restore();
-  }
-
-  drawProgressLine(progress); drawSlideCounter(idx+1, total);
+  drawVisualLangBg(progress);
 }
 
-function renderBullet(slide, progress, idx, total, sprites) {
-  clearCanvas(); drawGrid();
+function footer(progress, idx, total) {
+  drawProgressLine(progress); drawSlideCounter(idx + 1, total);
+}
 
-  const sHead = sp(sprites, 'heading');
-  const sAcc = sp(sprites, 'accent');
-
-  if (sHead.visible) {
-    ctx.save(); ctx.globalAlpha = sHead.progress * (1 - sHead.exitProgress);
-    ctx.fillStyle = C.white; ctx.font = F.title; ctx.textAlign = 'center';
-    ctx.fillText(slide.title, W/2, 200*S);
-    ctx.restore();
+function applyCameraMotion(type, localT, duration) {
+  const t = Math.min(1, localT / Math.max(0.01, duration));
+  switch (type) {
+    case 'zoomIn': { const z=1+t*0.05; ctx.translate(W/2,H/2); ctx.scale(z,z); ctx.translate(-W/2,-H/2); break; }
+    case 'zoomOut': { const z=1.05-t*0.05; ctx.translate(W/2,H/2); ctx.scale(z,z); ctx.translate(-W/2,-H/2); break; }
+    case 'panDown': ctx.translate(0, t*50*S); break;
+    case 'panUp': ctx.translate(0, -t*50*S); break;
+    case 'breathe': { const z=1+Math.sin(t*Math.PI*2)*0.015; ctx.translate(W/2,H/2); ctx.scale(z,z); ctx.translate(-W/2,-H/2); break; }
   }
+}
 
-  if (sAcc.visible) {
-    ctx.save(); ctx.globalAlpha = sAcc.progress * (1 - sAcc.exitProgress);
-    drawAccentLine(W/2 - 140*S, 240*S, 280*S);
-    ctx.restore();
+function applyTransition(type, progress, isOld) {
+  const p = isOld ? progress : 1 - progress;
+  switch (type) {
+    case 'slideLeft':
+      if (isOld) ctx.translate(-W*progress, 0); else ctx.translate(W*(1-progress), 0);
+      break;
+    case 'slideUp':
+      if (isOld) ctx.translate(0, -H*progress); else ctx.translate(0, H*(1-progress));
+      break;
+    case 'zoomIn':
+      if (isOld) { const s=1+progress*0.3; ctx.translate(W/2,H/2); ctx.scale(s,s); ctx.translate(-W/2,-H/2); ctx.globalAlpha=1-progress; }
+      break;
+    case 'flip':
+      if (isOld) ctx.scale(Math.cos(progress*Math.PI), 1); else ctx.scale(Math.cos((1-progress)*Math.PI), 1);
+      break;
   }
+}
 
-  drawIcon('target', W/2, 340*S, 80*S, C.cyanDim);
-
-  const items = slide.items || [];
-  const itemStartY = 500*S;
-  const itemSpacing = 360*S;
-  const cardW = W - 200*S;
-  const cardH = 280*S;
-  const cardX = 100*S;
-
-  items.forEach((item, i) => {
-    const sItem = sp(sprites, `item_${i}`);
-    if (!sItem.visible) return;
-    ctx.save();
-    const slideIn = (1 - sItem.progress) * 100 * S;
-    ctx.globalAlpha = sItem.progress * (1 - sItem.exitProgress);
-    const iy = itemStartY + i * itemSpacing;
-    drawBigNumber(`${i+1}`, W - 200*S, iy + 180*S, C.accent);
-    drawGlassCard(cardX + slideIn, iy, cardW, cardH, {
-      glow: i%2===0 ? C.accentGlow : C.cyanDim,
-      border: i%2===0 ? 'rgba(233,69,96,0.15)' : 'rgba(0,210,255,0.15)',
-    });
-    const iconType = getSceneIcon('bullet', i);
-    drawIcon(iconType, cardX + 100*S + slideIn, iy + cardH/2, 60*S, i%2===0 ? C.accent : C.cyan);
-    ctx.fillStyle = C.white; ctx.font = F.body; ctx.textAlign = 'left';
-    const shortText = item.length > 20 ? item.substring(0,20)+'...' : item;
-    const lines = wrapText(shortText, 0, 0, cardW - 240*S, 70*S);
-    lines.forEach((line, li) => {
-      ctx.fillText(line.text, cardX + 180*S + slideIn, iy + cardH/2 - (lines.length-1)*35*S + li*70*S);
-    });
-    ctx.restore();
+function drawBarChart(x, y, w, h, data, progress) {
+  const maxVal = Math.max(...data.map(d => d.value), 1);
+  const barH = Math.min(80*S, (h - 40*S) / data.length - 20*S);
+  const labelW = 200*S;
+  const barAreaW = w - labelW - 120*S;
+  data.forEach((d, i) => {
+    const iy = y + i * (barH + 24*S);
+    const barColor = d.color === 'accent' ? C.accent : d.color === 'cyan' ? C.cyan : d.color === 'gold' ? C.gold : C.success;
+    ctx.fillStyle = C.whiteDim; ctx.font = F.small; ctx.textAlign = 'right';
+    ctx.fillText(d.label, x + labelW - 20*S, iy + barH * 0.7);
+    ctx.fillStyle = alpha(barColor, 0.08);
+    drawRRect(x + labelW, iy, barAreaW, barH, 12*S); ctx.fill();
+    const barW = (d.value / maxVal) * barAreaW * Math.min(1, progress * 1.5);
+    const g = ctx.createLinearGradient(x + labelW, iy, x + labelW + barW, iy);
+    g.addColorStop(0, barColor); g.addColorStop(1, alpha(barColor, 0.6));
+    ctx.fillStyle = g;
+    drawRRect(x + labelW, iy, Math.max(20*S, barW), barH, 12*S); ctx.fill();
+    if (progress > 0.3) {
+      ctx.fillStyle = C.white; ctx.font = F.bodyBold; ctx.textAlign = 'left';
+      ctx.fillText(`${d.value}`, x + labelW + Math.max(20*S, barW) + 20*S, iy + barH * 0.7);
+    }
   });
-
-  drawProgressLine(progress); drawSlideCounter(idx+1, total);
 }
 
-function renderQuote(slide, progress, idx, total, sprites) {
-  clearCanvas(); drawGrid(); drawBgCircles(progress);
+function drawDonutChart(cx, cy, r, data, progress) {
+  const total = data.reduce((s, d) => s + d.value, 0) || 1;
+  const colors = [C.accent, C.cyan, C.gold, C.success, C.warn];
+  let angle = -Math.PI / 2;
+  ctx.save(); ctx.lineWidth = 40 * S; ctx.lineCap = 'butt';
+  data.forEach((d, i) => {
+    const sweep = (d.value / total) * Math.PI * 2 * Math.min(1, progress * 1.2);
+    ctx.strokeStyle = alpha(colors[i % colors.length], 0.15);
+    ctx.beginPath(); ctx.arc(cx, cy, r, angle, angle + (d.value/total)*Math.PI*2); ctx.stroke();
+    ctx.strokeStyle = colors[i % colors.length];
+    ctx.beginPath(); ctx.arc(cx, cy, r, angle, angle + sweep); ctx.stroke();
+    angle += (d.value / total) * Math.PI * 2;
+  });
+  ctx.restore();
+  ctx.fillStyle = C.white; ctx.font = F.bodyBold; ctx.textAlign = 'center';
+  ctx.fillText(`${total}`, cx, cy + 20*S);
+  ctx.fillStyle = C.muted; ctx.font = F.small;
+  ctx.fillText('总计', cx, cy + 60*S);
+}
 
-  const sOQ = sp(sprites, 'openQuote');
-  const sCard = sp(sprites, 'card');
-  const sText = sp(sprites, 'text');
-  const sSrc = sp(sprites, 'source');
+function drawProgressBar(x, y, w, h, value, max, color, progress) {
+  const ratio = (value / Math.max(1, max)) * Math.min(1, progress * 1.3);
+  ctx.fillStyle = alpha(color, 0.08);
+  drawRRect(x, y, w, h, h/2); ctx.fill();
+  const g = ctx.createLinearGradient(x, y, x + w * ratio, y);
+  g.addColorStop(0, color); g.addColorStop(1, alpha(color, 0.7));
+  ctx.fillStyle = g;
+  drawRRect(x, y, Math.max(h, w * ratio), h, h/2); ctx.fill();
+  ctx.fillStyle = C.white; ctx.font = F.bodyBold; ctx.textAlign = 'right';
+  ctx.fillText(`${Math.round(ratio * 100)}%`, x + w - 10*S, y + h * 0.7);
+}
 
-  if (sOQ.visible) {
-    ctx.save(); ctx.globalAlpha = sOQ.progress * (1 - sOQ.exitProgress);
+function drawTimelineAxis(x, y, h, events, progress) {
+  ctx.strokeStyle = alpha(C.muted, 0.2); ctx.lineWidth = 3 * S;
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + h); ctx.stroke();
+  const stepH = h / Math.max(1, events.length);
+  events.forEach((ev, i) => {
+    const ey = y + i * stepH + stepH / 2;
+    const vis = progress > (i + 0.5) / events.length;
+    if (!vis) return;
+    ctx.fillStyle = C.accent;
+    ctx.beginPath(); ctx.arc(x, ey, 14*S, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#FFFFFF'; ctx.font = F.small; ctx.textAlign = 'center';
+    ctx.fillText(`${i+1}`, x, ey + 14*S);
+    if (ev.year) {
+      ctx.fillStyle = C.gold; ctx.font = F.yearNum; ctx.textAlign = 'right';
+      ctx.fillText(ev.year, x - 40*S, ey + 20*S);
+    }
+    ctx.fillStyle = C.white; ctx.font = F.bodyBold; ctx.textAlign = 'left';
+    ctx.fillText(ev.title || '', x + 40*S, ey + 5*S);
+    if (ev.desc) {
+      ctx.fillStyle = C.whiteDim; ctx.font = F.small;
+      ctx.fillText(ev.desc.substring(0, 25), x + 40*S, ey + 55*S);
+    }
+  });
+}
+
+function drawFocusMask(focusY, focusH, progress) {
+  ctx.save();
+  ctx.fillStyle = alpha(C.bg1, 0.7 * progress);
+  ctx.fillRect(0, 0, W, focusY);
+  ctx.fillRect(0, focusY + focusH, W, H - focusY - focusH);
+  ctx.restore();
+}
+
+function autoTimeline(slide) {
+  const dur = slide.duration || 10;
+  const els = [];
+  const type = slide.type;
+  const push = (id, enter, exit, easing, idle) => els.push({id, enter_at:enter, exit_at:exit, easing:easing||'expoOut', idle:idle||'none'});
+
+  push('bg', 0, dur, 'none');
+  if (type === 'title') {
+    push('icon', 0.2, dur-0.5, 'expoOut', 'pulse');
+    push('title', 0.4, dur-0.5, 'expoOut');
+    push('accent', 0.7, dur-0.5, 'expoOut');
+    if (slide.subtitle) push('subtitle', 0.9, dur-0.5, 'expoOut');
+  } else if (type === 'bullet') {
+    push('heading', 0.1, dur-0.5);
+    push('accent', 0.3, dur-0.5);
+    (slide.items||[]).forEach((_,i) => push(`item_${i}`, 0.4+i*0.25, dur-0.5, 'easeOutBack'));
+  } else if (type === 'quote') {
+    push('openQuote', 0.2, dur-0.5);
+    push('card', 0.3, dur-0.5);
+    push('text', 0.6, dur-0.5);
+    if (slide.source) push('source', 0.9, dur-0.5);
+  } else if (type === 'compare') {
+    push('heading', 0.1, dur-0.5);
+    push('accent', 0.3, dur-0.5);
+    push('leftCol', 0.4, dur-0.5);
+    push('rightCol', 0.5, dur-0.5);
+    const maxI = Math.max((slide.left||[]).length, (slide.right||[]).length);
+    for (let i=0;i<maxI;i++) {
+      if (i < (slide.left||[]).length) push(`left_${i}`, 0.6+i*0.12, dur-0.5, 'easeOut');
+      if (i < (slide.right||[]).length) push(`right_${i}`, 0.6+i*0.12, dur-0.5, 'easeOut');
+    }
+  } else if (type === 'steps') {
+    push('heading', 0.1, dur-0.5);
+    push('accent', 0.3, dur-0.5);
+    (slide.steps||[]).forEach((_,i) => push(`step_${i}`, 0.4+i*0.3, dur-0.5, 'easeOutBack'));
+  } else if (type === 'summary') {
+    push('icon', 0.1, dur-0.5, 'expoOut', 'pulse');
+    push('heading', 0.2, dur-0.5);
+    push('accent', 0.4, dur-0.5);
+    (slide.items||[]).forEach((_,i) => push(`item_${i}`, 0.5+i*0.15, dur-0.5, 'easeOut'));
+  } else if (type === 'stat') {
+    push('ring', 0.1, dur-0.5, 'expoOut', 'breathe');
+    push('value', 0.3, dur-0.5, 'expoOut');
+    push('label', 0.6, dur-0.5);
+    if (slide.sublabel) push('sublabel', 0.8, dur-0.5);
+  } else if (type === 'chart') {
+    push('heading', 0.1, dur-0.5);
+    push('accent', 0.3, dur-0.5);
+    push('chart', 0.4, dur-0.5);
+  } else if (type === 'timeline') {
+    push('heading', 0.1, dur-0.5);
+    push('accent', 0.3, dur-0.5);
+    push('axis', 0.4, dur-0.5);
+  } else if (type === 'focus') {
+    push('mask', 0.1, dur-0.5);
+    push('keyword', 0.3, dur-0.5, 'expoOut');
+    push('explanation', 0.6, dur-0.5);
+    push('callout', 0.8, dur-0.5);
+  } else if (type === 'qa') {
+    push('question', 0.1, dur*0.45);
+    push('flip', dur*0.45, dur-0.5, 'expoOut');
+    push('answer', dur*0.5, dur-0.5);
+  } else {
+    push('heading', 0.1, dur-0.5);
+  }
+  return { duration: dur, elements: els };
+}
+
+const RENDERERS = {};
+
+RENDERERS.title = function(slide, progress, idx, total, sprites) {
+  setupScene('title', progress);
+  withSprite(sprites, 'icon', () => {
+    drawRing(W/2, H*0.18, 180*S, sp(sprites,'icon').progress, C.accent, 6*S);
+    drawIcon('brain', W/2, H*0.18, 160*S, C.accent);
+  });
+  withSprite(sprites, 'title', (s) => {
+    const slideUp = (1-s.progress)*80*S;
+    const titleLines = wrapText(slide.title, 0, 0, W-240*S, 130*S);
+    const titleY = H*0.36 - (titleLines.length-1)*65*S + slideUp;
+    ctx.fillStyle = C.white; ctx.font = F.hero; ctx.textAlign = 'center';
+    titleLines.forEach((line,i) => ctx.fillText(line.text, W/2, titleY+i*130*S));
+  });
+  withSprite(sprites, 'accent', () => {
+    const titleLines = wrapText(slide.title, 0, 0, W-240*S, 130*S);
+    drawAccentLine(W/2-160*S, H*0.36+titleLines.length*130*S+40*S, 320*S);
+  });
+  withSprite(sprites, 'subtitle', () => {
+    if (!slide.subtitle) return;
+    const titleLines = wrapText(slide.title, 0, 0, W-240*S, 130*S);
+    let subY = H*0.36 + titleLines.length*130*S + 100*S;
+    subY = Math.min(subY, H*0.58);
+    drawText(slide.subtitle, W/2, subY, W-240*S, {font:F.small, color:C.whiteDim, align:'center', lh:60*S});
+  });
+  footer(progress, idx, total);
+};
+
+RENDERERS.bullet = function(slide, progress, idx, total, sprites) {
+  setupScene('bullet', progress);
+  withSprite(sprites, 'heading', () => {
+    drawText(slide.title, W/2, 200*S, W-200*S, {font:F.title, color:C.white, align:'center'});
+  });
+  withSprite(sprites, 'accent', () => drawAccentLine(W/2-140*S, 240*S, 280*S));
+  drawIcon('target', W/2, 340*S, 80*S, C.cyanDim);
+  const items = slide.items || [];
+  items.forEach((item, i) => {
+    withSprite(sprites, `item_${i}`, (s) => {
+      const slideIn = (1-s.progress)*100*S;
+      const iy = 500*S + i*360*S;
+      drawBigNumber(`${i+1}`, W-200*S, iy+180*S, C.accent);
+      drawGlassCard(100*S+slideIn, iy, W-200*S, 280*S, {
+        glow: i%2===0 ? C.accentGlow : C.cyanDim,
+        border: i%2===0 ? 'rgba(233,69,96,0.15)' : 'rgba(0,210,255,0.15)',
+      });
+      drawIcon(getSceneIcon('bullet',i), 200*S+slideIn, iy+140*S, 60*S, i%2===0?C.accent:C.cyan);
+      drawText(item, 280*S+slideIn, iy+140*S, W-440*S, {maxLen:20, lh:70*S});
+    });
+  });
+  footer(progress, idx, total);
+};
+
+RENDERERS.quote = function(slide, progress, idx, total, sprites) {
+  setupScene('quote', progress);
+  withSprite(sprites, 'openQuote', () => {
     ctx.fillStyle = C.accent; ctx.font = `200 ${280*S}px Georgia,serif`; ctx.textAlign = 'center';
     ctx.fillText('\u201C', W/2, H*0.22);
-    ctx.restore();
-  }
-
-  if (sCard.visible) {
-    ctx.save(); ctx.globalAlpha = sCard.progress * (1 - sCard.exitProgress);
-    drawGlassCard(120*S, H*0.28, W - 240*S, H*0.38, { glow: C.accentGlow, border: 'rgba(233,69,96,0.12)' });
-    ctx.restore();
-  }
-
-  if (sText.visible) {
-    ctx.save(); ctx.globalAlpha = sText.progress * (1 - sText.exitProgress);
-    ctx.fillStyle = C.white; ctx.font = F.quote; ctx.textAlign = 'center';
-    const quoteLines = wrapText(slide.text, 0, 0, W - 400*S, 120*S);
+  });
+  withSprite(sprites, 'card', () => {
+    drawGlassCard(120*S, H*0.28, W-240*S, H*0.38, {glow:C.accentGlow, border:'rgba(233,69,96,0.12)'});
+  });
+  withSprite(sprites, 'text', () => {
+    const quoteLines = wrapText(slide.text, 0, 0, W-400*S, 120*S);
     const quoteY = H*0.42 - (quoteLines.length-1)*60*S;
-    quoteLines.forEach((line, i) => { ctx.fillText(line.text, W/2, quoteY + i*120*S); });
-    ctx.restore();
-  }
-
-  if (sSrc.visible && slide.source) {
-    ctx.save(); ctx.globalAlpha = sSrc.progress * (1 - sSrc.exitProgress);
-    ctx.fillStyle = C.muted; ctx.font = F.source; ctx.textAlign = 'center';
-    ctx.font = F.quote;
-    const quoteLines = wrapText(slide.text, 0, 0, W - 400*S, 120*S);
+    ctx.fillStyle = C.white; ctx.font = F.quote; ctx.textAlign = 'center';
+    quoteLines.forEach((line,i) => ctx.fillText(line.text, W/2, quoteY+i*120*S));
+  });
+  withSprite(sprites, 'source', () => {
+    if (!slide.source) return;
+    const quoteLines = wrapText(slide.text, 0, 0, W-400*S, 120*S);
     const quoteY = H*0.42;
-    ctx.font = F.source;
-    const srcText = `\u2014\u2014 ${slide.source}`;
-    const srcLines = wrapText(srcText, 0, 0, W - 400*S, 55*S);
-    const srcY = quoteY + quoteLines.length*120*S + 80*S;
+    let srcY = quoteY + quoteLines.length*120*S + 80*S;
     const cardBottom = H*0.28 + H*0.38 - 60*S;
-    const maxSrcY = cardBottom - (srcLines.length - 1) * 55*S;
-    const finalSrcY = Math.min(srcY, maxSrcY);
-    srcLines.forEach((line, i) => { ctx.fillText(line.text, W/2, finalSrcY + i*55*S); });
-    ctx.restore();
-  }
-
+    srcY = Math.min(srcY, cardBottom - 55*S);
+    drawText(`\u2014\u2014 ${slide.source}`, W/2, srcY, W-400*S, {font:F.source, color:C.muted, align:'center', lh:55*S});
+  });
   drawRing(W/2, H*0.85, 60*S, progress, C.gold, 4*S);
-  drawProgressLine(progress); drawSlideCounter(idx+1, total);
-}
+  footer(progress, idx, total);
+};
 
-function renderCompare(slide, progress, idx, total, sprites) {
-  clearCanvas(); drawGrid();
-
-  const sHead = sp(sprites, 'heading');
-  const sAcc = sp(sprites, 'accent');
-  const sLC = sp(sprites, 'leftCol');
-  const sRC = sp(sprites, 'rightCol');
-
-  if (sHead.visible) {
-    ctx.save(); ctx.globalAlpha = sHead.progress * (1 - sHead.exitProgress);
-    ctx.fillStyle = C.white; ctx.font = F.title; ctx.textAlign = 'center';
-    ctx.fillText(slide.title, W/2, 180*S);
-    ctx.restore();
-  }
-
-  if (sAcc.visible) {
-    ctx.save(); ctx.globalAlpha = sAcc.progress * (1 - sAcc.exitProgress);
-    drawAccentLine(W/2 - 140*S, 220*S, 280*S);
-    ctx.restore();
-  }
-
+RENDERERS.compare = function(slide, progress, idx, total, sprites) {
+  setupScene('compare', progress);
+  withSprite(sprites, 'heading', () => {
+    drawText(slide.title, W/2, 180*S, W-200*S, {font:F.title, color:C.white, align:'center'});
+  });
+  withSprite(sprites, 'accent', () => drawAccentLine(W/2-140*S, 220*S, 280*S));
   drawIcon('scale', W/2, 320*S, 90*S, C.goldDim);
-
-  const leftItems = slide.left || [];
-  const rightItems = slide.right || [];
-  const colW = (W - 260*S) / 2;
-  const leftX = 80*S;
-  const rightX = W/2 + 50*S;
-  const colStartY = 440*S;
-  const itemH = 200*S;
-  const itemGap = 40*S;
-
-  if (sLC.visible) {
-    ctx.save(); ctx.globalAlpha = sLC.progress * (1 - sLC.exitProgress);
-    const leftH = leftItems.length * (itemH + itemGap) + 160*S;
-    drawGlassCard(leftX, colStartY, colW, leftH, { glow: C.cyanDim, border: 'rgba(0,210,255,0.12)' });
+  const leftItems = slide.left||[], rightItems = slide.right||[];
+  const colW = (W-260*S)/2, leftX = 80*S, rightX = W/2+50*S;
+  const colStartY = 440*S, itemH = 200*S, itemGap = 40*S;
+  withSprite(sprites, 'leftCol', () => {
+    drawGlassCard(leftX, colStartY, colW, leftItems.length*(itemH+itemGap)+160*S, {glow:C.cyanDim, border:'rgba(0,210,255,0.12)'});
     ctx.fillStyle = C.cyan; ctx.font = F.bodyBold; ctx.textAlign = 'center';
-    ctx.fillText(slide.leftLabel || 'A', leftX + colW/2, colStartY + 80*S);
-    ctx.restore();
-  }
-
-  if (sRC.visible) {
-    ctx.save(); ctx.globalAlpha = sRC.progress * (1 - sRC.exitProgress);
-    const rightH = rightItems.length * (itemH + itemGap) + 160*S;
-    drawGlassCard(rightX, colStartY, colW, rightH, { glow: C.accentGlow, border: 'rgba(233,69,96,0.12)' });
+    ctx.fillText(slide.leftLabel||'A', leftX+colW/2, colStartY+80*S);
+  });
+  withSprite(sprites, 'rightCol', () => {
+    drawGlassCard(rightX, colStartY, colW, rightItems.length*(itemH+itemGap)+160*S, {glow:C.accentGlow, border:'rgba(233,69,96,0.12)'});
     ctx.fillStyle = C.accent; ctx.font = F.bodyBold; ctx.textAlign = 'center';
-    ctx.fillText(slide.rightLabel || 'B', rightX + colW/2, colStartY + 80*S);
-    ctx.restore();
-  }
-
-  leftItems.forEach((item, i) => {
-    const sItem = sp(sprites, `left_${i}`);
-    if (!sItem.visible) return;
-    ctx.save(); ctx.globalAlpha = sItem.progress * (1 - sItem.exitProgress);
-    const iy = colStartY + 160*S + i*(itemH + itemGap);
-    drawGlassCard(leftX + 30*S, iy, colW - 60*S, itemH, { fill: 'rgba(0,210,255,0.04)', border: 'rgba(0,210,255,0.1)' });
-    ctx.fillStyle = C.white; ctx.font = F.body; ctx.textAlign = 'center';
-    const shortItem = item.length > 12 ? item.substring(0,12)+'...' : item;
-    const lines = wrapText(shortItem, 0, 0, colW - 120*S, 65*S);
-    lines.forEach((line, li) => { ctx.fillText(line.text, leftX + colW/2, iy + itemH/2 - (lines.length-1)*32*S + li*65*S); });
-    ctx.restore();
+    ctx.fillText(slide.rightLabel||'B', rightX+colW/2, colStartY+80*S);
   });
-
-  rightItems.forEach((item, i) => {
-    const sItem = sp(sprites, `right_${i}`);
-    if (!sItem.visible) return;
-    ctx.save(); ctx.globalAlpha = sItem.progress * (1 - sItem.exitProgress);
-    const iy = colStartY + 160*S + i*(itemH + itemGap);
-    drawGlassCard(rightX + 30*S, iy, colW - 60*S, itemH, { fill: 'rgba(233,69,96,0.04)', border: 'rgba(233,69,96,0.1)' });
-    ctx.fillStyle = C.white; ctx.font = F.body; ctx.textAlign = 'center';
-    const shortItem = item.length > 12 ? item.substring(0,12)+'...' : item;
-    const lines = wrapText(shortItem, 0, 0, colW - 120*S, 65*S);
-    lines.forEach((line, li) => { ctx.fillText(line.text, rightX + colW/2, iy + itemH/2 - (lines.length-1)*32*S + li*65*S); });
-    ctx.restore();
-  });
-
-  drawProgressLine(progress); drawSlideCounter(idx+1, total);
-}
-
-function renderSteps(slide, progress, idx, total, sprites) {
-  clearCanvas(); drawGrid();
-
-  const sHead = sp(sprites, 'heading');
-  const sAcc = sp(sprites, 'accent');
-
-  if (sHead.visible) {
-    ctx.save(); ctx.globalAlpha = sHead.progress * (1 - sHead.exitProgress);
-    ctx.fillStyle = C.white; ctx.font = F.title; ctx.textAlign = 'center';
-    ctx.fillText(slide.title, W/2, 180*S);
-    ctx.restore();
-  }
-
-  if (sAcc.visible) {
-    ctx.save(); ctx.globalAlpha = sAcc.progress * (1 - sAcc.exitProgress);
-    drawAccentLine(W/2 - 140*S, 220*S, 280*S);
-    ctx.restore();
-  }
-
-  drawIcon('layers', W/2, 320*S, 80*S, C.goldDim);
-
-  const steps = slide.steps || [];
-  const stepStartY = 480*S;
-  const stepSpacing = 500*S;
-  const cardW = W - 200*S;
-  const cardH = 400*S;
-  const cardX = 100*S;
-  const stepColors = [C.accent, C.gold, C.cyan, C.success, C.warn];
-
-  steps.forEach((step, i) => {
-    const sStep = sp(sprites, `step_${i}`);
-    if (!sStep.visible) return;
-    ctx.save(); ctx.globalAlpha = sStep.progress * (1 - sStep.exitProgress);
-    const sy = stepStartY + i*stepSpacing;
-    const color = stepColors[i % stepColors.length];
-    drawGlassCard(cardX, sy, cardW, cardH, {
-      glow: color.replace(')',',0.12)').replace('rgb','rgba'),
-      border: color.replace(')',',0.2)').replace('rgb','rgba'),
+  leftItems.forEach((item,i) => {
+    withSprite(sprites, `left_${i}`, () => {
+      const iy = colStartY+160*S+i*(itemH+itemGap);
+      drawGlassCard(leftX+30*S, iy, colW-60*S, itemH, {fill:'rgba(0,210,255,0.04)', border:'rgba(0,210,255,0.1)'});
+      drawText(item, leftX+colW/2, iy+itemH/2, colW-120*S, {maxLen:12, align:'center', lh:65*S});
     });
-    drawRing(cardX + 120*S, sy + 100*S, 50*S, sStep.progress, color, 5*S);
-    ctx.fillStyle = '#FFFFFF'; ctx.font = F.stepNum; ctx.textAlign = 'center';
-    ctx.fillText(`${i+1}`, cardX + 120*S, sy + 115*S);
-    ctx.fillStyle = C.white; ctx.font = F.bodyBold; ctx.textAlign = 'left';
-    ctx.fillText(step.title || step, cardX + 220*S, sy + 110*S);
-    if (step.desc) {
-      ctx.fillStyle = C.whiteDim; ctx.font = F.body;
-      const descLines = wrapText(step.desc, cardX + 220*S, 0, cardW - 300*S, 65*S);
-      descLines.forEach((line, li) => { ctx.fillText(line.text, cardX + 220*S, sy + 200*S + li*65*S); });
-    }
-    if (i < steps.length - 1) {
-      ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 3*S; ctx.setLineDash([12*S, 8*S]);
-      ctx.beginPath(); ctx.moveTo(cardX + 120*S, sy + cardH + 10*S); ctx.lineTo(cardX + 120*S, sy + stepSpacing - 10*S); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle = C.muted; ctx.beginPath();
-      ctx.moveTo(cardX + 108*S, sy + stepSpacing - 30*S); ctx.lineTo(cardX + 120*S, sy + stepSpacing - 10*S); ctx.lineTo(cardX + 132*S, sy + stepSpacing - 30*S); ctx.fill();
-    }
-    ctx.restore();
   });
+  rightItems.forEach((item,i) => {
+    withSprite(sprites, `right_${i}`, () => {
+      const iy = colStartY+160*S+i*(itemH+itemGap);
+      drawGlassCard(rightX+30*S, iy, colW-60*S, itemH, {fill:'rgba(233,69,96,0.04)', border:'rgba(233,69,96,0.1)'});
+      drawText(item, rightX+colW/2, iy+itemH/2, colW-120*S, {maxLen:12, align:'center', lh:65*S});
+    });
+  });
+  footer(progress, idx, total);
+};
 
-  drawProgressLine(progress); drawSlideCounter(idx+1, total);
-}
+RENDERERS.steps = function(slide, progress, idx, total, sprites) {
+  setupScene('steps', progress);
+  withSprite(sprites, 'heading', () => {
+    drawText(slide.title, W/2, 180*S, W-200*S, {font:F.title, color:C.white, align:'center'});
+  });
+  withSprite(sprites, 'accent', () => drawAccentLine(W/2-140*S, 220*S, 280*S));
+  drawIcon('layers', W/2, 320*S, 80*S, C.goldDim);
+  const steps = slide.steps||[];
+  const stepStartY = 480*S, stepSpacing = 500*S, cardW = W-200*S, cardH = 400*S, cardX = 100*S;
+  const stepColors = [C.accent, C.gold, C.cyan, C.success, C.warn];
+  steps.forEach((step, i) => {
+    withSprite(sprites, `step_${i}`, (s) => {
+      const sy = stepStartY + i*stepSpacing;
+      const color = stepColors[i % stepColors.length];
+      drawGlassCard(cardX, sy, cardW, cardH, {glow:alpha(color,0.12), border:alpha(color,0.2)});
+      drawRing(cardX+120*S, sy+100*S, 50*S, s.progress, color, 5*S);
+      ctx.fillStyle = '#FFFFFF'; ctx.font = F.stepNum; ctx.textAlign = 'center';
+      ctx.fillText(`${i+1}`, cardX+120*S, sy+115*S);
+      ctx.fillStyle = C.white; ctx.font = F.bodyBold; ctx.textAlign = 'left';
+      ctx.fillText(step.title||step, cardX+220*S, sy+110*S);
+      if (step.desc) drawText(step.desc, cardX+220*S, sy+200*S, cardW-300*S, {color:C.whiteDim, lh:65*S});
+      if (i < steps.length-1) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 3*S; ctx.setLineDash([12*S,8*S]);
+        ctx.beginPath(); ctx.moveTo(cardX+120*S, sy+cardH+10*S); ctx.lineTo(cardX+120*S, sy+stepSpacing-10*S); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = C.muted; ctx.beginPath();
+        ctx.moveTo(cardX+108*S, sy+stepSpacing-30*S); ctx.lineTo(cardX+120*S, sy+stepSpacing-10*S); ctx.lineTo(cardX+132*S, sy+stepSpacing-30*S); ctx.fill();
+      }
+    });
+  });
+  footer(progress, idx, total);
+};
 
-function renderSummary(slide, progress, idx, total, sprites) {
-  clearCanvas(); drawGrid(); drawBgCircles(progress);
-
-  const sIcon = sp(sprites, 'icon');
-  const sHead = sp(sprites, 'heading');
-  const sAcc = sp(sprites, 'accent');
-
-  if (sIcon.visible) {
-    ctx.save(); ctx.globalAlpha = sIcon.progress * (1 - sIcon.exitProgress);
-    drawRing(W/2, H*0.1, 80*S, sIcon.progress, C.success, 5*S);
+RENDERERS.summary = function(slide, progress, idx, total, sprites) {
+  setupScene('summary', progress);
+  withSprite(sprites, 'icon', () => {
+    drawRing(W/2, H*0.1, 80*S, sp(sprites,'icon').progress, C.success, 5*S);
     drawIcon('check', W/2, H*0.1, 70*S, C.success);
-    ctx.restore();
-  }
-
-  if (sHead.visible) {
-    ctx.save(); ctx.globalAlpha = sHead.progress * (1 - sHead.exitProgress);
-    ctx.fillStyle = C.white; ctx.font = F.title; ctx.textAlign = 'center';
-    ctx.fillText(slide.title || '\u603B\u7ED3', W/2, H*0.2);
-    ctx.restore();
-  }
-
-  if (sAcc.visible) {
-    ctx.save(); ctx.globalAlpha = sAcc.progress * (1 - sAcc.exitProgress);
-    drawAccentLine(W/2 - 140*S, H*0.2 + 40*S, 280*S);
-    ctx.restore();
-  }
-
-  const items = slide.items || [];
-  const itemStartY = H*0.28;
-  const itemSpacing = 320*S;
-  const cardW = W - 200*S;
-  const cardH = 240*S;
-  const cardX = 100*S;
-
+  });
+  withSprite(sprites, 'heading', () => {
+    drawText(slide.title||'\u603B\u7ED3', W/2, H*0.2, W-200*S, {font:F.title, color:C.white, align:'center'});
+  });
+  withSprite(sprites, 'accent', () => drawAccentLine(W/2-140*S, H*0.2+40*S, 280*S));
+  const items = slide.items||[];
+  const itemStartY = H*0.28, itemSpacing = 320*S, cardW = W-200*S, cardH = 240*S, cardX = 100*S;
   items.forEach((item, i) => {
-    const sItem = sp(sprites, `item_${i}`);
-    if (!sItem.visible) return;
-    ctx.save(); ctx.globalAlpha = sItem.progress * (1 - sItem.exitProgress);
-    const iy = itemStartY + i*itemSpacing;
-    drawGlassCard(cardX, iy, cardW, cardH, { glow: 'rgba(78,205,196,0.08)', border: 'rgba(78,205,196,0.15)' });
-    drawCircle(cardX + 100*S, iy + cardH/2, 30*S, C.success, null);
-    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 4*S; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(cardX + 86*S, iy + cardH/2); ctx.lineTo(cardX + 96*S, iy + cardH/2 + 12*S); ctx.lineTo(cardX + 116*S, iy + cardH/2 - 10*S); ctx.stroke();
-    ctx.fillStyle = C.white; ctx.font = F.body; ctx.textAlign = 'left';
-    const shortItem = item.length > 18 ? item.substring(0,18)+'...' : item;
-    const lines = wrapText(shortItem, 0, 0, cardW - 240*S, 65*S);
-    lines.forEach((line, li) => { ctx.fillText(line.text, cardX + 180*S, iy + cardH/2 - (lines.length-1)*32*S + li*65*S); });
+    withSprite(sprites, `item_${i}`, () => {
+      const iy = itemStartY + i*itemSpacing;
+      drawGlassCard(cardX, iy, cardW, cardH, {glow:'rgba(78,205,196,0.08)', border:'rgba(78,205,196,0.15)'});
+      drawCircle(cardX+100*S, iy+cardH/2, 30*S, C.success, null);
+      ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 4*S; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(cardX+86*S,iy+cardH/2); ctx.lineTo(cardX+96*S,iy+cardH/2+12*S); ctx.lineTo(cardX+116*S,iy+cardH/2-10*S); ctx.stroke();
+      drawText(item, cardX+180*S, iy+cardH/2, cardW-240*S, {maxLen:18, lh:65*S});
+    });
+  });
+  footer(progress, idx, total);
+};
+
+RENDERERS.stat = function(slide, progress, idx, total, sprites) {
+  setupScene('stat', progress);
+  withSprite(sprites, 'ring', (s) => {
+    drawRing(W/2, H*0.32, 260*S, s.progress, C.accent, 8*S);
+    drawRing(W/2, H*0.32, 200*S, s.progress * 0.7, C.gold, 5*S);
+  });
+  withSprite(sprites, 'value', () => {
+    ctx.fillStyle = C.white; ctx.font = F.statNum; ctx.textAlign = 'center';
+    ctx.fillText(slide.value||'0', W/2, H*0.38);
+  });
+  withSprite(sprites, 'label', () => {
+    drawText(slide.label||'', W/2, H*0.48, W-240*S, {font:F.body, color:C.whiteDim, align:'center', lh:65*S});
+  });
+  withSprite(sprites, 'sublabel', () => {
+    if (!slide.sublabel) return;
+    drawText(slide.sublabel, W/2, H*0.56, W-240*S, {font:F.small, color:C.muted, align:'center', lh:55*S});
+  });
+  drawIcon('zap', W/2, H*0.68, 60*S, C.goldDim);
+  footer(progress, idx, total);
+};
+
+RENDERERS.chart = function(slide, progress, idx, total, sprites) {
+  setupScene('chart', progress);
+  withSprite(sprites, 'heading', () => {
+    drawText(slide.title, W/2, 180*S, W-200*S, {font:F.title, color:C.white, align:'center'});
+  });
+  withSprite(sprites, 'accent', () => drawAccentLine(W/2-140*S, 220*S, 280*S));
+  withSprite(sprites, 'chart', () => {
+    const data = slide.data || [];
+    const chartType = slide.chartType || 'bar';
+    if (chartType === 'donut') {
+      drawDonutChart(W/2, H*0.45, 220*S, data, progress);
+      const legendY = H*0.65;
+      const colors = [C.accent, C.cyan, C.gold, C.success, C.warn];
+      data.forEach((d, i) => {
+        const lx = 120*S + (i % 3) * (W-240*S) / 3;
+        const ly = legendY + Math.floor(i/3) * 60*S;
+        ctx.fillStyle = colors[i%colors.length];
+        ctx.beginPath(); ctx.arc(lx+16*S, ly, 16*S, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = C.white; ctx.font = F.small; ctx.textAlign = 'left';
+        ctx.fillText(d.label, lx+44*S, ly+16*S);
+      });
+    } else {
+      drawBarChart(100*S, 400*S, W-200*S, H-600*S, data, progress);
+    }
+  });
+  footer(progress, idx, total);
+};
+
+RENDERERS.timeline = function(slide, progress, idx, total, sprites) {
+  setupScene('timeline', progress);
+  withSprite(sprites, 'heading', () => {
+    drawText(slide.title, W/2, 180*S, W-200*S, {font:F.title, color:C.white, align:'center'});
+  });
+  withSprite(sprites, 'accent', () => drawAccentLine(W/2-140*S, 220*S, 280*S));
+  withSprite(sprites, 'axis', () => {
+    const events = slide.events || [];
+    drawTimelineAxis(W*0.35, 380*S, H-600*S, events, progress);
+  });
+  footer(progress, idx, total);
+};
+
+RENDERERS.focus = function(slide, progress, idx, total, sprites) {
+  setupScene('focus', progress);
+  withSprite(sprites, 'mask', () => {
+    drawFocusMask(H*0.3, H*0.2, sp(sprites,'mask').progress);
+  });
+  withSprite(sprites, 'keyword', (s) => {
+    const scale = 0.8 + s.progress * 0.2;
+    ctx.save();
+    ctx.translate(W/2, H*0.38); ctx.scale(scale, scale); ctx.translate(-W/2, -H*0.38);
+    ctx.fillStyle = C.accent; ctx.font = F.hero; ctx.textAlign = 'center';
+    ctx.fillText(slide.keyword||'', W/2, H*0.42);
+    ctx.restore();
+    drawAccentLine(W/2-160*S, H*0.46, 320*S);
+  });
+  withSprite(sprites, 'explanation', () => {
+    drawText(slide.explanation||'', W/2, H*0.54, W-240*S, {font:F.body, color:C.white, align:'center', lh:70*S});
+  });
+  withSprite(sprites, 'callout', () => {
+    ctx.strokeStyle = C.gold; ctx.lineWidth = 2*S; ctx.setLineDash([8*S,6*S]);
+    ctx.beginPath(); ctx.moveTo(W/2, H*0.48); ctx.lineTo(W/2, H*0.52); ctx.stroke(); ctx.setLineDash([]);
+  });
+  footer(progress, idx, total);
+};
+
+RENDERERS.qa = function(slide, progress, idx, total, sprites) {
+  setupScene('qa', progress);
+  withSprite(sprites, 'question', () => {
+    drawGlassCard(120*S, H*0.2, W-240*S, H*0.3, {glow:C.accentGlow, border:'rgba(233,69,96,0.15)'});
+    drawIcon('question', W/2, H*0.28, 100*S, C.accent);
+    drawText(slide.question||'', W/2, H*0.4, W-320*S, {font:F.bodyBold, color:C.white, align:'center', lh:70*S});
+  });
+  withSprite(sprites, 'flip', () => {
+    ctx.save();
+    const flipProgress = sp(sprites,'flip').progress;
+    ctx.translate(W/2, H*0.6); ctx.scale(1, Math.abs(Math.cos(flipProgress*Math.PI))); ctx.translate(-W/2, -H*0.6);
     ctx.restore();
   });
+  withSprite(sprites, 'answer', () => {
+    drawGlassCard(120*S, H*0.52, W-240*S, H*0.25, {glow:'rgba(78,205,196,0.12)', border:'rgba(78,205,196,0.15)'});
+    drawIcon('check', W/2, H*0.58, 80*S, C.success);
+    drawText(slide.answer||'', W/2, H*0.68, W-320*S, {font:F.bodyBold, color:C.white, align:'center', lh:70*S});
+  });
+  footer(progress, idx, total);
+};
 
-  drawProgressLine(progress); drawSlideCounter(idx+1, total);
-}
-
-let currentSlide = 0;
-let slideStart = 0;
-let running = false;
-
+let currentSlide = 0, slideStart = 0, running = false;
 window.slidesData = { slides: [] };
 window.themeName = 'dark';
 window.visualStyle = 'tech';
 
 function buildSceneTimeline(slides) {
-  const totalDur = slides.reduce((s, sl) => s + (sl.duration || 10), 0);
+  const totalDur = slides.reduce((s,sl) => s + (sl.duration||10), 0);
   const scenes = [];
   const n = slides.length;
-
   if (n === 0) return { duration: 0, scenes: [] };
-
-  const hookSlide = slides[0];
-  const heroSlide = slides[n - 1];
-  const bodySlides = slides.slice(1, n - 1);
-
-  const hookDur = hookSlide.duration || 4;
-  const heroDur = heroSlide.duration || 5;
-  const bodyTotal = totalDur - hookDur - heroDur;
-
+  const hookSlide = slides[0], heroSlide = slides[n-1], bodySlides = slides.slice(1, n-1);
+  const hookDur = hookSlide.duration||4, heroDur = heroSlide.duration||5;
   let t = 0;
-
-  scenes.push({
-    type: 'hook',
-    slide: hookSlide,
-    enter: t,
-    exit: t + hookDur,
-    duration: hookDur,
-  });
+  scenes.push({ type:'hook', slide:hookSlide, enter:t, exit:t+hookDur, duration:hookDur });
   t += hookDur;
-
-  const midCount = bodySlides.length;
-  if (midCount > 0) {
-    const sceneTypes = ['process', 'insight', 'evidence'];
-    const perScene = bodyTotal / midCount;
-
-    bodySlides.forEach((slide, i) => {
-      const sceneType = sceneTypes[i % sceneTypes.length];
-      const dur = slide.duration || perScene;
-      scenes.push({
-        type: sceneType,
-        slide: slide,
-        enter: t,
-        exit: t + dur,
-        duration: dur,
-      });
-      t += dur;
-    });
-  }
-
-  scenes.push({
-    type: 'hero',
-    slide: heroSlide,
-    enter: t,
-    exit: t + heroDur,
-    duration: heroDur,
+  const sceneTypes = ['process','insight','evidence'];
+  bodySlides.forEach((slide, i) => {
+    const dur = slide.duration || (totalDur-hookDur-heroDur)/Math.max(1,bodySlides.length);
+    scenes.push({ type:sceneTypes[i%sceneTypes.length], slide, enter:t, exit:t+dur, duration:dur });
+    t += dur;
   });
-
-  return { duration: t + heroDur, scenes };
+  scenes.push({ type:'hero', slide:heroSlide, enter:t, exit:t+heroDur, duration:heroDur });
+  return { duration: t+heroDur, scenes };
 }
 
-function lerp(a, b, t) { return a + (b - a) * t; }
-
 function sceneOpacity(scene, globalT) {
-  const fadeIn = 0.25;
-  const fadeOut = 0.2;
-  const e = scene.enter;
-  const x = scene.exit;
-
-  if (globalT < e) return 0;
-  if (globalT > x) return 0;
-
-  const inProgress = (globalT - e) / fadeIn;
-  const outProgress = (x - globalT) / fadeOut;
-
-  const inAlpha = applyEasing(Math.max(0, Math.min(1, inProgress)), 'expoOut');
-  const outAlpha = applyEasing(Math.max(0, Math.min(1, outProgress)), 'easeIn');
-
+  const fadeIn = 0.25, fadeOut = 0.2;
+  if (globalT < scene.enter || globalT > scene.exit) return 0;
+  const inAlpha = applyEasing(Math.max(0, Math.min(1, (globalT-scene.enter)/fadeIn)), 'expoOut');
+  const outAlpha = applyEasing(Math.max(0, Math.min(1, (scene.exit-globalT)/fadeOut)), 'easeIn');
   return Math.min(inAlpha, outAlpha);
 }
 
 function startPresentation() {
   const themeName = window.themeName || 'dark';
   C = THEMES[themeName] || THEMES.dark;
-
   if (window.brandSpec && window.brandSpec.colors) {
     const bc = window.brandSpec.colors;
-    if (bc.primary) C.accent = bc.primary;
-    if (bc.primary) C.accentGlow = bc.primary.replace(')', ',0.12)').replace('rgb(', 'rgba(');
-    if (bc.secondary) C.gold = bc.secondary;
-    if (bc.secondary) C.goldDim = bc.secondary.replace(')', ',0.25)').replace('rgb(', 'rgba(');
-    if (bc.accent) C.cyan = bc.accent;
-    if (bc.accent) C.cyanDim = bc.accent.replace(')', ',0.12)').replace('rgb(', 'rgba(');
-    if (bc.text_primary) C.white = bc.text_primary;
-    if (bc.text_primary) C.whiteDim = bc.text_primary.replace(')', ',0.6)').replace('rgb(', 'rgba(');
+    if (bc.primary) { C.accent = bc.primary; C.accentGlow = alpha(bc.primary, 0.12); }
+    if (bc.secondary) { C.gold = bc.secondary; C.goldDim = alpha(bc.secondary, 0.25); }
+    if (bc.accent) { C.cyan = bc.accent; C.cyanDim = alpha(bc.accent, 0.12); }
+    if (bc.text_primary) { C.white = bc.text_primary; C.whiteDim = alpha(bc.text_primary, 0.6); }
     if (bc.text_secondary) C.muted = bc.text_secondary;
     if (bc.card_bg) C.cardBg = bc.card_bg;
     if (bc.card_border) C.cardBorder = bc.card_border;
     if (bc.success) C.success = bc.success;
     if (bc.warning) C.warn = bc.warning;
   }
-
-  currentSlide = 0;
-  slideStart = performance.now();
-  running = true;
+  currentSlide = 0; slideStart = performance.now(); running = true;
   requestAnimationFrame(tick);
 }
 
 function tick(ts) {
   if (!running) return;
-
   const slides = window.slidesData.slides;
   if (!slides || slides.length === 0) return;
-
-  const totalDuration = slides.reduce((s, sl) => s + (sl.duration || 10), 0);
+  const totalDuration = slides.reduce((s,sl) => s + (sl.duration||10), 0);
   const elapsed = (ts - slideStart) / 1000;
-
   if (elapsed >= totalDuration) {
-    const lastSlide = slides[slides.length - 1];
+    const lastSlide = slides[slides.length-1];
     const r = RENDERERS[lastSlide.type] || RENDERERS.bullet;
-    r(lastSlide, 1, slides.length - 1, slides.length, null);
+    r(lastSlide, 1, slides.length-1, slides.length, null);
     return;
   }
-
   const sceneData = buildSceneTimeline(slides);
-
-  clearCanvas();
-  drawGrid();
-  drawVisualLangBg(elapsed);
-
-  const activeScenes = sceneData.scenes.filter(sc =>
-    elapsed >= sc.enter - 0.25 && elapsed <= sc.exit + 0.2
-  );
-
-  activeScenes.sort((a, b) => a.enter - b.enter);
-
+  clearCanvas(); drawGrid(); drawVisualLangBg(elapsed);
+  const activeScenes = sceneData.scenes.filter(sc => elapsed >= sc.enter-0.25 && elapsed <= sc.exit+0.2);
+  activeScenes.sort((a,b) => a.enter - b.enter);
   for (const scene of activeScenes) {
     const opacity = sceneOpacity(scene, elapsed);
     if (opacity <= 0.01) continue;
-
     ctx.save();
     ctx.globalAlpha = opacity;
-
     const localT = elapsed - scene.enter;
     const localDur = scene.duration;
     const localProgress = Math.min(1, localT / localDur);
-
     const slide = scene.slide;
+    const tpl = SCENE_TEMPLATES[slide.type] || SCENE_TEMPLATES.bullet;
+    applyCameraMotion(tpl.camera, localT, localDur);
     const tl = slide.timeline || autoTimeline(slide);
-    const sprites = buildSprites({ ...slide, timeline: tl });
+    const sprites = buildSprites({...slide, timeline: tl});
     Object.values(sprites).forEach(sp => sp.update(localT, localDur));
-
     const r = RENDERERS[slide.type] || RENDERERS.bullet;
     r(slide, localProgress, slides.indexOf(slide), slides.length, sprites);
-
     ctx.restore();
   }
-
   drawProgressLine(elapsed / totalDuration);
-
   requestAnimationFrame(tick);
 }
 
