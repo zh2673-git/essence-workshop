@@ -383,8 +383,8 @@ const SCENE_TEMPLATES = {
   qa:       { bg:'grid',    camera:'none',    transition:'flip' },
 };
 
-function setupScene(type, progress) {
-  clearCanvas();
+function setupScene(type, progress, isTop) {
+  if (!isTop) return;
   const tpl = SCENE_TEMPLATES[type] || SCENE_TEMPLATES.bullet;
   switch (tpl.bg) {
     case 'grid': drawGrid(); break;
@@ -587,7 +587,7 @@ function autoTimeline(slide) {
 const RENDERERS = {};
 
 RENDERERS.title = function(slide, progress, idx, total, sprites) {
-  setupScene('title', progress);
+  setupScene('title', progress, isTopScene);
   withSprite(sprites, 'icon', () => {
     drawRing(W/2, H*0.18, 180*S, sp(sprites,'icon').progress, C.accent, 6*S);
     drawIcon('brain', W/2, H*0.18, 160*S, C.accent);
@@ -614,7 +614,7 @@ RENDERERS.title = function(slide, progress, idx, total, sprites) {
 };
 
 RENDERERS.bullet = function(slide, progress, idx, total, sprites) {
-  setupScene('bullet', progress);
+  setupScene('bullet', progress, isTopScene);
   withSprite(sprites, 'heading', () => {
     drawText(slide.title, W/2, 200*S, W-200*S, {font:F.title, color:C.white, align:'center'});
   });
@@ -638,35 +638,39 @@ RENDERERS.bullet = function(slide, progress, idx, total, sprites) {
 };
 
 RENDERERS.quote = function(slide, progress, idx, total, sprites) {
-  setupScene('quote', progress);
+  setupScene('quote', progress, isTopScene);
   withSprite(sprites, 'openQuote', () => {
     ctx.fillStyle = C.accent; ctx.font = `200 ${280*S}px Georgia,serif`; ctx.textAlign = 'center';
     ctx.fillText('\u201C', W/2, H*0.22);
   });
+  const quoteLines = wrapText(slide.text, 0, 0, W-400*S, 120*S);
+  const srcText = slide.source ? `\u2014\u2014 ${slide.source}` : '';
+  const srcLines = srcText ? wrapText(srcText, 0, 0, W-400*S, 55*S) : [];
+  const textH = quoteLines.length * 120*S;
+  const srcH = srcLines.length * 55*S;
+  const cardH = Math.max(H*0.28, textH + srcH + 280*S);
+  const cardY = H*0.28;
   withSprite(sprites, 'card', () => {
-    drawGlassCard(120*S, H*0.28, W-240*S, H*0.38, {glow:C.accentGlow, border:'rgba(233,69,96,0.12)'});
+    drawGlassCard(120*S, cardY, W-240*S, cardH, {glow:C.accentGlow, border:'rgba(233,69,96,0.12)'});
   });
   withSprite(sprites, 'text', () => {
-    const quoteLines = wrapText(slide.text, 0, 0, W-400*S, 120*S);
-    const quoteY = H*0.42 - (quoteLines.length-1)*60*S;
+    const quoteY = cardY + 120*S;
     ctx.fillStyle = C.white; ctx.font = F.quote; ctx.textAlign = 'center';
     quoteLines.forEach((line,i) => ctx.fillText(line.text, W/2, quoteY+i*120*S));
   });
   withSprite(sprites, 'source', () => {
     if (!slide.source) return;
-    const quoteLines = wrapText(slide.text, 0, 0, W-400*S, 120*S);
-    const quoteY = H*0.42;
-    let srcY = quoteY + quoteLines.length*120*S + 80*S;
-    const cardBottom = H*0.28 + H*0.38 - 60*S;
-    srcY = Math.min(srcY, cardBottom - 55*S);
-    drawText(`\u2014\u2014 ${slide.source}`, W/2, srcY, W-400*S, {font:F.source, color:C.muted, align:'center', lh:55*S});
+    let srcY = cardY + textH + 160*S;
+    const maxSrcY = cardY + cardH - 60*S - (srcLines.length-1)*55*S;
+    srcY = Math.min(srcY, maxSrcY);
+    drawText(srcText, W/2, srcY, W-400*S, {font:F.source, color:C.muted, align:'center', lh:55*S});
   });
   drawRing(W/2, H*0.85, 60*S, progress, C.gold, 4*S);
   footer(progress, idx, total);
 };
 
 RENDERERS.compare = function(slide, progress, idx, total, sprites) {
-  setupScene('compare', progress);
+  setupScene('compare', progress, isTopScene);
   withSprite(sprites, 'heading', () => {
     drawText(slide.title, W/2, 180*S, W-200*S, {font:F.title, color:C.white, align:'center'});
   });
@@ -703,7 +707,7 @@ RENDERERS.compare = function(slide, progress, idx, total, sprites) {
 };
 
 RENDERERS.steps = function(slide, progress, idx, total, sprites) {
-  setupScene('steps', progress);
+  setupScene('steps', progress, isTopScene);
   withSprite(sprites, 'heading', () => {
     drawText(slide.title, W/2, 180*S, W-200*S, {font:F.title, color:C.white, align:'center'});
   });
@@ -735,7 +739,7 @@ RENDERERS.steps = function(slide, progress, idx, total, sprites) {
 };
 
 RENDERERS.summary = function(slide, progress, idx, total, sprites) {
-  setupScene('summary', progress);
+  setupScene('summary', progress, isTopScene);
   withSprite(sprites, 'icon', () => {
     drawRing(W/2, H*0.1, 80*S, sp(sprites,'icon').progress, C.success, 5*S);
     drawIcon('check', W/2, H*0.1, 70*S, C.success);
@@ -760,7 +764,7 @@ RENDERERS.summary = function(slide, progress, idx, total, sprites) {
 };
 
 RENDERERS.stat = function(slide, progress, idx, total, sprites) {
-  setupScene('stat', progress);
+  setupScene('stat', progress, isTopScene);
   withSprite(sprites, 'ring', (s) => {
     drawRing(W/2, H*0.32, 260*S, s.progress, C.accent, 8*S);
     drawRing(W/2, H*0.32, 200*S, s.progress * 0.7, C.gold, 5*S);
@@ -781,7 +785,7 @@ RENDERERS.stat = function(slide, progress, idx, total, sprites) {
 };
 
 RENDERERS.chart = function(slide, progress, idx, total, sprites) {
-  setupScene('chart', progress);
+  setupScene('chart', progress, isTopScene);
   withSprite(sprites, 'heading', () => {
     drawText(slide.title, W/2, 180*S, W-200*S, {font:F.title, color:C.white, align:'center'});
   });
@@ -809,7 +813,7 @@ RENDERERS.chart = function(slide, progress, idx, total, sprites) {
 };
 
 RENDERERS.timeline = function(slide, progress, idx, total, sprites) {
-  setupScene('timeline', progress);
+  setupScene('timeline', progress, isTopScene);
   withSprite(sprites, 'heading', () => {
     drawText(slide.title, W/2, 180*S, W-200*S, {font:F.title, color:C.white, align:'center'});
   });
@@ -822,7 +826,7 @@ RENDERERS.timeline = function(slide, progress, idx, total, sprites) {
 };
 
 RENDERERS.focus = function(slide, progress, idx, total, sprites) {
-  setupScene('focus', progress);
+  setupScene('focus', progress, isTopScene);
   withSprite(sprites, 'mask', () => {
     drawFocusMask(H*0.3, H*0.2, sp(sprites,'mask').progress);
   });
@@ -846,7 +850,7 @@ RENDERERS.focus = function(slide, progress, idx, total, sprites) {
 };
 
 RENDERERS.qa = function(slide, progress, idx, total, sprites) {
-  setupScene('qa', progress);
+  setupScene('qa', progress, isTopScene);
   withSprite(sprites, 'question', () => {
     drawGlassCard(120*S, H*0.2, W-240*S, H*0.3, {glow:C.accentGlow, border:'rgba(233,69,96,0.15)'});
     drawIcon('question', W/2, H*0.28, 100*S, C.accent);
@@ -866,7 +870,7 @@ RENDERERS.qa = function(slide, progress, idx, total, sprites) {
   footer(progress, idx, total);
 };
 
-let currentSlide = 0, slideStart = 0, running = false;
+let currentSlide = 0, slideStart = 0, running = false, isTopScene = true;
 window.slidesData = { slides: [] };
 window.themeName = 'dark';
 window.visualStyle = 'tech';
@@ -931,12 +935,17 @@ function tick(ts) {
     return;
   }
   const sceneData = buildSceneTimeline(slides);
-  clearCanvas(); drawGrid(); drawVisualLangBg(elapsed);
+  clearCanvas();
   const activeScenes = sceneData.scenes.filter(sc => elapsed >= sc.enter-0.25 && elapsed <= sc.exit+0.2);
   activeScenes.sort((a,b) => a.enter - b.enter);
-  for (const scene of activeScenes) {
+  for (let si = 0; si < activeScenes.length; si++) {
+    const scene = activeScenes[si];
     const opacity = sceneOpacity(scene, elapsed);
     if (opacity <= 0.01) continue;
+    isTopScene = (si === activeScenes.length - 1);
+    const fadeInDur = 0.25, fadeOutDur = 0.2;
+    const isEntering = elapsed < scene.enter + fadeInDur;
+    const isExiting = elapsed > scene.exit - fadeOutDur;
     ctx.save();
     ctx.globalAlpha = opacity;
     const localT = elapsed - scene.enter;
@@ -944,6 +953,11 @@ function tick(ts) {
     const localProgress = Math.min(1, localT / localDur);
     const slide = scene.slide;
     const tpl = SCENE_TEMPLATES[slide.type] || SCENE_TEMPLATES.bullet;
+    if (isEntering && si > 0) {
+      applyTransition(tpl.transition, (elapsed - scene.enter) / fadeInDur, false);
+    } else if (isExiting && si < activeScenes.length - 1) {
+      applyTransition(tpl.transition, (scene.exit - elapsed) / fadeOutDur, true);
+    }
     applyCameraMotion(tpl.camera, localT, localDur);
     const tl = slide.timeline || autoTimeline(slide);
     const sprites = buildSprites({...slide, timeline: tl});
