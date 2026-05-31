@@ -386,7 +386,7 @@ const SCENE_TEMPLATES = {
   chart:    { bg:'grid',    camera:'none',    transition:'slideAndFade' },
   timeline: { bg:'dots',    camera:'panDown', transition:'slideAndFade' },
   focus:    { bg:'none',    camera:'zoomIn',  transition:'crossfade' },
-  qa:       { bg:'grid',    camera:'none',    transition:'morph' },
+  qa:       { bg:'grid',    camera:'none',    transition:'flip' },
 };
 
 function setupScene(type, progress, isTop) {
@@ -548,68 +548,66 @@ function autoTimeline(slide, slideIndex, totalSlides) {
   const dur = slide.duration || 10;
   const els = [];
   const type = slide.type;
-  const isLast = slideIndex === totalSlides - 1;
-  const residual = isLast ? 0 : 0.5;
   const push = (id, enter, exit, easing, idle) => els.push({id, enter_at:enter, exit_at:exit, easing:easing||'expoOut', idle:idle||'none'});
 
-  push('bg', 0, dur + residual, 'none');
+  push('bg', 0, dur - 0.3, 'none');
   if (type === 'title') {
-    push('icon', 0.2, dur + residual * 0.5, 'expoOut', 'pulse');
-    push('title', 0.4, dur + residual * 0.3, 'expoOut');
-    push('accent', 0.7, dur + residual * 0.2, 'expoOut');
-    if (slide.subtitle) push('subtitle', 0.9, dur + residual * 0.1, 'expoOut');
+    push('icon', 0.2, dur - 0.25, 'expoOut', 'pulse');
+    push('title', 0.4, dur - 0.15, 'expoOut');
+    push('accent', 0.7, dur - 0.1, 'expoOut');
+    if (slide.subtitle) push('subtitle', 0.9, dur - 0.05, 'expoOut');
   } else if (type === 'bullet') {
-    push('heading', 0.1, dur + residual * 0.4);
-    push('accent', 0.3, dur + residual * 0.3);
-    (slide.items||[]).forEach((_,i) => push(`item_${i}`, 0.4+i*0.25, dur + residual * (0.2 - i*0.05), 'easeOutBack'));
+    push('heading', 0.1, dur - 0.2);
+    push('accent', 0.3, dur - 0.15);
+    (slide.items||[]).forEach((_,i) => push(`item_${i}`, 0.4+i*0.25, dur - 0.1 + i*0.03, 'easeOutBack'));
   } else if (type === 'quote') {
-    push('openQuote', 0.2, dur + residual * 0.3);
-    push('card', 0.3, dur + residual * 0.4);
-    push('text', 0.6, dur + residual * 0.2);
-    if (slide.source) push('source', 0.9, dur + residual * 0.1);
+    push('openQuote', 0.2, dur - 0.2);
+    push('card', 0.3, dur - 0.15);
+    push('text', 0.6, dur - 0.1);
+    if (slide.source) push('source', 0.9, dur - 0.05);
   } else if (type === 'compare') {
-    push('heading', 0.1, dur + residual * 0.4);
-    push('accent', 0.3, dur + residual * 0.3);
-    push('leftCol', 0.4, dur + residual * 0.3);
-    push('rightCol', 0.5, dur + residual * 0.3);
+    push('heading', 0.1, dur - 0.2);
+    push('accent', 0.3, dur - 0.15);
+    push('leftCol', 0.4, dur - 0.1);
+    push('rightCol', 0.5, dur - 0.1);
     const maxI = Math.max((slide.left||[]).length, (slide.right||[]).length);
     for (let i=0;i<maxI;i++) {
-      if (i < (slide.left||[]).length) push(`left_${i}`, 0.6+i*0.12, dur + residual * 0.1, 'easeOut');
-      if (i < (slide.right||[]).length) push(`right_${i}`, 0.6+i*0.12, dur + residual * 0.1, 'easeOut');
+      if (i < (slide.left||[]).length) push(`left_${i}`, 0.6+i*0.12, dur - 0.05 + i*0.02, 'easeOut');
+      if (i < (slide.right||[]).length) push(`right_${i}`, 0.6+i*0.12, dur - 0.05 + i*0.02, 'easeOut');
     }
   } else if (type === 'steps') {
-    push('heading', 0.1, dur + residual * 0.4);
-    push('accent', 0.3, dur + residual * 0.3);
-    (slide.steps||[]).forEach((_,i) => push(`step_${i}`, 0.4+i*0.3, dur + residual * (0.3 - i*0.08), 'easeOutBack'));
+    push('heading', 0.1, dur - 0.2);
+    push('accent', 0.3, dur - 0.15);
+    (slide.steps||[]).forEach((_,i) => push(`step_${i}`, 0.4+i*0.3, dur - 0.1 + i*0.04, 'easeOutBack'));
   } else if (type === 'summary') {
-    push('icon', 0.1, dur + residual * 0.5, 'expoOut', 'pulse');
-    push('heading', 0.2, dur + residual * 0.4);
-    push('accent', 0.4, dur + residual * 0.3);
-    (slide.items||[]).forEach((_,i) => push(`item_${i}`, 0.5+i*0.15, dur + residual * (0.2 - i*0.03), 'easeOut'));
+    push('icon', 0.1, dur - 0.25, 'expoOut', 'pulse');
+    push('heading', 0.2, dur - 0.2);
+    push('accent', 0.4, dur - 0.15);
+    (slide.items||[]).forEach((_,i) => push(`item_${i}`, 0.5+i*0.15, dur - 0.1 + i*0.03, 'easeOut'));
   } else if (type === 'stat') {
-    push('ring', 0.1, dur + residual * 0.5, 'expoOut', 'breathe');
-    push('value', 0.3, dur + residual * 0.3, 'expoOut');
-    push('label', 0.6, dur + residual * 0.2);
-    if (slide.sublabel) push('sublabel', 0.8, dur + residual * 0.1);
+    push('ring', 0.1, dur - 0.25, 'expoOut', 'breathe');
+    push('value', 0.3, dur - 0.15, 'expoOut');
+    push('label', 0.6, dur - 0.1);
+    if (slide.sublabel) push('sublabel', 0.8, dur - 0.05);
   } else if (type === 'chart') {
-    push('heading', 0.1, dur + residual * 0.4);
-    push('accent', 0.3, dur + residual * 0.3);
-    push('chart', 0.4, dur + residual * 0.2);
+    push('heading', 0.1, dur - 0.2);
+    push('accent', 0.3, dur - 0.15);
+    push('chart', 0.4, dur - 0.1);
   } else if (type === 'timeline') {
-    push('heading', 0.1, dur + residual * 0.4);
-    push('accent', 0.3, dur + residual * 0.3);
-    push('axis', 0.4, dur + residual * 0.2);
+    push('heading', 0.1, dur - 0.2);
+    push('accent', 0.3, dur - 0.15);
+    push('axis', 0.4, dur - 0.1);
   } else if (type === 'focus') {
-    push('mask', 0.1, dur + residual * 0.3);
-    push('keyword', 0.3, dur + residual * 0.4, 'expoOut');
-    push('explanation', 0.6, dur + residual * 0.2);
-    push('callout', 0.8, dur + residual * 0.1);
+    push('mask', 0.1, dur - 0.2);
+    push('keyword', 0.3, dur - 0.15, 'expoOut');
+    push('explanation', 0.6, dur - 0.1);
+    push('callout', 0.8, dur - 0.05);
   } else if (type === 'qa') {
-    push('question', 0.1, dur*0.45 + residual * 0.2);
-    push('flip', dur*0.45, dur + residual * 0.3, 'expoOut');
-    push('answer', dur*0.5, dur + residual * 0.2);
+    push('question', 0.1, dur*0.45);
+    push('flip', dur*0.45, dur - 0.15, 'expoOut');
+    push('answer', dur*0.5, dur - 0.05);
   } else {
-    push('heading', 0.1, dur + residual * 0.3);
+    push('heading', 0.1, dur - 0.15);
   }
   return { duration: dur, elements: els };
 }
@@ -997,12 +995,11 @@ function buildSceneTimeline(slides) {
 }
 
 function sceneOpacity(scene, globalT) {
-  const fadeIn = 0.3;
+  const fadeIn = 0.25, fadeOut = 0.2;
   if (globalT < scene.enter || globalT >= scene.exit) return 0;
-  if (globalT < scene.enter + fadeIn) {
-    return applyEasing((globalT - scene.enter) / fadeIn, 'expoOut');
-  }
-  return 1;
+  const inAlpha = applyEasing(Math.max(0, Math.min(1, (globalT-scene.enter)/fadeIn)), 'expoOut');
+  const outAlpha = applyEasing(Math.max(0, Math.min(1, (scene.exit-globalT)/fadeOut)), 'easeIn');
+  return Math.min(inAlpha, outAlpha);
 }
 
 function startPresentation() {
@@ -1043,40 +1040,36 @@ function tick(ts) {
   const sceneData = buildSceneTimeline(slides);
   clearCanvas();
 
-  let currentScene = null;
-  for (let i = sceneData.scenes.length - 1; i >= 0; i--) {
-    const sc = sceneData.scenes[i];
-    if (elapsed >= sc.enter && elapsed < sc.exit) {
-      currentScene = sc;
-      break;
+  const activeScenes = sceneData.scenes.filter(sc => elapsed >= sc.enter && elapsed < sc.exit);
+  activeScenes.sort((a,b) => a.enter - b.enter);
+  for (let si = 0; si < activeScenes.length; si++) {
+    const scene = activeScenes[si];
+    const opacity = sceneOpacity(scene, elapsed);
+    if (opacity <= 0.01) continue;
+    isTopScene = (si === activeScenes.length - 1);
+    const fadeInDur = 0.25, fadeOutDur = 0.2;
+    const isEntering = elapsed < scene.enter + fadeInDur;
+    const isExiting = elapsed > scene.exit - fadeOutDur;
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    const localT = elapsed - scene.enter;
+    const localDur = scene.duration;
+    const localProgress = Math.min(1, localT / localDur);
+    const slide = scene.slide;
+    const tpl = SCENE_TEMPLATES[slide.type] || SCENE_TEMPLATES.bullet;
+    if (isEntering) {
+      applyTransition(tpl.transition, (elapsed - scene.enter) / fadeInDur, false);
+    } else if (isExiting) {
+      applyTransition(tpl.transition, (scene.exit - elapsed) / fadeOutDur, true);
     }
+    applyCameraMotion(tpl.camera, localT, localDur);
+    const tl = slide.timeline || autoTimeline(slide, scene.slideIndex, slides.length);
+    const sprites = buildSprites({...slide, timeline: tl});
+    Object.values(sprites).forEach(sp => sp.update(localT, localDur));
+    const r = RENDERERS[slide.type] || RENDERERS.bullet;
+    r(slide, localProgress, slides.indexOf(slide), slides.length, sprites);
+    ctx.restore();
   }
-  if (!currentScene) {
-    currentScene = sceneData.scenes.find(sc => elapsed < sc.exit);
-  }
-  if (!currentScene) return;
-
-  const localT = elapsed - currentScene.enter;
-  const localDur = currentScene.duration;
-  const localProgress = Math.min(1, localT / localDur);
-  const slide = currentScene.slide;
-  const tpl = SCENE_TEMPLATES[slide.type] || SCENE_TEMPLATES.bullet;
-  const fadeIn = 0.3;
-  const alpha = localT < fadeIn ? applyEasing(localT / fadeIn, 'expoOut') : 1;
-
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  isTopScene = true;
-
-  applyCameraMotion(tpl.camera, localT, localDur);
-
-  const tl = slide.timeline || autoTimeline(slide, currentScene.slideIndex, slides.length);
-  const sprites = buildSprites({...slide, timeline: tl});
-  Object.values(sprites).forEach(sp => sp.update(localT, localDur));
-  const r = RENDERERS[slide.type] || RENDERERS.bullet;
-  r(slide, localProgress, slides.indexOf(slide), slides.length, sprites);
-  ctx.restore();
-
   drawProgressLine(elapsed / totalDuration);
   requestAnimationFrame(tick);
 }
