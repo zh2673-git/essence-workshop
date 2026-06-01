@@ -24,6 +24,7 @@ import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.join(SCRIPT_DIR, "..", "..", "..")
+TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "templates", "course-skeleton.html")
 
 AVAILABLE_MODULES = [
     "slope-navigator",
@@ -159,8 +160,19 @@ def render_modules(modules, modules_dir):
     return "\n\n".join(html_parts)
 
 
+def load_template():
+    if os.path.isfile(TEMPLATE_PATH):
+        with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
+            return f.read()
+    return COURSE_SKELETON_TEMPLATE
+
+
 def generate_html(elements_dir, output_dir, brand_spec_path=None, modules=None, title="课程"):
     print("[HTML Pipeline] Starting...")
+
+    template = load_template()
+    if template != COURSE_SKELETON_TEMPLATE:
+        print(f"  Template loaded: {TEMPLATE_PATH}")
 
     elements = load_elements(elements_dir)
     print(f"  Elements loaded: {sum(len(v) for v in elements.values())} files")
@@ -200,7 +212,7 @@ def generate_html(elements_dir, output_dir, brand_spec_path=None, modules=None, 
     content = "\n\n".join(content_parts)
     scripts = "\n".join(scripts_parts)
 
-    html = COURSE_SKELETON_TEMPLATE.format(
+    html = template.format(
         title=title,
         content=content,
         scripts=scripts,

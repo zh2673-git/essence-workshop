@@ -18,6 +18,8 @@ import re
 import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.join(SCRIPT_DIR, "..", "..", "..")
+TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "templates", "reveal-template.html")
 
 REVEAL_TEMPLATE = """<!DOCTYPE html>
 <html lang="zh-CN">
@@ -129,8 +131,19 @@ def load_svg_elements(elements_dir):
     return svgs
 
 
+def load_template():
+    if os.path.isfile(TEMPLATE_PATH):
+        with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
+            return f.read()
+    return REVEAL_TEMPLATE
+
+
 def generate_slides(elements_dir, output_dir, title="演示", theme="white"):
     print("[Slides Pipeline] Starting...")
+
+    template = load_template()
+    if template != REVEAL_TEMPLATE:
+        print(f"  Template loaded: {TEMPLATE_PATH}")
 
     texts = load_text_elements(elements_dir)
     svgs = load_svg_elements(elements_dir)
@@ -152,7 +165,7 @@ def generate_slides(elements_dir, output_dir, title="演示", theme="white"):
         all_slides_html.append('<section>\n<h1>空演示</h1>\n<p>没有找到元素层内容</p>\n</section>')
 
     slides_html = "\n".join(all_slides_html)
-    html = REVEAL_TEMPLATE.format(title=title, theme=theme, slides=slides_html)
+    html = template.format(title=title, theme=theme, slides=slides_html)
 
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, "index.html")

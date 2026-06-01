@@ -1,0 +1,27 @@
+<!-- 坡度导航器：渐进式内容导航，支持坡度理解的三阶展开 -->
+<div class="slope-navigator" data-module="slope-navigator">
+  <div class="slope-nav-header">
+    <span class="slope-nav-label">坡度导航</span>
+    <div class="slope-nav-levels">
+      <button class="slope-btn active" data-level="1">是什么</button>
+      <button class="slope-btn" data-level="2">为什么</button>
+      <button class="slope-btn" data-level="3">怎么做</button>
+    </div>
+  </div>
+  <div class="slope-nav-content">
+    <div class="slope-level slope-level-1 active" data-level="1">
+      <slot name="level-1"></slot>
+    </div>
+    <div class="slope-level slope-level-2" data-level="2">
+      <slot name="level-2"></slot>
+    </div>
+    <div class="slope-level slope-level-3" data-level="3">
+      <slot name="level-3"></slot>
+    </div>
+  </div>
+  <div class="slope-nav-footer">
+    <button class="slope-prev" disabled>← 上一阶</button>
+    <span class="slope-progress">1 / 3</span>
+    <button class="slope-next">下一阶 →</button>
+  </div>
+</div>

@@ -286,16 +286,32 @@ essence-workshop/
 │   ├── fact-checking.md                  # 材料验证与引用溯源
 │   └── code-reading-guide.md             # 代码阅读辅助指南
 ├── modules/                              # 标准交互模块（HTML交互管线使用）
-│   ├── slope-navigator/                  # 坡度导航器
-│   ├── three-stage-progress/             # 三阶进度条
+│   ├── slope-navigator/                  # 坡度导航器（三阶渐进展开）
+│   │   ├── index.html
+│   │   ├── style.css
+│   │   └── script.js
+│   ├── three-stage-progress/             # 三阶进度条（是什么→为什么→怎么做）
+│   │   ├── index.html
+│   │   ├── style.css
+│   │   └── script.js
 │   ├── knowledge-graph/                  # 知识图谱浏览器
-│   ├── card-flip/                        # 卡片翻转
-│   └── comparison-table/                 # 对比表格
+│   │   ├── index.html
+│   │   ├── style.css
+│   │   └── script.js
+│   ├── card-flip/                        # 卡片翻转（正面概念→背面解释）
+│   │   ├── index.html
+│   │   ├── style.css
+│   │   └── script.js
+│   └── comparison-table/                 # 对比表格（表格/卡片双视图）
+│       ├── index.html
+│       ├── style.css
+│       └── script.js
 ├── scripts/                              # 可执行脚本（三层架构）
 │   ├── cli.py                            # 统一CLI入口
 │   ├── elements/                         # 元素层工具
 │   │   ├── record_gif.py                 # SVG动画→GIF录制
-│   │   └── brand_extractor.py            # 品牌素材提取→brand-spec.json
+│   │   ├── brand_extractor.py            # 品牌素材提取→brand-spec.json
+│   │   └── svg_to_png.py                 # SVG→PNG渲染器（Playwright）
 │   ├── pipelines/                        # 管线层（按管线分目录）
 │   │   ├── wechat/                       # 公众号管线
 │   │   │   ├── client.py                 # 微信API客户端（token+上传+草稿+文章拉取）
@@ -321,6 +337,8 @@ essence-workshop/
 │   ├── D-project-analysis.md             # 现有项目解析
 │   └── E-content-output.md              # 内容输出（含风格选择+管线选择+5条管线）
 ├── templates/                            # 文档模板
+│   ├── course-skeleton.html              # HTML交互管线课程骨架模板
+│   ├── reveal-template.html              # 演示管线Reveal.js模板
 │   ├── knowledge-note.md                 # 知识探索笔记
 │   ├── project-essence.md                # 项目本质分析
 │   ├── project-architecture.md           # 架构决策

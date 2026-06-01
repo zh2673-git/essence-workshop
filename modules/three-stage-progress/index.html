@@ -1,0 +1,30 @@
+<!-- 三阶进度条：是什么→为什么→怎么做 的渐进式内容展示 -->
+<div class="three-stage-progress" data-module="three-stage-progress">
+  <div class="tsp-progress-bar">
+    <div class="tsp-step tsp-step-1 active" data-step="1">
+      <div class="tsp-step-dot">1</div>
+      <div class="tsp-step-label">是什么</div>
+    </div>
+    <div class="tsp-connector"></div>
+    <div class="tsp-step tsp-step-2" data-step="2">
+      <div class="tsp-step-dot">2</div>
+      <div class="tsp-step-label">为什么</div>
+    </div>
+    <div class="tsp-connector"></div>
+    <div class="tsp-step tsp-step-3" data-step="3">
+      <div class="tsp-step-dot">3</div>
+      <div class="tsp-step-label">怎么做</div>
+    </div>
+  </div>
+  <div class="tsp-content">
+    <div class="tsp-panel active" data-step="1">
+      <slot name="stage-1"></slot>
+    </div>
+    <div class="tsp-panel" data-step="2">
+      <slot name="stage-2"></slot>
+    </div>
+    <div class="tsp-panel" data-step="3">
+      <slot name="stage-3"></slot>
+    </div>
+  </div>
+</div>

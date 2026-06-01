@@ -1,0 +1,56 @@
+.comparison-table {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius, 8px);
+  overflow: hidden;
+  margin: 24px 0;
+}
+.ct-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--bg-alt, #f3f4f6);
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+.ct-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+.ct-toggle {
+  display: flex;
+  gap: 2px;
+}
+.ct-btn {
+  padding: 4px 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 4px;
+  background: var(--bg, #fff);
+  cursor: pointer;
+  font-size: 12px;
+}
+.ct-btn.active {
+  background: var(--primary, #2563eb);
+  color: #fff;
+  border-color: var(--primary, #2563eb);
+}
+.ct-view {
+  display: none;
+  padding: 16px;
+}
+.ct-view.active {
+  display: block;
+}
+.ct-view-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.ct-view-table th, .ct-view-table td {
+  padding: 8px 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  text-align: left;
+  font-size: 14px;
+}
+.ct-view-table th {
+  background: var(--bg-alt, #f3f4f6);
+  font-weight: 600;
+}
