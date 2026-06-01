@@ -1,14 +1,16 @@
-# 场景E：内容输出 · 多渠道发布系统
+# 场景E：内容输出 · 多管线发布系统
 
-> 将任意内容（场景A/B/C/D产出 / 用户原始内容）按选定风格改写，自动排版配图，输出到指定渠道。
+> 将任意内容（场景A/B/C/D产出 / 用户原始内容）按选定风格改写，生成元素层资产，再通过选定管线输出到目标平台。
 
 ---
 
 ## 触发条件
 
-- 用户说「写公众号」「发布文章」「输出文章」
-- 用户说「做视频」「生成视频」「视频号」
-- 用户说「把文章做成视频」「文章转视频」
+- 用户说「写公众号」「发布文章」→ 公众号管线
+- 用户说「做视频」「生成视频」「视频号」→ 视频号管线
+- 用户说「HTML交互」「交互页面」→ HTML交互管线
+- 用户说「做演示」「做slides」→ 演示管线
+- 用户说「做PPT」→ PPT管线
 - 用户给公众号文章链接或说「列出我的文章」
 - 场景A/B/C/D执行完成后，用户选择输出
 - 用户直接提供内容要求发布
@@ -20,27 +22,35 @@
 ```
 步骤0：确定输入来源
 步骤1：判断输入类型（完整文章 / AI聊天记录 / 笔记 / 零散想法 / 场景A/B/C/D产出）
-步骤1.5：选择输出渠道（微信公众号 / 微信视频号）
 步骤2：选择输出风格（论文风格 / 对话风格 / 蒸馏Skill风格 / 预留扩展）
-步骤2.5：字数规划 + 图文同步规划（公众号）
 步骤3：风格改写
 步骤3.5：材料验证与引用溯源
-步骤4：渠道适配排版
-步骤4.5：自动生成并插入配图（公众号）/ 生成视频画面（视频号）
-步骤4.8：图文间距检查 + 生成后质量自检
-步骤5：检查文章 / 检查视频
-步骤6：字数检查 / 视频时长检查
-步骤7：生成封面 / 生成视频封面帧
-步骤7.5：推送前检查（frontmatter必填字段验证）
-步骤8：转换+推送
+步骤4：生成元素层资产（文本/图形/动画/音频/交互/数据）
+步骤5：选择管线（公众号 / 视频号 / HTML交互 / 演示 / PPT）
+步骤6：管线执行 → 平台交付
 ```
 
-### 渠道分流
+### 管线分流
 
 ```
-步骤1.5 选择渠道：
-├── 微信公众号 → 步骤4~8（图文管线，见下方详细步骤）
-└── 微信视频号 → 步骤V1~V5（视频管线，见「视频号输出流程」章节）
+步骤5 选择管线：
+├── 公众号管线 → 步骤W1~W8（见「公众号管线」章节）
+├── 视频号管线 → 步骤V1~V5（见「视频号管线」章节）
+├── HTML交互管线 → 步骤H1~H5（见「HTML交互管线」章节）
+├── 演示管线 → 步骤S1~S4（见「演示管线」章节）
+└── PPT管线 → 步骤P1~P4（见「PPT管线」章节）
+```
+
+### 管线选择决策树
+
+```
+用户说了什么？
+├── 「公众号」「写文章」「发布」→ 公众号管线
+├── 「视频」「视频号」「做视频」→ 视频号管线
+├── 「HTML交互」「交互页面」「交互式」→ HTML交互管线
+├── 「演示」「slides」「Reveal」→ 演示管线
+├── 「PPT」「PowerPoint」→ PPT管线
+└── 未指定 → 询问用户选择管线
 ```
 
 ---
@@ -120,52 +130,6 @@ data/
 
 ---
 
-## 步骤2.5：字数规划 + 图文同步规划（公众号）
-
-### 字数规划
-
-写文章前先规划各章节目标字数，确保纯文本总量达到7000-8000字目标。
-
-**规划方法**：
-1. 列出文章大纲（## H2 章节列表）
-2. 为每个章节分配目标字数（参考下表）
-3. 写完每章后统计实际字数，未达标则补充
-
-**参考字数分配**（以8000字为例）：
-
-| 章节 | 目标字数 | 说明 |
-|------|---------|------|
-| 引言/背景 | 600-800 | 建立问题意识 |
-| 核心模型/论点（3-5个） | 每个1000-1500 | 文章主体，占60%+ |
-| 决策启发式/方法论 | 600-800 | 可操作的建议 |
-| 场景应用 | 400-600 | 连接现实 |
-| 根因/边界 | 400-600 | 深度和诚实 |
-| 结语 | 200-300 | 行动号召 |
-
-### 图文同步规划
-
-**⚠️ 核心原则：先规划图文布局，再写文章。不要先写完文字再补图。**
-
-**规划方法**：
-1. 根据大纲，为每个章节确定配图类型和内容
-2. 识别文章中是否有"循环/迭代/状态转换"类概念，有则必须规划GIF
-3. 写完每章后立即生成对应配图，不要等全文写完再统一配图
-4. 完成后做图文间距检查（见步骤4.8）
-
-**配图规划模板**：
-
-| 章节 | 配图类型 | 配图内容 | 方案 |
-|------|---------|---------|------|
-| 引言 | 概念示意图 | 核心概念关系 | A: SVG→PNG |
-| 模型一 | 动态过程图 | 变异→选择→保留循环 | B: Canvas→GIF |
-| 模型二~五 | 详解图 | 四宫格/多栏对比 | A: SVG→PNG |
-| 启发式 | 列表图 | 七条启发式一览 | A: SVG→PNG |
-| 场景应用 | 对比图 | 三栏对比 | A: SVG→PNG |
-| 根因 | 因果图/时间线 | 经历→模型因果链 | A: SVG→PNG |
-| 边界 | 警示图 | 反模式+边界 | A: SVG→PNG |
-
----
-
 ## 步骤3：风格改写
 
 详见 [references/writing-style-guide.md](../references/writing-style-guide.md)
@@ -197,9 +161,93 @@ data/
 
 ---
 
-## 步骤4：渠道适配排版
+## 步骤4：生成元素层资产
 
-### 渠道1：微信公众号（当前支持）
+详见 [references/element-spec.md](../references/element-spec.md)
+
+风格改写完成后，将内容拆解为元素层原子资产，供各管线读取。
+
+### 元素生成规则
+
+| 元素类型 | 来源 | 格式 | 存放 |
+|---------|------|------|------|
+| 文本元素 | 改写后的Markdown | .md | output/elements/text/ |
+| 图形元素 | 根据内容生成SVG | .svg | output/elements/graphics/ |
+| 动画元素 | 根据变化过程生成 | .svg(SMIL) / .js(Canvas) | output/elements/animations/ |
+| 音频元素 | TTS旁白+BGM | .mp3 | output/elements/audio/ |
+| 交互元素 | 标准模块实例化 | .html / .js | output/elements/interactions/ |
+| 数据元素 | 结构化JSON | .json | output/elements/data/ |
+
+### 图形元素生成决策
+
+```
+内容是什么？
+├── 结构/关系/对比 → SVG静态图（流程图、架构图、对比图）
+├── 变化/过程/循环 → SVG动画 或 Canvas帧序列
+├── 数据/统计 → SVG图表
+└── 概念示意 → SVG示意图
+```
+
+### 图文同步规划
+
+**⚠️ 核心原则：先规划图文布局，再写文章。不要先写完文字再补图。**
+
+**规划方法**：
+1. 根据大纲，为每个章节确定配图类型和内容
+2. 识别文章中是否有"循环/迭代/状态转换"类概念，有则必须规划动画元素
+3. 写完每章后立即生成对应图形元素，不要等全文写完再统一配图
+
+**配图规划模板**：
+
+| 章节 | 配图类型 | 配图内容 | 元素格式 |
+|------|---------|---------|---------|
+| 引言 | 概念示意图 | 核心概念关系 | SVG→PNG |
+| 模型一 | 动态过程图 | 变异→选择→保留循环 | SVG动画→GIF |
+| 模型二~五 | 详解图 | 四宫格/多栏对比 | SVG→PNG |
+| 启发式 | 列表图 | 七条启发式一览 | SVG→PNG |
+| 场景应用 | 对比图 | 三栏对比 | SVG→PNG |
+| 根因 | 因果图/时间线 | 经历→模型因果链 | SVG→PNG |
+| 边界 | 警示图 | 反模式+边界 | SVG→PNG |
+
+---
+
+## 步骤5：选择管线
+
+根据触发词或用户选择，确定走哪条管线。同一组元素层资产可以被多条管线消费。
+
+### 管线能力对比
+
+| 能力 | 公众号 | 视频号 | HTML交互 | 演示 | PPT |
+|------|-------|-------|---------|------|-----|
+| 文本 | ✅受限HTML | ✅卡片文字 | ✅完整 | ✅幻灯片 | ✅文本框 |
+| 图形 | PNG内联 | Canvas帧 | SVG直接 | SVG嵌入 | PNG嵌入 |
+| 动画 | GIF | 视频帧 | CSS/SVG/JS | CSS/SVG | 关键帧截图 |
+| 交互 | ❌ | ❌ | ✅完整 | ❌ | ❌ |
+| 音频 | ❌ | ✅TTS+BGM | ✅可嵌入 | ❌ | ❌ |
+| 输出格式 | 微信HTML | MP4 | HTML | Reveal.js | .pptx |
+
+---
+
+## 公众号管线
+
+> 详见 [references/pipeline-wechat.md](../references/pipeline-wechat.md)
+
+### 步骤W1：字数规划
+
+写文章前先规划各章节目标字数，确保纯文本总量达到7000-8000字目标。
+
+**参考字数分配**（以8000字为例）：
+
+| 章节 | 目标字数 | 说明 |
+|------|---------|------|
+| 引言/背景 | 600-800 | 建立问题意识 |
+| 核心模型/论点（3-5个） | 每个1000-1500 | 文章主体，占60%+ |
+| 决策启发式/方法论 | 600-800 | 可操作的建议 |
+| 场景应用 | 400-600 | 连接现实 |
+| 根因/边界 | 400-600 | 深度和诚实 |
+| 结语 | 200-300 | 行动号召 |
+
+### 步骤W2：渠道适配排版
 
 详见 [references/wechat-formatting.md](../references/wechat-formatting.md)
 
@@ -209,110 +257,51 @@ data/
 - 优先原生 Markdown 语法
 - emoji + 加粗辅助视觉
 
-### 渠道2：微信视频号（当前支持）
+### 步骤W3：元素转换
 
-详见 [references/video-generation.md](../references/video-generation.md)
+从元素层读取 → 按微信约束转换：
 
-**核心约束**：
-- 视频画幅 1080×1920（9:16竖屏）
-- 时长1-3分钟（知识类最佳）
-- 必须有TTS旁白
-- Canvas卡片翻页风格，复用claude-warm配色
+| 元素 | 转换规则 |
+|------|---------|
+| 文本元素 | Markdown → 微信内联样式HTML |
+| SVG图形 | SVG → PNG（Playwright渲染，2x DPI） |
+| SVG动画 | SVG动画 → GIF（Playwright录制） |
+| Canvas动画 | Canvas → GIF |
+| 交互元素 | 降级为静态截图（PNG） |
 
-**视频管线**：Canvas渲染 → Playwright录制 → Edge TTS → FFmpeg合并
-
-### 渠道3：（预留扩展）
-
-后续可添加：知乎、掘金、Notion、PDF等渠道适配。
-
-每个渠道有独立的排版规范文件，放在 `references/` 下。
-
----
-
-## 步骤4.5：自动生成并插入配图
-
-详见 [references/image-generation.md](../references/image-generation.md)
-
-**配图要求**：
-- 每个主要章节开头放一张配图
-- 每篇文章至少5张配图
-- 静态结构用SVG→PNG，变化过程用Canvas→GIF
-- 论文风格版优先配图，对话风格版一般不配图
-
----
-
-## 步骤4.8：图文间距检查 + 生成后质量自检
-
-### 图文间距检查
-
-文章完成后必须检查图文分布是否协调：
+### 步骤W4：图文间距检查 + 质量自检
 
 | 检查项 | 标准 | 处理方式 |
 |--------|------|---------|
 | 连续无图文字 | ≤1500字 | 超过1500字无图则必须在该区域补图 |
 | 每章是否有图 | 每个## H2章节至少1张 | 无图章节必须补图 |
-| 图片间距 | 均匀分布 | 不要集中在一个章节 |
-| GIF位置 | 放在最核心的"变化过程"处 | 不是装饰，必须有语义理由 |
+| GIF动画 | 必须1个，文件≥100KB | 无GIF则为核心变化过程生成 |
+| SVG→PNG字体 | 非衬线体 | 出现衬线体说明未用Playwright |
+| SVG→PNG溢出 | 文字在框内 | 溢出则调整SVG框高度 |
 
-### 生成后质量自检
-
-| 产出类型 | 检查项 | 标准 | 异常处理 |
-|---------|--------|------|---------|
-| SVG→PNG | 字体渲染 | 非衬线体 | 出现衬线体说明未用Playwright，需重转 |
-| SVG→PNG | 文字溢出 | 文字在框内 | 溢出则调整SVG框高度 |
-| SVG→PNG | 清晰度 | 2x DPI | 模糊则检查device_scale_factor |
-| GIF | 文件大小 | ≥100KB且≤3MB | <100KB说明动画未生效，>3MB需压缩 |
-| GIF | 动画效果 | 有明显变化 | 静态则检查帧步进接口 |
-| HTML文章 | 标题 | frontmatter中title非空 | 缺失则补充 |
-
----
-
-## 步骤5：检查文章
-
-```bash
-python scripts/wechat_publish.py article.md --auto-cover
-```
-
----
-
-## 步骤6：字数检查
+### 步骤W5：字数检查
 
 | 指标 | 目标值 | 说明 |
 |------|--------|------|
 | 纯文本字数 | 7000-8000字 | 内容充实度指标 |
-| 总字符数（含HTML/图片标签） | ≤20000字符 | 微信草稿箱硬性上限，超过则无法推送 |
+| 总字符数（含HTML/图片标签） | ≤20000字符 | 微信草稿箱硬性上限 |
 
-> **重要说明：** 总字符数19000-20000的目标并非追求"字数多"，而是防止超过微信草稿箱20000字符的硬性限制导致推送失败。实际操作中，纯文本风格简单即可，无需刻意凑字数。如果内容精炼、总字符已控制在20000以内，无需额外扩充。推送时可使用 `--min-chars 0` 跳过最低字符检查。
-
-**扩充技巧**（仅在内容不足时使用）：补充类比、添加反例、延伸应用、引入对比、操作细化
-
----
-
-## 步骤7：生成封面
+### 步骤W6：生成封面
 
 ```bash
 python scripts/wechat_publish.py article.md --auto-cover
 ```
 
----
-
-## 步骤7.5：推送前检查
-
-推送草稿前必须验证以下项目，任何一项不通过则修复后再推送：
+### 步骤W7：推送前检查
 
 | 检查项 | 标准 | 修复方式 |
 |--------|------|---------|
-| frontmatter title | 非空 | 在Markdown文件头部添加 `---\ntitle: 文章标题\n---` |
+| frontmatter title | 非空 | 添加 `title: 文章标题` |
 | frontmatter author | 非空（可选） | 添加 `author: 作者名` |
-| 纯文本字数 | 7000-8000字（硬性） | 不足则扩充，超出则精简 |
-| 总字符数 | ≤20000 | 超出则精简或减少图片标签 |
-| 配图数量 | 必须5张（4 PNG + 1 GIF） | 不足则补充，缺GIF则生成 |
-| GIF动画 | 必须1个，文件≥100KB | 无GIF则为核心变化过程生成，<100KB需重新生成 |
+| 配图数量 | 必须5张（4 PNG + 1 GIF） | 不足则补充 |
 | 参考文献数量 | 3-5条 | 过多则精简 |
 
----
-
-## 步骤8：转换+推送
+### 步骤W8：转换+推送
 
 ```bash
 python scripts/wechat_publish.py article.md --auto-cover --author "公众号名"
@@ -320,27 +309,9 @@ python scripts/wechat_publish.py article.md --auto-cover --author "公众号名"
 
 ---
 
-## Agent 规则（场景E专用）
+## 视频号管线
 
-1. **优先扫描 data/ 文件夹**：存在则按分组规则批量处理
-2. **风格选择优先询问用户**：特别是蒸馏Skill风格需要用户确认
-3. **双输出处理**：AI聊天记录需要生成两个独立Markdown文件
-4. **字数优化约束**：纯文本7000-8000字（硬性），总字符19000-20000
-5. **禁止 :::block 容器模块**
-6. **图文并茂是硬要求**：每篇文章必须5张配图（4 PNG + 1 GIF），GIF不可省略
-7. **先 inspect 再操作**
-8. **确认后再推送**：先 preview 让用户确认效果
-9. **文件存放**：改写稿统一保存在 `output/` 文件夹下
-10. **避免 AI 味**：严格遵循写作风格规范中的禁用表达列表
-11. **渠道选择**：用户说「公众号」走图文管线，说「视频号/视频」走视频管线
-
----
-
-## 视频号输出流程
-
-> 当步骤1.5选择「微信视频号」时，执行以下流程替代步骤4~8。
-
-详见 [references/video-generation.md](../references/video-generation.md)
+> 详见 [references/pipeline-video.md](../references/pipeline-video.md)
 
 ### 步骤V1：内容精简与镜头拆分
 
@@ -367,12 +338,11 @@ python scripts/wechat_publish.py article.md --auto-cover --author "公众号名"
 
 #### 输出格式
 
-输出 `slides.json`，格式见 [references/video-generation.md](../references/video-generation.md) 的「镜头JSON格式」章节。
+输出 `slides.json`，格式见 [references/pipeline-video.md](../references/pipeline-video.md) 的「镜头JSON格式」章节。
 
 ### 步骤V2：TTS旁白生成
 
 ```bash
-# 使用管线脚本自动生成
 python scripts/video_pipeline.py slides.json --output output/video/ --voice zh-CN-YunxiNeural
 ```
 
@@ -387,8 +357,6 @@ python scripts/video_pipeline.py slides.json --output output/video/ --voice zh-C
 1. 读取 `slides.json`
 2. 加载 `scripts/video-template.html` 模板
 3. Playwright 录制 Canvas 动画为 WebM
-
-**自定义模板**：如需自定义视觉风格，修改 `scripts/video-template.html` 中的配色和字体。
 
 ### 步骤V4：音频合成+合并
 
@@ -411,13 +379,13 @@ python scripts/video_pipeline.py slides.json --output output/video/ --voice zh-C
 ### 完整命令
 
 ```bash
-# 模式1：纯模板（默认，最简单）
+# 纯模板（默认，最简单）
 python scripts/video_pipeline.py output/slides.json --output output/video/ --style warm
 
-# 模式2：模板+品牌微调（指定品牌素材，在模板基础上覆写颜色）
+# 模板+品牌微调
 python scripts/video_pipeline.py output/slides.json --output output/video/ --style warm --brand-spec output/brand-spec.json
 
-# 模式3：纯品牌（不指定style，从brand-spec自动检测主题）
+# 纯品牌
 python scripts/video_pipeline.py output/slides.json --output output/video/ --brand-spec output/brand-spec.json
 
 # 指定语音和压缩
@@ -427,45 +395,164 @@ python scripts/video_pipeline.py output/slides.json --output output/video/ --voi
 python scripts/video_pipeline.py output/slides.json --output output/video/ --width 1920 --height 1080
 ```
 
-#### 品牌素材路由规则
+---
 
-根据用户提示词自动选择模式：
+## HTML交互管线
 
-```
-用户说了什么？
-├── 只说了风格（暖色/深色/极简/自然）→ 纯模板模式 --style warm
-├── 提到「品牌」「品牌色」「品牌素材」→ 模板+品牌模式 --style warm --brand-spec xxx.json
-├── 提到「自动配色」「从文章提取颜色」→ 自动品牌模式 --auto-brand
-└── 什么都没说 → 纯模板模式 --style dark（默认）
-```
+> 详见 [references/pipeline-html.md](../references/pipeline-html.md)
 
-**三种模式对比**：
+HTML交互管线是**能力最完整的管线**——SVG直接嵌入、交互模块接入、CSS/JS动画保留，无降级。
 
-| 模式 | 命令 | 效果 | 适用场景 |
-|------|------|------|---------|
-| 纯模板 | `--style warm` | 直接用固定配色模板 | 快速出片，风格明确 |
-| 模板+品牌 | `--style warm --brand-spec xxx.json` | warm打底 + brand-spec覆写关键色 | 有品牌素材，想微调 |
-| 纯品牌 | `--brand-spec xxx.json`（不指定--style） | brand-spec自动选主题 + 覆写颜色 | 完全由品牌素材决定 |
+### 步骤H1：选择课程骨架模板
 
-**article_to_video.py 品牌参数**：
+从 `templates/course-skeleton.html` 加载HTML课程骨架，或根据内容类型选择合适模板。
+
+**骨架模板包含**：
+- 导航栏 + 侧边目录
+- 坡度导航器模块
+- 三阶进度条模块
+- 内容区域容器
+
+### 步骤H2：元素直接嵌入
+
+从元素层读取 → 直接嵌入（无转换）：
+
+| 元素 | 嵌入方式 |
+|------|---------|
+| 文本元素 | Markdown → HTML，保留完整结构 |
+| SVG图形 | `<svg>` 标签直接嵌入，保留交互 |
+| SVG动画 | SMIL/CSS动画直接嵌入 |
+| Canvas动画 | `<canvas>` + JS 直接嵌入 |
+| 交互模块 | `modules/` 中的标准模块实例化嵌入 |
+| 音频元素 | `<audio>` 标签嵌入 |
+
+### 步骤H3：交互模块接入
+
+根据内容需要，从 `modules/` 中选择标准交互模块：
+
+| 模块 | 适用场景 | 说明 |
+|------|---------|------|
+| slope-navigator | 长文导航 | 坡度理解渐进式导航 |
+| three-stage-progress | 三阶内容 | 是什么→为什么→怎么做进度条 |
+| knowledge-graph | 知识体系 | 可交互的知识图谱浏览器 |
+| card-flip | 对比/正反 | 点击翻转查看正反面 |
+| comparison-table | 多维对比 | 可排序/筛选的对比表格 |
+
+### 步骤H4：样式与响应式
+
+- 使用CSS变量统一配色
+- 响应式布局（移动端适配）
+- 打印样式优化
+
+### 步骤H5：输出与质量检查
+
+| 检查项 | 标准 | 处理方式 |
+|--------|------|---------|
+| SVG渲染 | 所有SVG正确显示 | 检查viewBox和命名空间 |
+| 交互功能 | 所有模块可交互 | 测试点击/拖拽/翻转 |
+| 响应式 | 移动端正常显示 | 检查断点布局 |
+| 文件大小 | 单个HTML ≤5MB | 过大则拆分或压缩SVG |
+
+输出：`output/html/index.html`（单文件，所有资源内联）
+
+---
+
+## 演示管线
+
+> 详见 [references/pipeline-slides.md](../references/pipeline-slides.md)
+
+### 步骤S1：幻灯片结构生成
+
+从元素层读取文本 → 拆分为 Reveal.js 幻灯片 section：
+
+| Markdown | 幻灯片 |
+|----------|--------|
+| H1 | 封面幻灯片（标题+副标题） |
+| H2 | 章节分隔幻灯片 |
+| H3 | 内容幻灯片 |
+| 代码块 | 代码高亮幻灯片 |
+| 列表 | 要点幻灯片 |
+
+### 步骤S2：图形嵌入
+
+从元素层读取图形 → 嵌入对应幻灯片：
+
+| 元素 | 嵌入方式 |
+|------|---------|
+| SVG图形 | `<svg>` 直接嵌入幻灯片 |
+| SVG动画 | SMIL/CSS动画嵌入，自动播放 |
+| Canvas动画 | `<canvas>` + JS 嵌入 |
+
+### 步骤S3：模板应用
+
+从 `templates/reveal-template.html` 加载 Reveal.js 模板，注入幻灯片内容。
+
+**模板特性**：
+- 演讲者备注支持
+- PDF导出支持
+- 代码高亮
+- 响应式布局
+
+### 步骤S4：输出与质量检查
+
+| 检查项 | 标准 | 处理方式 |
+|--------|------|---------|
+| 幻灯片数量 | 10-30页 | 过少则合并，过多则拆分 |
+| 图文比例 | 每页≤50%纯文字 | 文字过多则拆分或加图 |
+| 动画流畅 | 过渡效果正常 | 检查CSS动画兼容性 |
+
+输出：`output/slides/index.html`
+
+---
+
+## PPT管线
+
+> 详见 [references/pipeline-pptx.md](../references/pipeline-pptx.md)
+
+### 步骤P1：幻灯片结构生成
+
+从元素层读取文本 → 拆分为 PPT 幻灯片：
+
+| Markdown | PPT幻灯片 |
+|----------|----------|
+| H1 | 封面幻灯片（标题+副标题） |
+| H2 | 章节分隔幻灯片 |
+| H3 | 内容幻灯片 |
+| 代码块 | 等宽字体文本框 |
+| 列表 | 要点列表 |
+
+### 步骤P2：元素降级转换
+
+PPT不支持SVG和JS交互，需要降级：
+
+| 元素 | 转换规则 |
+|------|---------|
+| SVG图形 | SVG → PNG → PPT图片 |
+| SVG动画 | 截取关键帧 → PPT图片序列 |
+| Canvas动画 | 截取关键帧 → PPT图片 |
+| 交互元素 | 降级为静态截图 → PPT图片 |
+| 代码块 | 等宽字体文本框 |
+
+### 步骤P3：PPT生成
+
+使用 `scripts/pptx_generator.py` 生成 .pptx 文件：
 
 ```bash
-# 自动从文章提取品牌素材并应用
-python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxx" --auto-brand
-
-# 手动指定品牌素材
-python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxx" --brand-spec output/brand-spec.json
+python scripts/pptx_generator.py --elements output/elements/ --output output/pptx/ --template brand-spec.json
 ```
 
-### 公众号+视频号双输出
+**可选**：套用企业 .potx 模板。
 
-当用户需要同时输出公众号文章和视频号视频时：
+### 步骤P4：输出与质量检查
 
-```
-1. 先完成公众号图文管线（步骤4~8），产出 article.md
-2. 从 article.md 提取核心内容，执行步骤V1~V5，产出 final.mp4
-3. 两者保存在同一 output/ 目录下
-```
+| 检查项 | 标准 | 处理方式 |
+|--------|------|---------|
+| 幻灯片数量 | 10-30页 | 过少则合并，过多则拆分 |
+| 图片清晰度 | PNG 2x DPI | 模糊则提高渲染分辨率 |
+| 文字可读 | 不溢出文本框 | 调整字号或精简文字 |
+| 文件大小 | ≤20MB | 过大则压缩图片 |
+
+输出：`output/pptx/output.pptx`
 
 ---
 
@@ -480,31 +567,19 @@ python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxx" --bran
 #### 方式一：文章URL抓取（默认推荐）
 
 ```bash
-# 直接给公众号文章链接
 python scripts/article_fetcher.py --url "https://mp.weixin.qq.com/s/xxxxx" --save output/article.md
 ```
-
-- **推荐理由**：适用于任何公众号的已发布文章，无权限要求，稳定可靠
-- 通过抓取页面提取正文，转为Markdown
-- 微信改版可能需要适配
 
 #### 方式二：本地Markdown文件
 
 ```bash
-# 直接指定本地文件
 python scripts/article_to_video.py --article output/article.md
 ```
-
-- 适用于已有Markdown文章的场景
-- 无需网络请求
 
 #### 方式三：公众号API（受权限制约）
 
 ```bash
-# 列出最近文章，用户选择
 python scripts/article_fetcher.py --list --count 10
-
-# 按media_id拉取正文
 python scripts/article_fetcher.py --media-id XXXXX --save output/article.md
 ```
 
@@ -516,87 +591,87 @@ python scripts/article_fetcher.py --media-id XXXXX --save output/article.md
 | `material/batchget_material` | 基础权限 | API上传的素材 | 后台直接发布的文章不在其中 |
 | `freepublish/getarticle` | 认证服务号 | 已发布文章正文 | 订阅号/未认证服务号返回 48001 |
 
-- 订阅号和未认证服务号**无法通过API获取已发布文章列表**
-- 素材管理接口只能看到通过API上传的素材，**后台直接发布的文章不可见**
-- 需要配置 `~/.config/essence-workshop/config.yaml`（AppID/AppSecret）
-- 代码已实现自动降级：优先使用 freepublish，48001 时降级到 material
-
 #### ⚠️ 抓取质量验证
-
-抓取完成后必须检查质量，不达标则提示用户手动提供内容：
 
 | 检查项 | 标准 | 不达标处理 |
 |--------|------|-----------|
 | 标题 | 非空 | 标题为空则提示用户提供标题 |
 | H2章节数量 | ≥3个 | <3个说明结构丢失，提示用户手动提供Markdown文件 |
 | 正文字数 | ≥500字 | <500字说明抓取不完整，提示用户手动提供 |
-| 图片引用 | 保留 | 图片丢失则标注缺失位置 |
 
 ### 步骤F2：文章拆镜头
 
 `article_to_video.py` 自动完成：
 1. 读取文章Markdown
 2. 按 H2/H3 章节拆分
-3. 自动分类镜头类型（标题/要点/引言/步骤/总结）
+3. 自动分类镜头类型
 4. 生成口语化旁白
 5. 输出 `slides.json`
 
 #### ⚠️ 镜头拆分质量检查
 
-自动拆分完成后必须检查质量：
-
 | 检查项 | 标准 | 不达标处理 |
 |--------|------|-----------|
-| 镜头数量 | ≥5个 | <5个判定为拆分失败，需手动设计 `slides.json` |
+| 镜头数量 | ≥5个 | <5个判定为拆分失败，需手动设计 |
 | 镜头类型多样性 | ≥3种类型 | 只有1种类型说明分类逻辑有误 |
 | 旁白总字数 | 500-1000字 | 过少则补充，过多则精简 |
 | 每个镜头有旁白 | 100% | 缺失则补充 narration 字段 |
 
-**拆分失败时的手动设计流程**：
-1. 读取文章内容，按H2章节手动拆分
-2. 为每个章节选择合适的镜头类型（标题卡/要点卡/对比卡/流程卡/金句卡/总结卡）
-3. 为每个镜头撰写口语化旁白
-4. 输出 `slides.json`，格式见 [references/video-generation.md](../references/video-generation.md)
-
 ### 步骤F3：视频生成
 
-自动调用 `video_pipeline.py`：
-1. Edge TTS 生成旁白
-2. Playwright 录制 Canvas 动画
-3. FFmpeg 合并音视频
+自动调用 `video_pipeline.py`。
 
 ### 一键命令
 
 ```bash
-# 从URL抓取文章并生成视频（推荐）
-python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxxxx"
+# 从URL一键生成视频
+python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxx" --output output/video/
 
-# 从本地Markdown生成视频
-python scripts/article_to_video.py --article output/article.md
+# 从本地文章一键生成视频
+python scripts/article_to_video.py --article output/article.md --output output/video/
 
-# 从公众号API拉取文章并生成视频（需认证服务号）
-python scripts/article_to_video.py --media-id XXXXX
-
-# 指定语音和保存文章
-python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxxxx" --voice zh-CN-YunxiNeural --save-article output/article.md
-
-# 压缩视频
-python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxxxx" --compress
+# 自动从文章提取品牌素材并应用
+python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxx" --auto-brand
 ```
 
-### 完整链路
+---
+
+## 多管线组合输出
+
+同一内容可走多条管线，元素层资产只需生成一次：
+
+### 公众号+视频号双输出
 
 ```
-用户说「把这篇文章做成视频」
-    ↓
-判断来源：
-├── 给了URL → article_fetcher.py --url → 正文（推荐，无权限要求）
-├── 给了本地文件 → 直接读取
-├── 给了media_id → article_fetcher.py --media-id → 正文（需认证服务号）
-└── 什么都没给 → 提示用户提供文章URL
-    ↓
-article_to_video.py 自动执行：
-    正文(Markdown) → 拆镜头(slides.json) → TTS + 录制 + 合并 → final.mp4
-    ↓
-输出到 output/video/YYYYMMDD_HHMMSS/final.mp4
+1. 生成元素层资产
+2. 公众号管线：元素 → 微信HTML → 推送草稿箱
+3. 视频号管线：元素 → Canvas帧+TTS → MP4
 ```
+
+### 全管线输出
+
+```
+1. 生成元素层资产（一次）
+2. 公众号管线 → 微信HTML
+3. 视频号管线 → MP4
+4. HTML交互管线 → 完整交互HTML
+5. 演示管线 → Reveal.js
+6. PPT管线 → .pptx
+```
+
+---
+
+## Agent 规则（场景E专用）
+
+1. **优先扫描 data/ 文件夹**：存在则按分组规则批量处理
+2. **风格选择优先询问用户**：特别是蒸馏Skill风格需要用户确认
+3. **双输出处理**：AI聊天记录需要生成两个独立Markdown文件
+4. **管线选择**：根据触发词自动选择管线，未指定则询问用户
+5. **元素层先行**：先完成元素层资产生成，再进入管线执行
+6. **禁止 :::block 容器模块**（公众号管线）
+7. **图文并茂是硬要求**（公众号管线）：每篇文章必须5张配图（4 PNG + 1 GIF）
+8. **先 inspect 再操作**
+9. **确认后再推送**：先 preview 让用户确认效果
+10. **文件存放**：元素资产保存在 `output/elements/`，管线输出保存在 `output/{管线名}/`
+11. **避免 AI 味**：严格遵循写作风格规范中的禁用表达列表
+12. **管线切换**：用户可在同一内容上切换管线，元素层资产复用
