@@ -78,11 +78,14 @@
 ## 命令
 
 ```bash
-# 完整管线
-python scripts/wechat_publish.py article.md --auto-cover --author "公众号名"
+# 完整管线（统一CLI）
+python -m scripts.cli publish article.md --auto-cover --author "公众号名"
+
+# 或直接调用
+python -m scripts.pipelines.wechat.publish article.md --auto-cover --author "公众号名"
 
 # 仅转换不推送
-python scripts/wechat_converter.py article.md --theme warm
+python -m scripts.pipelines.wechat.converter article.md --theme warm
 ```
 
 ## 质量自检

@@ -99,17 +99,21 @@
 ## 命令
 
 ```bash
-# 完整管线
-python scripts/video_pipeline.py output/slides.json --output output/video/ --style warm
+# 完整管线（统一CLI）
+python -m scripts.cli video output/slides.json --output output/video/ --style warm
+
+# 或直接调用
+python -m scripts.pipelines.video.pipeline output/slides.json --output output/video/ --style warm
 
 # 指定语音
-python scripts/video_pipeline.py output/slides.json --output output/video/ --voice zh-CN-YunxiNeural
+python -m scripts.cli video output/slides.json --output output/video/ --voice zh-CN-YunxiNeural
 
 # 横屏模式
-python scripts/video_pipeline.py output/slides.json --output output/video/ --width 1920 --height 1080
+python -m scripts.cli video output/slides.json --output output/video/ --width 1920 --height 1080
 
 # 从文章一键生成
-python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxx" --output output/video/
+python -m scripts.cli fetch --url "https://mp.weixin.qq.com/s/xxx" --save-article output/article.md
+python -m scripts.shared.article_to_video --url "https://mp.weixin.qq.com/s/xxx" --output output/video/
 ```
 
 ## 品牌素材路由

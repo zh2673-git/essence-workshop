@@ -355,7 +355,7 @@ def slides_to_json(sections, article_title=""):
 
 
 def fetch_article_by_media_id(media_id):
-    from article_fetcher import get_article_content, html_to_markdown
+    from scripts.shared.article_fetcher import get_article_content, html_to_markdown
 
     articles = get_article_content(media_id)
     if not articles:
@@ -373,7 +373,7 @@ def fetch_article_by_media_id(media_id):
 
 
 def fetch_article_by_url(url):
-    from article_fetcher import fetch_article_by_url as fetch_url
+    from scripts.shared.article_fetcher import fetch_article_by_url as fetch_url
 
     article = fetch_url(url)
     if not article:
@@ -459,7 +459,7 @@ def main():
     print(f"  Content length: {len(article['markdown'])} chars")
 
     if args.save_article:
-        from article_fetcher import save_article
+        from scripts.shared.article_fetcher import save_article
         save_article({
             "title": article["title"],
             "author": article["author"],
@@ -495,7 +495,7 @@ def main():
     print(f"  Slides saved: {slides_path}")
 
     print("\n[3/3] Generating video...")
-    from video_pipeline import generate_video
+    from scripts.pipelines.video.pipeline import generate_video
 
     visual_style = args.visual_style
     if visual_style == "auto":
@@ -505,7 +505,7 @@ def main():
     brand_spec_path = args.brand_spec
 
     if args.auto_brand and article.get("markdown"):
-        sys.path.insert(0, SCRIPT_DIR)
+        sys.path.insert(0, os.path.join(SCRIPT_DIR, "..", "elements"))
         from brand_extractor import extract_brand_from_markdown
         print("  [BRAND] Auto-extracting brand spec from article...")
         brand_spec = extract_brand_from_markdown(article["markdown"], article.get("title", ""))

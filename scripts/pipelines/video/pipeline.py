@@ -20,7 +20,7 @@ import sys
 import time
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_TEMPLATE = os.path.join(SCRIPT_DIR, "video-template.html")
+DEFAULT_TEMPLATE = os.path.join(SCRIPT_DIR, "template.html")
 
 VALID_STYLES = ["dark", "warm", "minimal", "nature"]
 VALID_FORMATS = ["mp4", "mp4_60fps", "gif"]

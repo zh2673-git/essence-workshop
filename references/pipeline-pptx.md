@@ -105,14 +105,17 @@ python scripts/pptx_generator.py --elements output/elements/ --output output/ppt
 ## 命令
 
 ```bash
-# 基本生成
-python scripts/pptx_generator.py --elements output/elements/ --output output/pptx/
+# 基本生成（统一CLI）
+python -m scripts.cli pptx --elements output/elements/ --output output/pptx/
+
+# 或直接调用
+python -m scripts.pipelines.pptx.generator --elements output/elements/ --output output/pptx/
 
 # 套用企业模板
-python scripts/pptx_generator.py --elements output/elements/ --output output/pptx/ --template corporate.potx
+python -m scripts.cli pptx --elements output/elements/ --output output/pptx/ --template corporate.potx
 
 # 指定品牌色
-python scripts/pptx_generator.py --elements output/elements/ --output output/pptx/ --brand-spec brand-spec.json
+python -m scripts.cli pptx --elements output/elements/ --output output/pptx/ --brand-spec brand-spec.json
 ```
 
 ## 输出

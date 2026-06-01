@@ -20,7 +20,7 @@ import re
 import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_BRAND_SPEC = os.path.join(SCRIPT_DIR, "..", "templates", "brand-spec.json")
+DEFAULT_BRAND_SPEC = os.path.join(SCRIPT_DIR, "..", "..", "templates", "brand-spec.json")
 
 COLOR_PATTERNS = {
     "暖色系": ["#D4763A", "#C96442", "#8B5E3C", "#F0C27F", "#FAF7F2"],
@@ -162,7 +162,7 @@ def main():
 
     print("[1/3] Loading article...")
     if args.url:
-        sys.path.insert(0, SCRIPT_DIR)
+        sys.path.insert(0, os.path.join(SCRIPT_DIR, "..", "shared"))
         from article_fetcher import fetch_article_by_url
         article = fetch_article_by_url(args.url)
         if not article:

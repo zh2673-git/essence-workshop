@@ -291,17 +291,29 @@ essence-workshop/
 │   ├── knowledge-graph/                  # 知识图谱浏览器
 │   ├── card-flip/                        # 卡片翻转
 │   └── comparison-table/                 # 对比表格
-├── scripts/                              # 可执行脚本
-│   ├── wechat_client.py                  # 微信API客户端（token+上传+草稿+文章拉取）
-│   ├── wechat_converter.py               # Markdown→微信HTML转换器（3主题+内联样式）
-│   ├── wechat_publish.py                 # 公众号发布管线（转换+封面+推送草稿）
-│   ├── article_fetcher.py                # 公众号文章拉取（API+URL）
-│   ├── video-template.html               # Canvas卡片翻页HTML模板
-│   ├── video_pipeline.py                 # 视频生成管线（录制+TTS+FFmpeg）
-│   ├── article_to_video.py               # 文章转视频（拉取→拆镜头→视频）
-│   ├── example-slides.json               # 示例镜头JSON
-│   ├── element_render.py                 # 元素渲染器（SVG→PNG等）
-│   └── pptx_generator.py                 # PPT生成器
+├── scripts/                              # 可执行脚本（三层架构）
+│   ├── cli.py                            # 统一CLI入口
+│   ├── elements/                         # 元素层工具
+│   │   ├── record_gif.py                 # SVG动画→GIF录制
+│   │   └── brand_extractor.py            # 品牌素材提取→brand-spec.json
+│   ├── pipelines/                        # 管线层（按管线分目录）
+│   │   ├── wechat/                       # 公众号管线
+│   │   │   ├── client.py                 # 微信API客户端（token+上传+草稿+文章拉取）
+│   │   │   ├── converter.py              # Markdown→微信HTML转换器（3主题+内联样式）
+│   │   │   └── publish.py                # 公众号发布管线（转换+封面+推送草稿）
+│   │   ├── video/                        # 视频号管线
+│   │   │   ├── pipeline.py               # 视频生成管线（录制+TTS+FFmpeg）
+│   │   │   ├── template.html             # Canvas卡片翻页HTML模板
+│   │   │   └── example-slides.json       # 示例镜头JSON
+│   │   ├── html/                         # HTML交互管线
+│   │   │   └── generator.py              # 元素层→完整交互HTML
+│   │   ├── slides/                       # 演示管线
+│   │   │   └── generator.py              # 元素层→Reveal.js HTML
+│   │   └── pptx/                         # PPT管线
+│   │       └── generator.py              # 元素层→.pptx文件
+│   └── shared/                           # 跨管线共享
+│       ├── article_fetcher.py            # 公众号文章拉取（API+URL）
+│       └── article_to_video.py           # 文章转视频（拉取→拆镜头→视频）
 ├── workflows/                            # 5个场景工作流
 │   ├── A-knowledge-exploration.md        # 知识探索
 │   ├── B-person-distillation.md          # 人物蒸馏

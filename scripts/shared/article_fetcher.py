@@ -32,14 +32,15 @@ import tempfile
 
 def get_wechat_client():
     try:
-        from wechat_client import WeChatClient
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "pipelines", "wechat"))
+        from client import WeChatClient
         client = WeChatClient()
         if not client.is_configured():
             print("ERROR: WeChat not configured. Create ~/.config/essence-workshop/config.yaml")
             sys.exit(1)
         return client
     except ImportError:
-        print("ERROR: wechat_client.py not found in scripts/")
+        print("ERROR: wechat client.py not found in scripts/pipelines/wechat/")
         sys.exit(1)
 
 
