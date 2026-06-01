@@ -5,12 +5,15 @@
 功能：
 - Markdown → 微信兼容 HTML（纯内联样式，无 <style> 标签）
 - 3 套 Claude 主题（warm / clean / dark）
+- brand-spec.json 动态主题生成
 - Frontmatter 解析
 - 标题去重
 - HTML 压缩（控制在 20000 字符限制内）
 - 文章检查（inspect）
 """
 
+import json
+import os
 import re
 
 from markdown_it import MarkdownIt
@@ -104,6 +107,70 @@ THEMES = {
 
 _FM_PATTERN = re.compile(r'^---\s*\n(.*?)\n---\s*\n', re.DOTALL)
 _H2_PATTERN = re.compile(r'^##\s+(.+)\s*$', re.MULTILINE)
+
+
+def _hex_to_rgb(hex_color):
+    hex_color = hex_color.lstrip('#')
+    if len(hex_color) != 6:
+        return "0,0,0"
+    r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
+    return f"{r},{g},{b}"
+
+
+def build_theme_from_brand_spec(brand_spec_path):
+    if not brand_spec_path or not os.path.isfile(brand_spec_path):
+        return None
+
+    with open(brand_spec_path, "r", encoding="utf-8") as f:
+        spec = json.load(f)
+
+    colors = spec.get("colors", {})
+    derived = spec.get("derived", {})
+    fonts = spec.get("fonts", {})
+
+    primary = colors.get("primary", "#0F766E")
+    accent = colors.get("accent", "#E94560")
+    bg = colors.get("bg", "#FAFAFA")
+    fg = colors.get("fg", "#1A1A1A")
+    muted = colors.get("muted", "#7A7A9E")
+    border = colors.get("border", "#E5E7EB")
+
+    primary_rgb = derived.get("primary-rgb", _hex_to_rgb(primary))
+    accent_rgb = derived.get("accent-rgb", _hex_to_rgb(accent))
+
+    font_body = fonts.get("body", "-apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans SC',sans-serif")
+    font_display = fonts.get("display", "'Noto Serif SC',Georgia,serif")
+
+    primary_dim = derived.get("primary-dim", f"rgba({primary_rgb},0.08)")
+    accent_dim = derived.get("accent-dim", f"rgba({accent_rgb},0.08)")
+
+    theme = {
+        "_root": (
+            f"max-width:680px;margin:0 auto;padding:24px 16px;"
+            f"background:{bg};"
+            f"font-family:{font_body};"
+            f"font-size:16px;line-height:1.8;color:{fg};"
+        ),
+        "h1": f"font-family:{font_display};font-size:22px;font-weight:700;color:{fg};margin:36px 0 16px;line-height:1.4;",
+        "h2": f"font-size:19px;font-weight:600;color:{fg};margin:36px 0 16px;padding-bottom:8px;border-bottom:1px solid {border};",
+        "h3": f"font-size:17px;font-weight:600;color:{primary};margin:20px 0 12px;",
+        "p": f"margin:0 0 16px;color:{fg};line-height:1.8;",
+        "blockquote": f"border-left:3px solid {primary};background:{primary_dim};margin:28px 0;padding:16px 20px;border-radius:0 10px 10px 0;color:{fg};",
+        "ul": f"margin:16px 0;padding-left:24px;color:{fg};",
+        "ol": f"margin:16px 0;padding-left:24px;color:{fg};",
+        "li": "margin:8px 0;line-height:1.8;",
+        "strong": f"font-weight:600;color:{fg};",
+        "em": f"font-style:italic;color:{muted};",
+        "a": f"color:{primary};text-decoration:none;",
+        "hr": f"border:none;border-top:1px solid {border};margin:36px 0;",
+        "code": f"background:#2D2A26;color:#E8E2DA;padding:2px 6px;border-radius:4px;font-size:0.9em;",
+        "pre": "background:#2D2A26;color:#E8E2DA;padding:16px 20px;border-radius:10px;overflow-x:auto;margin:28px 0;",
+        "img": "max-width:100%;height:auto;border-radius:6px;margin:12px 0;",
+        "table": f"width:100%;border-collapse:collapse;margin:20px 0;",
+        "th": f"background:{primary_dim};font-weight:600;padding:10px 14px;border:1px solid {border};text-align:left;",
+        "td": f"padding:10px 14px;border:1px solid {border};color:{fg};",
+    }
+    return theme
 
 
 def _extract_frontmatter(md):
@@ -242,8 +309,15 @@ def _compress_html(html):
     return html.strip()
 
 
-def apply_inline_styles(html, theme="claude-warm"):
-    styles = THEMES.get(theme, THEMES["claude-warm"])
+def apply_inline_styles(html, theme="claude-warm", brand_spec_path=None):
+    if brand_spec_path:
+        custom_theme = build_theme_from_brand_spec(brand_spec_path)
+        if custom_theme:
+            styles = custom_theme
+        else:
+            styles = THEMES.get(theme, THEMES["claude-warm"])
+    else:
+        styles = THEMES.get(theme, THEMES["claude-warm"])
 
     html = re.sub(r"<style[^>]*>[\s\S]*?</style>", "", html, flags=re.IGNORECASE)
     html = re.sub(r'\s+class="[^"]*"', "", html)
@@ -260,7 +334,7 @@ def apply_inline_styles(html, theme="claude-warm"):
 
 
 def convert_markdown(file_path="", markdown="", theme="claude-warm",
-                     title="", author="", digest=""):
+                     title="", author="", digest="", brand_spec_path=None):
     if file_path:
         with open(file_path, encoding="utf-8") as f:
             markdown = f.read()
@@ -274,11 +348,20 @@ def convert_markdown(file_path="", markdown="", theme="claude-warm",
     md_parser = MarkdownIt("default", {"html": True})
     body_html = md_parser.render(md_content)
 
-    styled_html = apply_inline_styles(body_html, theme)
+    styled_html = apply_inline_styles(body_html, theme, brand_spec_path)
+
+    bg_color = "#FAFAFA"
+    if brand_spec_path:
+        custom_theme = build_theme_from_brand_spec(brand_spec_path)
+        if custom_theme:
+            root_style = custom_theme.get("_root", "")
+            bg_match = re.search(r'background:([^;]+)', root_style)
+            if bg_match:
+                bg_color = bg_match.group(1).strip()
 
     full_html = _compress_html(styled_html)
     full_html = (
-        '<section style="max-width:680px;margin:0 auto;padding:24px 16px;background:#FAF7F2;">'
+        f'<section style="max-width:680px;margin:0 auto;padding:24px 16px;background:{bg_color};">'
         '<article>'
         f'{full_html}'
         '</article>'

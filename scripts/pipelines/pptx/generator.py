@@ -1,20 +1,14 @@
 """
 本质工坊 · PPT管线
-从元素层读取 → 降级转换 → python-pptx → .pptx文件
+从元素层读取 → 降级转换 → python-pptx / html2pptx.js → .pptx文件
 
-设计思路（参考 huashu-design html2pptx.js）：
-  方案一（当前实现）：python-pptx 直接生成
-  方案二（未来升级）：HTML → Playwright截图 → python-pptx 组装
-    huashu-design 的 html2pptx.js 方案更优，保留文本可编辑性
-    但需要 Node.js 环境，当前先用 python-pptx 实现
-
-降级规则：
-  SVG → PNG（Playwright渲染）→ PPT图片
-  SVG动画 → 关键帧截图 → PPT图片
-  交互元素 → 静态截图 → PPT图片
+模式:
+  simple   - python-pptx 直接生成（默认，v1行为）
+  precise  - HTML → Playwright读取DOM → pptxgenjs精确还原（v2，huashu-design风格）
 
 用法:
   python -m scripts.pipelines.pptx.generator --elements output/elements/ --output output/pptx/
+  python -m scripts.pipelines.pptx.generator --elements output/elements/ --output output/pptx/ --mode precise
   python -m scripts.pipelines.pptx.generator --elements output/elements/ --output output/pptx/ --template corporate.potx
   python -m scripts.pipelines.pptx.generator --elements output/elements/ --output output/pptx/ --brand-spec brand-spec.json
 """
@@ -30,10 +24,12 @@ SLIDE_WIDTH_INCHES = 13.333
 SLIDE_HEIGHT_INCHES = 7.5
 
 DEFAULT_BRAND = {
-    "primary": "#2563eb",
-    "secondary": "#7c3aed",
-    "text": "#1f2937",
-    "bg": "#ffffff",
+    "primary": "#0F766E",
+    "accent": "#E94560",
+    "fg": "#1A1A1A",
+    "bg": "#FAFAFA",
+    "muted": "#7A7A9E",
+    "border": "#E5E7EB",
     "font_title": "Microsoft YaHei",
     "font_body": "Microsoft YaHei",
 }
@@ -47,8 +43,8 @@ def check_pptx_available():
         return False
 
 
-def generate_pptx(elements_dir, output_dir, template_path=None, brand_spec_path=None, title="演示"):
-    print("[PPTX Pipeline] Starting...")
+def generate_pptx_simple(elements_dir, output_dir, template_path=None, brand_spec_path=None, title="演示"):
+    print("[PPTX Pipeline · simple] Starting...")
 
     if not check_pptx_available():
         print("ERROR: python-pptx not installed. Run: pip install python-pptx")
@@ -66,6 +62,14 @@ def generate_pptx(elements_dir, output_dir, template_path=None, brand_spec_path=
         if "colors" in spec:
             for k, v in spec["colors"].items():
                 brand[k] = v
+        if "derived" in spec:
+            for k, v in spec["derived"].items():
+                brand[k] = v
+        if "fonts" in spec:
+            if "display" in spec["fonts"]:
+                brand["font_title"] = spec["fonts"]["display"].replace("'", "").split(",")[0].strip()
+            if "body" in spec["fonts"]:
+                brand["font_body"] = spec["fonts"]["body"].replace("'", "").split(",")[0].strip()
         print(f"  Brand spec loaded: {brand_spec_path}")
 
     if template_path and os.path.isfile(template_path):
@@ -78,8 +82,16 @@ def generate_pptx(elements_dir, output_dir, template_path=None, brand_spec_path=
 
     slide_layout = prs.slide_layouts[0]
 
+    primary_rgb = RGBColor.from_string(brand["primary"].lstrip('#'))
+    accent_rgb = RGBColor.from_string(brand.get("accent", "#E94560").lstrip('#'))
+    fg_rgb = RGBColor.from_string(brand.get("fg", "#1A1A1A").lstrip('#'))
+
     title_slide = prs.slides.add_slide(slide_layout)
     title_slide.shapes.title.text = title
+    for run in title_slide.shapes.title.text_frame.paragraphs[0].runs:
+        run.font.color.rgb = primary_rgb
+        run.font.size = Pt(36)
+        run.font.bold = True
     if hasattr(title_slide, 'placeholders') and len(title_slide.placeholders) > 1:
         title_slide.placeholders[1].text = "本质工坊 自动生成"
 
@@ -102,10 +114,18 @@ def generate_pptx(elements_dir, output_dir, template_path=None, brand_spec_path=
 
                 slide = prs.slides.add_slide(prs.slide_layouts[1])
                 slide.shapes.title.text = heading
+                for run in slide.shapes.title.text_frame.paragraphs[0].runs:
+                    run.font.color.rgb = primary_rgb
+                    run.font.size = Pt(28)
+                    run.font.bold = True
 
                 if body and len(slide.placeholders) > 1:
                     text_frame = slide.placeholders[1].text_frame
                     text_frame.text = body[:2000]
+                    for para in text_frame.paragraphs:
+                        for run in para.runs:
+                            run.font.color.rgb = fg_rgb
+                            run.font.size = Pt(16)
 
     graphics_dir = os.path.join(elements_dir, "graphics")
     png_files = []
@@ -129,7 +149,47 @@ def generate_pptx(elements_dir, output_dir, template_path=None, brand_spec_path=
     num_slides = len(prs.slides)
     print(f"  Slides: {num_slides}")
     print(f"  Output: {output_path}")
-    print("[PPTX Pipeline] Done.")
+    print("[PPTX Pipeline · simple] Done.")
+
+
+def generate_pptx_precise(elements_dir, output_dir, brand_spec_path=None, title="演示", layout="LAYOUT_16x9"):
+    print("[PPTX Pipeline · precise] Starting...")
+
+    from scripts.pipelines.pptx.bridge import html_to_pptx
+    from scripts.pipelines.html.generator import generate_html
+
+    html_output_dir = os.path.join(output_dir, "_html_temp")
+    generate_html(
+        elements_dir=elements_dir,
+        output_dir=html_output_dir,
+        brand_spec_path=brand_spec_path,
+        title=title,
+        mode="paged",
+    )
+
+    html_path = os.path.join(html_output_dir, "index.html")
+    if not os.path.isfile(html_path):
+        print("ERROR: HTML generation failed, cannot proceed with precise mode")
+        sys.exit(1)
+
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, "output.pptx")
+
+    success = html_to_pptx(html_path, output_path, layout=layout)
+    if success:
+        print(f"  Output: {output_path}")
+        print("[PPTX Pipeline · precise] Done.")
+    else:
+        print("ERROR: html2pptx.js conversion failed")
+        print("  Falling back to simple mode...")
+        generate_pptx_simple(elements_dir, output_dir, brand_spec_path=brand_spec_path, title=title)
+
+
+def generate_pptx(elements_dir, output_dir, template_path=None, brand_spec_path=None, title="演示", mode="simple", layout="LAYOUT_16x9"):
+    if mode == "precise":
+        generate_pptx_precise(elements_dir, output_dir, brand_spec_path, title, layout)
+    else:
+        generate_pptx_simple(elements_dir, output_dir, template_path, brand_spec_path, title)
 
 
 def main():
@@ -139,9 +199,11 @@ def main():
     parser.add_argument("--template", default=None, help="企业模板 .potx 文件路径")
     parser.add_argument("--brand-spec", default=None, help="品牌规格文件路径")
     parser.add_argument("--title", default="演示", help="演示标题")
+    parser.add_argument("--mode", default="simple", choices=["simple", "precise"], help="生成模式：simple=python-pptx, precise=html2pptx.js")
+    parser.add_argument("--layout", default="LAYOUT_16x9", choices=["LAYOUT_16x9", "LAYOUT_4x3"], help="幻灯片布局（precise模式）")
     args = parser.parse_args()
 
-    generate_pptx(args.elements, args.output, args.template, args.brand_spec, args.title)
+    generate_pptx(args.elements, args.output, args.template, args.brand_spec, args.title, args.mode, args.layout)
 
 
 if __name__ == "__main__":

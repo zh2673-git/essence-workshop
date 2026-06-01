@@ -266,7 +266,7 @@ def _load_font(size, bold=False):
 
 def publish(file_path, theme="claude-warm", cover="", title="", author="",
             auto_cover=False, min_chars=19000, upload_images=True, json_output=False,
-            check_plain_text=True, check_images=True):
+            check_plain_text=True, check_images=True, brand_spec_path=None):
     file_path = Path(file_path)
     if not file_path.exists():
         print(f"ERROR: 文件不存在: {file_path}")
@@ -295,10 +295,15 @@ def publish(file_path, theme="claude-warm", cover="", title="", author="",
         png_count = sum(1 for t in img_tags if '.png' in t.lower())
         gif_count = sum(1 for t in img_tags if '.gif' in t.lower())
         total_images = len(img_tags)
-        if total_images < 5:
-            print(f"WARNING: 配图仅 {total_images} 张，未达 5 张硬性要求（4 PNG + 1 GIF）")
+        if total_images < 7:
+            print(f"WARNING: 配图仅 {total_images} 张，未达 7 张硬性要求（6 PNG + 1 GIF）")
             if not json_output:
-                return {"success": False, "error": f"配图仅 {total_images} 张，需 5 张（4 PNG + 1 GIF）",
+                return {"success": False, "error": f"配图仅 {total_images} 张，需 7 张（6 PNG + 1 GIF）",
+                        "image_count": total_images, "png_count": png_count, "gif_count": gif_count}
+        if png_count < 6:
+            print(f"WARNING: PNG 配图仅 {png_count} 张，至少需要 6 张 PNG")
+            if not json_output:
+                return {"success": False, "error": f"PNG 配图仅 {png_count} 张，需 >= 6 张 PNG",
                         "image_count": total_images, "png_count": png_count, "gif_count": gif_count}
         if gif_count < 1:
             print(f"WARNING: 缺少 GIF 动图，至少需要 1 张 GIF")
@@ -312,6 +317,7 @@ def publish(file_path, theme="claude-warm", cover="", title="", author="",
         theme=theme,
         title=title,
         author=author,
+        brand_spec_path=brand_spec_path,
     )
     if not result["success"]:
         print(f"ERROR: 转换失败: {result.get('error', 'unknown')}")
@@ -502,6 +508,7 @@ def main():
     parser = argparse.ArgumentParser(description="本质工坊 · 公众号发布管线")
     parser.add_argument("file", help="Markdown 文件路径")
     parser.add_argument("--theme", default="claude-warm", help="主题 (claude-warm/clean/dark)")
+    parser.add_argument("--brand-spec", default="", help="品牌配置文件路径 (brand-spec.json)")
     parser.add_argument("--cover", default="", help="封面图片路径")
     parser.add_argument("--title", default="", help="覆盖标题")
     parser.add_argument("--author", default="", help="覆盖作者")
@@ -526,6 +533,7 @@ def main():
         json_output=args.json,
         check_plain_text=not args.skip_plain_check,
         check_images=not args.skip_image_check,
+        brand_spec_path=args.brand_spec or None,
     )
 
 

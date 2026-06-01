@@ -5,30 +5,34 @@
     "description": ""
   },
   "colors": {
-    "primary": "#E94560",
-    "secondary": "#F0C27F",
-    "accent": "#00D2FF",
-    "background_dark": "#0F0F23",
-    "background_light": "#FAF7F2",
-    "text_primary": "#F0F0F0",
-    "text_secondary": "#7A7A9E",
+    "primary": "#0F766E",
+    "accent": "#E94560",
+    "bg": "#FAFAFA",
+    "fg": "#1A1A1A",
+    "muted": "#7A7A9E",
+    "border": "#E5E7EB",
     "success": "#4ECDC4",
     "warning": "#FFE66D"
   },
+  "derived": {
+    "primary-dim": "rgba(15,118,110,0.08)",
+    "accent-dim": "rgba(233,69,96,0.08)",
+    "card-bg": "rgba(255,255,255,0.7)",
+    "card-border": "rgba(0,0,0,0.06)",
+    "primary-rgb": "15,118,110",
+    "accent-rgb": "233,69,96"
+  },
   "fonts": {
-    "heading": "'PingFang SC', 'Microsoft YaHei', sans-serif",
-    "body": "'PingFang SC', 'Microsoft YaHei', sans-serif",
+    "display": "'Noto Serif SC', Georgia, serif",
+    "body": "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', sans-serif",
     "mono": "'JetBrains Mono', 'Fira Code', monospace"
   },
-  "icons": {
-    "style": "stroke",
-    "weight": 2,
-    "preferred": ["brain", "lightbulb", "target", "layers", "zap", "check", "arrow", "scale", "diamond", "hexagon"]
-  },
   "spacing": {
-    "card_radius": 32,
-    "card_padding": 40,
-    "element_gap": 24
+    "page-padding": "60px 80px",
+    "section-gap": "48px",
+    "content-max-width": "900px",
+    "card-radius": 8,
+    "card-padding": 20
   },
   "animation": {
     "default_easing": "expoOut",

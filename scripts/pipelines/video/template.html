@@ -1004,17 +1004,19 @@ function sceneOpacity(scene, globalT) {
 function startPresentation() {
   const themeName = window.themeName || 'dark';
   C = THEMES[themeName] || THEMES.dark;
-  if (window.brandSpec && window.brandSpec.colors) {
-    const bc = window.brandSpec.colors;
+  if (window.brandSpec) {
+    const bc = window.brandSpec.colors || {};
+    const bd = window.brandSpec.derived || {};
     if (bc.primary) { C.accent = bc.primary; C.accentGlow = alpha(bc.primary, 0.12); }
-    if (bc.secondary) { C.gold = bc.secondary; C.goldDim = alpha(bc.secondary, 0.25); }
-    if (bc.accent) { C.cyan = bc.accent; C.cyanDim = alpha(bc.accent, 0.12); }
-    if (bc.text_primary) { C.white = bc.text_primary; C.whiteDim = alpha(bc.text_primary, 0.6); }
-    if (bc.text_secondary) C.muted = bc.text_secondary;
-    if (bc.card_bg) C.cardBg = bc.card_bg;
-    if (bc.card_border) C.cardBorder = bc.card_border;
+    if (bc.accent) { C.gold = bc.accent; C.goldDim = alpha(bc.accent, 0.25); }
+    if (bc.success) { C.cyan = bc.success; C.cyanDim = alpha(bc.success, 0.12); }
+    if (bc.fg) { C.white = bc.fg; C.whiteDim = alpha(bc.fg, 0.6); }
+    if (bc.muted) C.muted = bc.muted;
+    if (bd['card-bg']) C.cardBg = bd['card-bg'];
+    if (bd['card-border']) C.cardBorder = bd['card-border'];
     if (bc.success) C.success = bc.success;
     if (bc.warning) C.warn = bc.warning;
+    if (bc.bg) { C.bg1 = bc.bg; C.bg2 = bc.bg; C.bg3 = bc.bg; }
   }
   currentSlide = 0; slideStart = performance.now(); running = true;
   requestAnimationFrame(tick);
