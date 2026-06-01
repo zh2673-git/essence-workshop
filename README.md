@@ -49,11 +49,54 @@
 
 ---
 
+## 管线系统（三层架构）
+
+```
+元素层(Element) → 管线层(Pipeline) → 平台层(Platform)
+   原子素材        平台适配组装        最终交付物
+```
+
+### 管线成熟度
+
+| 管线 | 状态 | 说明 |
+|------|------|------|
+| **公众号** | ✅ 生产可用 | Markdown→微信HTML→封面→图片上传→推送草稿箱，完整闭环 |
+| **视频号** | ✅ 生产可用 | Playwright录制+Edge TTS旁白+FFmpeg合并，支持BGM/SFX/多格式 |
+| **HTML交互** | 🟡 骨架可用 | 元素层→课程骨架HTML，支持交互模块接入，模块CSS加载待完善 |
+| **演示** | 🟡 骨架可用 | 元素层→Reveal.js HTML，Markdown解析为简易正则，复杂格式待增强 |
+| **PPT** | 🟡 骨架可用 | 元素层→.pptx，基础标题+内容+图片页，SVG→PNG转换和品牌色待集成 |
+
+### 统一CLI
+
+```bash
+# 公众号（生产可用）
+python -m scripts.cli publish article.md --auto-cover --author "公众号名"
+
+# 视频号（生产可用）
+python -m scripts.cli video output/slides.json --output output/video/ --style warm
+
+# HTML交互（骨架可用）
+python -m scripts.cli html --elements output/elements/ --output output/html/
+
+# 演示（骨架可用）
+python -m scripts.cli slides --elements output/elements/ --output output/slides/
+
+# PPT（骨架可用）
+python -m scripts.cli pptx --elements output/elements/ --output output/pptx/
+
+# 辅助命令
+python -m scripts.cli brand --article output/article.md    # 品牌提取
+python -m scripts.cli fetch --url https://mp.weixin.qq.com/s/xxx  # 文章拉取
+python -m scripts.cli gif animation.html output.gif        # GIF录制
+```
+
+---
+
 ## 文件结构
 
 ```
 essence-workshop/
-├── SKILL.md                              # 主入口（~211行：路由+核心概念+触发词）
+├── SKILL.md                              # 主入口（路由+核心概念+触发词）
 ├── references/                           # 共用基础文档
 │   ├── methodology.md                    # 三阶方法论+坡度理解+类-属性-方法-路由
 │   ├── design-principles.md              # 设计原则
@@ -62,26 +105,52 @@ essence-workshop/
 │   ├── writing-style-guide.md            # 写作风格规范
 │   ├── wechat-formatting.md              # 微信排版规范
 │   ├── image-generation.md               # 配图方案
+│   ├── pipeline-wechat.md                # 公众号管线规范
+│   ├── pipeline-video.md                 # 视频号管线规范
+│   ├── pipeline-html.md                  # HTML交互管线规范
+│   ├── pipeline-slides.md                # 演示管线规范
+│   ├── pipeline-pptx.md                  # PPT管线规范
 │   ├── fact-checking.md                  # 材料验证与引用溯源
 │   └── code-reading-guide.md             # 代码阅读辅助指南
+├── modules/                              # 标准交互模块（HTML交互管线使用）
+│   ├── slope-navigator/                  # 坡度导航器（三阶渐进展开）
+│   ├── three-stage-progress/             # 三阶进度条
+│   ├── knowledge-graph/                  # 知识图谱浏览器
+│   ├── card-flip/                        # 卡片翻转
+│   └── comparison-table/                 # 对比表格
+├── scripts/                              # 可执行脚本（三层架构）
+│   ├── cli.py                            # 统一CLI入口
+│   ├── elements/                         # 元素层工具
+│   │   ├── brand_extractor.py            # 品牌素材提取→brand-spec.json
+│   │   ├── record_gif.py                 # SVG动画→GIF录制
+│   │   └── svg_to_png.py                 # SVG→PNG渲染器（Playwright）
+│   ├── pipelines/                        # 管线层
+│   │   ├── wechat/                       # ✅ 公众号管线（生产可用）
+│   │   │   ├── client.py                 # 微信API客户端
+│   │   │   ├── converter.py              # Markdown→微信HTML转换器
+│   │   │   └── publish.py                # 发布管线（转换+封面+推送）
+│   │   ├── video/                        # ✅ 视频号管线（生产可用）
+│   │   │   ├── pipeline.py               # 视频生成管线
+│   │   │   ├── template.html             # Canvas卡片翻页模板
+│   │   │   └── example-slides.json       # 示例镜头JSON
+│   │   ├── html/                         # 🟡 HTML交互管线（骨架可用）
+│   │   │   └── generator.py              # 元素层→完整交互HTML
+│   │   ├── slides/                       # 🟡 演示管线（骨架可用）
+│   │   │   └── generator.py              # 元素层→Reveal.js HTML
+│   │   └── pptx/                         # 🟡 PPT管线（骨架可用）
+│   │       └── generator.py              # 元素层→.pptx文件
+│   └── shared/                           # 跨管线共享
+│       ├── article_fetcher.py            # 公众号文章拉取
+│       └── article_to_video.py           # 文章转视频
+├── templates/                            # 文档与输出模板
+│   ├── course-skeleton.html              # HTML交互管线课程骨架
+│   ├── reveal-template.html              # 演示管线Reveal.js模板
+│   ├── brand-spec.json                   # 品牌规格
+│   └── ...                               # 文档模板
 ├── workflows/                            # 5个场景工作流
-│   ├── A-knowledge-exploration.md        # 知识探索
-│   ├── B-person-distillation.md          # 人物蒸馏
-│   ├── C-project-development.md          # 新项目开发
-│   ├── D-project-analysis.md             # 现有项目解析
-│   └── E-content-output.md               # 内容输出（含风格选择系统+多渠道）
-├── scripts/                              # 可执行脚本
-│   ├── wechat_client.py                  # 微信API客户端（token+上传+草稿+文章拉取）
-│   ├── wechat_converter.py               # Markdown→微信HTML转换器（3主题+内联样式）
-│   ├── wechat_publish.py                 # 公众号发布管线（转换+封面+推送草稿）
-│   ├── article_fetcher.py                # 公众号文章拉取（API+URL）
-│   ├── video-template.html               # Canvas卡片翻页HTML模板
-│   ├── video_pipeline.py                 # 视频生成管线（录制+TTS+FFmpeg）
-│   ├── article_to_video.py               # 文章转视频（拉取→拆镜头→视频）
-│   └── example-slides.json               # 示例镜头JSON
-├── templates/                            # 文档模板
 ├── examples/                             # 8个蒸馏实例（自包含）
 └── output/                               # 运行时输出目录
+    └── elements/                         # 元素层输出（text/graphics/animations/audio/interactions/data）
 ```
 
 ---
@@ -119,7 +188,12 @@ essence-workshop/
 | [essence-distillation-skill](https://github.com/zh2673-git/essence-distillation-skill) | 认知蒸馏引擎 | 7Agent调研、根因追溯、人物蒸馏、8个实例 |
 | [md2wechat-py](https://github.com/zh2673-git/md2wechat-py) | 内容输出引擎 | 写作风格、微信排版、配图方案、公众号推送（已内化为自包含模块） |
 
-公众号相关功能已内化为 `scripts/` 下的三个自包含模块（`wechat_client.py` / `wechat_converter.py` / `wechat_publish.py`），无需安装 `wechat-pub` 或 `md2wechat-py`。
+V2新增管线参考了以下项目的设计思路（未直接移植代码，按本项目架构做了适配实现）：
+
+| 参考项目 | 参考内容 | 适配说明 |
+|---------|---------|---------|
+| [TeachAny](https://github.com/weponusa/teachany) | 互动课件模块化概念 | 用原生HTML/CSS/JS实现5个轻量交互模块，非React组件 |
+| [huashu-design](https://github.com/alchaincyf/huashu-design) | HTML→PPTX降级转换思路 | 用python-pptx简化实现，未移植Node.js管线和html2pptx.js |
 
 ---
 
