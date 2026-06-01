@@ -30,8 +30,54 @@ import time
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
+from scripts.elements.content_templates import (
+    parse_template_sections,
+    parse_section,
+    validate_slide,
+)
+
+
+def _build_narration(slide):
+    stype = slide.get("type", "")
+    if stype == "title":
+        return slide.get("title", "")
+    elif stype == "stat":
+        parts = [slide.get("value", ""), slide.get("label", "")]
+        if slide.get("sublabel"):
+            parts.append(slide["sublabel"])
+        return "，".join(p for p in parts if p)
+    elif stype == "bullet":
+        return "，".join(slide.get("items", []))
+    elif stype == "chart":
+        return "，".join(d.get("label", "") for d in slide.get("data", []))
+    elif stype == "quote":
+        return slide.get("text", "")
+    elif stype == "timeline":
+        return "，".join(e.get("title", "") for e in slide.get("events", []))
+    elif stype == "focus":
+        return slide.get("explanation", "")
+    elif stype == "steps":
+        return "，".join(s.get("desc", "") or s.get("title", "") for s in slide.get("steps", []))
+    elif stype == "qa":
+        q = slide.get("question", "")
+        a = slide.get("answer", "")
+        return f"{q}答案是，{a}"
+    elif stype == "compare":
+        left = slide.get("left", [])
+        right = slide.get("right", [])
+        return "，".join(left + right)
+    elif stype == "summary":
+        return "总结一下。" + "，".join(slide.get("items", []))
+    return ""
+
 
 def split_into_slides(markdown, title=""):
+    sections = parse_template_sections(markdown)
+    if not sections:
+        return []
+    has_type_hints = any(s.get("type_hint") for s in sections)
+    if has_type_hints:
+        return sections
     slides = []
     lines = markdown.split("\n")
     current_section = {"heading": "", "content": []}
@@ -66,13 +112,14 @@ def split_into_slides(markdown, title=""):
     return slides
 
 
-def classify_slide_type(section):
+def classify_slide_type(section, slide_index=0, total_sections=1):
     content = section["content"]
     heading = section.get("heading", "")
     has_bullets = any(c[0] == "bullet" for c in content)
     has_steps = any(c[0] == "step" for c in content)
     has_quotes = any(c[0] == "quote" for c in content)
     text_items = [c[1] for c in content if c[0] == "text"]
+    all_text = heading + " " + " ".join(c[1] for c in content)
 
     stat_pattern = re.compile(r'\d+[.%万亿]|\d+倍|\d+[个条项]')
     has_stat = any(stat_pattern.search(t) for t in text_items) and len(text_items) <= 3
@@ -85,18 +132,43 @@ def classify_slide_type(section):
             qa_match = m
             break
 
+    compare_keywords = ["对比", "vs", "VS", "差异", "优劣", "比较", "区别", "哪个", "更好", "替代", "竞品"]
+    has_compare = any(kw in all_text for kw in compare_keywords)
+
+    timeline_keywords = ["年", "世纪", "阶段", "时期", "历程", "演进", "发展史", "起源", "诞生"]
+    has_timeline = any(kw in all_text for kw in timeline_keywords) and has_bullets
+
+    focus_keywords = ["核心", "关键", "本质", "根本", "最重要", "关键在于", "核心是", "本质是"]
+    has_focus = any(kw in all_text for kw in focus_keywords) and len(text_items) <= 2 and not has_bullets
+
     if qa_match:
         return "qa"
     if has_stat and not has_bullets and not has_steps:
         return "stat"
     if has_steps and not has_bullets:
         return "steps"
+    if has_compare and has_bullets:
+        return "compare"
+    if has_timeline:
+        return "timeline"
+    if has_focus:
+        return "focus"
     if has_bullets:
         return "bullet"
     if has_quotes and len(content) <= 2:
         return "quote"
     if len(content) == 0 and heading:
         return "title"
+
+    if slide_index == 0 and total_sections > 3:
+        return "focus"
+    if slide_index == total_sections - 1 and total_sections > 3:
+        return "stat"
+    if slide_index % 3 == 2 and total_sections > 4 and text_items:
+        stat_in_text = any(stat_pattern.search(t) for t in text_items)
+        if stat_in_text:
+            return "stat"
+
     return "bullet"
 
 
@@ -231,8 +303,19 @@ def slides_to_json(sections, article_title=""):
         title_slide["timeline"] = generate_timeline(title_slide)
         slides.append(title_slide)
 
-    for section in sections:
-        slide_type = classify_slide_type(section)
+    for sec_idx, section in enumerate(sections):
+        template_slide = parse_section(section)
+        if template_slide:
+            slide = template_slide
+            slide["narration"] = _build_narration(slide)
+            slide["timeline"] = generate_timeline(slide)
+            ok, msg = validate_slide(slide)
+            if not ok:
+                print(f"  [WARN] Template validation failed for {slide.get('type')}: {msg}")
+            slides.append(slide)
+            continue
+
+        slide_type = classify_slide_type(section, sec_idx, len(sections))
         heading = section["heading"]
         content = section["content"]
 
@@ -251,8 +334,8 @@ def slides_to_json(sections, article_title=""):
             quote_text = " ".join(c[1] for c in content if c[0] == "quote")
             slide = {
                 "type": "quote",
-                "text": quote_text,
-                "source": heading,
+                "text": quote_text[:120],
+                "source": (heading or "")[:20],
                 "duration": 6,
                 "narration": quote_text,
             }
@@ -263,9 +346,9 @@ def slides_to_json(sections, article_title=""):
             steps = []
             for c in content:
                 if c[0] == "step":
-                    steps.append({"title": c[1][:20], "desc": c[1]})
+                    steps.append({"title": c[1][:15], "desc": c[1][:30]})
                 elif c[0] == "text" and len(steps) > 0:
-                    steps[-1]["desc"] += " " + c[1]
+                    steps[-1]["desc"] += " " + c[1][:30]
             if steps:
                 narration = "，".join(s["desc"] for s in steps)
                 slide = {
@@ -284,9 +367,9 @@ def slides_to_json(sections, article_title=""):
             value = num_match.group(1) if num_match else "100%"
             slide = {
                 "type": "stat",
-                "value": value,
-                "label": heading or stat_text[:30],
-                "sublabel": stat_text[:40] if len(stat_text) > 30 else "",
+                "value": value[:10],
+                "label": (heading or stat_text[:20])[:20],
+                "sublabel": stat_text[:30] if len(stat_text) > 20 else "",
                 "duration": 6,
                 "narration": stat_text,
             }
@@ -296,8 +379,8 @@ def slides_to_json(sections, article_title=""):
         elif slide_type == "qa":
             qa_text = " ".join(c[1] for c in content)
             qa_match = re.search(r'^(.{2,15})[？?](.{2,})$', qa_text)
-            question = qa_match.group(1) + "？" if qa_match else heading
-            answer = qa_match.group(2) if qa_match else qa_text
+            question = (qa_match.group(1) + "？" if qa_match else heading)[:40]
+            answer = (qa_match.group(2) if qa_match else qa_text)[:50]
             slide = {
                 "type": "qa",
                 "question": question,
@@ -308,21 +391,117 @@ def slides_to_json(sections, article_title=""):
             slide["timeline"] = generate_timeline(slide)
             slides.append(slide)
 
+        elif slide_type == "compare":
+            bullets = [c[1] for c in content if c[0] == "bullet"]
+            texts = [c[1] for c in content if c[0] == "text"]
+            mid = max(1, len(bullets) // 2)
+            left_items = bullets[:mid]
+            right_items = bullets[mid:] if len(bullets) > mid else texts[:3]
+            if not right_items:
+                right_items = ["—"]
+            if not left_items:
+                left_items = ["—"]
+            narration = "，".join(bullets + texts)
+            slide = {
+                "type": "compare",
+                "title": (heading or "对比")[:15],
+                "leftTitle": "A",
+                "rightTitle": "B",
+                "left": [l[:10] for l in left_items[:4]],
+                "right": [r[:10] for r in right_items[:4]],
+                "duration": max(8, (len(left_items) + len(right_items)) * 3),
+                "narration": narration,
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
+
+        elif slide_type == "timeline":
+            bullets = [c[1] for c in content if c[0] == "bullet"]
+            texts = [c[1] for c in content if c[0] == "text"]
+            events = []
+            for b in bullets[:6]:
+                year_match = re.search(r'(\d{2,4})\s*年?', b)
+                events.append({
+                    "year": (year_match.group(1) if year_match else "")[:6],
+                    "title": b[:15],
+                    "desc": b[:30],
+                })
+            if not events:
+                for i, t in enumerate(texts[:6]):
+                    events.append({
+                        "year": str(i + 1),
+                        "title": t[:15],
+                        "desc": t[:30],
+                    })
+            narration = "，".join(e["title"] for e in events)
+            slide = {
+                "type": "timeline",
+                "title": (heading or "时间线")[:15],
+                "events": events[:6],
+                "duration": max(8, len(events) * 3),
+                "narration": narration,
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
+
+        elif slide_type == "focus":
+            texts = [c[1] for c in content if c[0] == "text"]
+            keyword = heading if heading else (texts[0][:8] if texts else "关键词")
+            explanation = " ".join(texts) if texts else heading
+            slide = {
+                "type": "focus",
+                "keyword": keyword[:8],
+                "explanation": explanation[:60],
+                "callout": explanation[:20] if len(explanation) > 20 else "",
+                "duration": 6,
+                "narration": explanation,
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
+
+        elif slide_type == "chart":
+            bullets = [c[1] for c in content if c[0] == "bullet"]
+            texts = [c[1] for c in content if c[0] == "text"]
+            chart_data = []
+            for b in bullets[:5]:
+                num_match = re.search(r'(\d+)', b)
+                chart_data.append({
+                    "label": b[:6],
+                    "value": int(num_match.group(1)) if num_match else len(b),
+                })
+            if not chart_data:
+                for i, t in enumerate(texts[:5]):
+                    chart_data.append({
+                        "label": t[:6],
+                        "value": 10 + i * 5,
+                    })
+            narration = "，".join(d["label"] for d in chart_data)
+            slide = {
+                "type": "chart",
+                "title": (heading or "数据")[:15],
+                "chartType": "bar",
+                "data": chart_data[:6],
+                "duration": 8,
+                "narration": narration,
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
+
         elif slide_type == "bullet":
             items = []
             for c in content:
                 if c[0] == "bullet":
-                    items.append(c[1][:60])
+                    items.append(c[1][:20])
                 elif c[0] == "text" and items:
-                    items[-1] += c[1][:20]
+                    items[-1] += c[1][:10]
                 elif c[0] == "quote":
-                    items.append(c[1][:60])
+                    items.append(c[1][:20])
 
             if items:
                 narration = "，".join(items)
                 slide = {
                     "type": "bullet",
-                    "title": heading or "要点",
+                    "title": (heading or "要点")[:15],
                     "items": items[:5],
                     "duration": max(8, len(items) * 4),
                     "narration": narration,
@@ -339,6 +518,20 @@ def slides_to_json(sections, article_title=""):
                 summary_items.append(s["title"])
             elif s["type"] == "quote" and s.get("text"):
                 summary_items.append(s["text"][:30])
+            elif s["type"] == "compare" and s.get("title"):
+                summary_items.append(s["title"])
+            elif s["type"] == "steps" and s.get("title"):
+                summary_items.append(s["title"])
+            elif s["type"] == "timeline" and s.get("title"):
+                summary_items.append(s["title"])
+            elif s["type"] == "focus" and s.get("keyword"):
+                summary_items.append(s["keyword"])
+            elif s["type"] == "stat" and s.get("label"):
+                summary_items.append(s["label"])
+            elif s["type"] == "chart" and s.get("title"):
+                summary_items.append(s["title"])
+            elif s["type"] == "qa" and s.get("question"):
+                summary_items.append(s["question"][:30])
 
         if summary_items:
             summary_slide = {

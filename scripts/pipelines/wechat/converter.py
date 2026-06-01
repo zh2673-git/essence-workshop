@@ -28,24 +28,25 @@ THEMES = {
             '"PingFang SC","Noto Sans SC",sans-serif;'
             "font-size:16px;line-height:1.8;color:#3D3A36;"
         ),
-        "h1": "font-size:22px;font-weight:700;color:#1F1D1A;margin:36px 0 16px;",
+        "h1": "font-family:'Noto Serif SC',Georgia,serif;font-size:22px;font-weight:700;color:#1F1D1A;margin:36px 0 16px;line-height:1.4;",
         "h2": "font-size:19px;font-weight:600;color:#1F1D1A;margin:36px 0 16px;padding-bottom:8px;border-bottom:1px solid #E8E2DA;",
-        "h3": "font-size:17px;font-weight:600;color:#1F1D1A;margin:20px 0 12px;",
-        "p": "margin:0 0 16px;",
+        "h3": "font-size:17px;font-weight:600;color:#8B5E3C;margin:20px 0 12px;",
+        "h4": "font-size:16px;font-weight:600;color:#8B5E3C;margin:14px 0 8px;",
+        "p": "margin:0 0 16px;color:#3D3A36;line-height:1.8;",
         "blockquote": "border-left:3px solid #C96442;background:#FEFCF9;margin:28px 0;padding:16px 20px;border-radius:0 10px 10px 0;",
-        "ul": "margin:16px 0;padding-left:24px;",
-        "ol": "margin:16px 0;padding-left:24px;",
-        "li": "margin:8px 0;",
-        "strong": "font-weight:600;",
-        "em": "font-style:italic;",
+        "ul": "margin:16px 0;padding-left:24px;color:#3D3A36;",
+        "ol": "margin:16px 0;padding-left:24px;color:#3D3A36;",
+        "li": "margin:8px 0;line-height:1.8;",
+        "strong": "font-weight:600;color:#1F1D1A;",
+        "em": "font-style:italic;color:#8C8278;",
         "a": "color:#C96442;text-decoration:none;",
         "hr": "border:none;border-top:1px solid #E8E2DA;margin:36px 0;",
         "code": "background:#2D2A26;color:#E8E2DA;padding:2px 6px;border-radius:4px;font-size:0.9em;",
         "pre": "background:#2D2A26;color:#E8E2DA;padding:16px 20px;border-radius:10px;overflow-x:auto;margin:28px 0;",
         "img": "max-width:100%;height:auto;border-radius:6px;margin:12px 0;",
         "table": "width:100%;border-collapse:collapse;margin:20px 0;",
-        "th": "background:#F5E6DC;font-weight:600;padding:10px 14px;border:1px solid #E8E2DA;",
-        "td": "padding:10px 14px;border:1px solid #E8E2DA;",
+        "th": "background:#F5E6DC;font-weight:600;padding:10px 14px;border:1px solid #E8E2DA;text-align:left;",
+        "td": "padding:10px 14px;border:1px solid #E8E2DA;color:#3D3A36;",
     },
     "claude-clean": {
         "_root": (
@@ -333,6 +334,101 @@ def apply_inline_styles(html, theme="claude-warm", brand_spec_path=None):
     return html
 
 
+def _reorder_images_for_chapters(md_content):
+    lines = md_content.split('\n')
+    headings = []
+    images = []
+    image_line_indices = []
+
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if re.match(r'^#{1,3}\s+', stripped):
+            headings.append(i)
+        if re.match(r'^!\[.*?\]\(.*?\)', stripped):
+            images.append(i)
+            image_line_indices.append(i)
+
+    if not headings or not images:
+        return md_content
+
+    heading_images = {}
+    for img_idx in images:
+        best_heading = None
+        for h_idx in headings:
+            if h_idx < img_idx:
+                best_heading = h_idx
+            else:
+                break
+        if best_heading is not None:
+            heading_images.setdefault(best_heading, []).append(img_idx)
+
+    result_lines = list(lines)
+    insertions = {}
+    for h_idx, img_indices in heading_images.items():
+        img_blocks = []
+        for img_idx in sorted(img_indices):
+            img_blocks.append(result_lines[img_idx])
+        insertions[h_idx] = img_blocks
+
+    for img_idx in sorted(image_line_indices, reverse=True):
+        result_lines[img_idx] = None
+
+    final_lines = []
+    for i, line in enumerate(result_lines):
+        if line is not None:
+            final_lines.append(line)
+        if i in insertions:
+            for img_line in insertions[i]:
+                if img_line not in final_lines:
+                    final_lines.append(img_line)
+
+    return '\n'.join(final_lines)
+
+
+def _prioritize_gifs(md_content):
+    lines = md_content.split('\n')
+    total_lines = len(lines)
+    threshold = int(total_lines * 0.3)
+
+    gif_lines = []
+    gif_indices = []
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if re.match(r'^!\[.*?\]\(.*?\.gif\)', stripped, re.IGNORECASE):
+            gif_lines.append(line)
+            gif_indices.append(i)
+
+    if not gif_lines:
+        return md_content
+
+    first_heading = None
+    for i, line in enumerate(lines):
+        if re.match(r'^#{1,3}\s+', line.strip()):
+            first_heading = i
+            break
+
+    if first_heading is None:
+        insert_pos = min(5, threshold)
+    else:
+        insert_pos = first_heading + 2
+
+    for idx in sorted(gif_indices, reverse=True):
+        if idx > threshold:
+            lines[idx] = None
+
+    result = []
+    inserted = False
+    for i, line in enumerate(lines):
+        if line is not None:
+            result.append(line)
+        if not inserted and i >= insert_pos:
+            for gl in gif_lines:
+                result.append(gl)
+            inserted = True
+
+    return '\n'.join(result)
+
+
 def convert_markdown(file_path="", markdown="", theme="claude-warm",
                      title="", author="", digest="", brand_spec_path=None):
     if file_path:
@@ -345,19 +441,24 @@ def convert_markdown(file_path="", markdown="", theme="claude-warm",
     if effective_title:
         md_content = _strip_duplicate_title(md_content, effective_title)
 
+    md_content = _prioritize_gifs(md_content)
+    md_content = _reorder_images_for_chapters(md_content)
+
     md_parser = MarkdownIt("default", {"html": True})
     body_html = md_parser.render(md_content)
 
     styled_html = apply_inline_styles(body_html, theme, brand_spec_path)
 
     bg_color = "#FAFAFA"
+    theme_styles = THEMES.get(theme, THEMES["claude-warm"])
     if brand_spec_path:
         custom_theme = build_theme_from_brand_spec(brand_spec_path)
         if custom_theme:
-            root_style = custom_theme.get("_root", "")
-            bg_match = re.search(r'background:([^;]+)', root_style)
-            if bg_match:
-                bg_color = bg_match.group(1).strip()
+            theme_styles = custom_theme
+    root_style = theme_styles.get("_root", "")
+    bg_match = re.search(r'background:([^;]+)', root_style)
+    if bg_match:
+        bg_color = bg_match.group(1).strip()
 
     full_html = _compress_html(styled_html)
     full_html = (
