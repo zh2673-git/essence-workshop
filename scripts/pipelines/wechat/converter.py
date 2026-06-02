@@ -525,21 +525,36 @@ def _reorder_images_for_chapters(md_content):
     return '\n'.join(final_lines)
 
 
-def _prioritize_gifs(md_content):
+def _prioritize_gifs(md_content, min_text_gap=8):
     lines = md_content.split('\n')
     total_lines = len(lines)
     threshold = int(total_lines * 0.3)
 
     gif_lines = []
     gif_indices = []
+    png_indices = []
     for i, line in enumerate(lines):
         stripped = line.strip()
         if re.match(r'^!\[.*?\]\(.*?\.gif\)', stripped, re.IGNORECASE):
             gif_lines.append(line)
             gif_indices.append(i)
+        elif re.match(r'^!\[.*?\]\(.*?\)', stripped):
+            png_indices.append(i)
 
     if not gif_lines:
         return md_content
+
+    need_move = [idx for idx in gif_indices if idx > threshold]
+    if not need_move:
+        return md_content
+
+    def _count_text_lines_between(a, b):
+        count = 0
+        lo, hi = min(a, b), max(a, b)
+        for j in range(lo + 1, hi):
+            if j < len(lines) and lines[j].strip() and not re.match(r'^!\[.*?\]\(.*?\)', lines[j].strip()) and not re.match(r'^#{1,3}\s+', lines[j].strip()):
+                count += 1
+        return count
 
     first_heading = None
     for i, line in enumerate(lines):
@@ -547,21 +562,33 @@ def _prioritize_gifs(md_content):
             first_heading = i
             break
 
-    if first_heading is None:
-        insert_pos = min(5, threshold)
+    best_pos = None
+    if first_heading is not None:
+        search_start = first_heading + 2
     else:
-        insert_pos = first_heading + 2
+        search_start = min(5, threshold)
 
-    for idx in sorted(gif_indices, reverse=True):
-        if idx > threshold:
-            lines[idx] = None
+    for pos in range(search_start, threshold + 1):
+        if png_indices and min(abs(pos - pi) for pi in png_indices) < min_text_gap:
+            continue
+        nearby_text = sum(1 for j in range(max(0, pos - min_text_gap), min(len(lines), pos + min_text_gap))
+                          if lines[j].strip() and not re.match(r'^!\[.*?\]\(.*?\)', lines[j].strip()))
+        if nearby_text >= min_text_gap:
+            best_pos = pos
+            break
+
+    if best_pos is None:
+        best_pos = search_start
+
+    for idx in sorted(need_move, reverse=True):
+        lines[idx] = None
 
     result = []
     inserted = False
     for i, line in enumerate(lines):
         if line is not None:
             result.append(line)
-        if not inserted and i >= insert_pos:
+        if not inserted and i >= best_pos:
             for gl in gif_lines:
                 result.append(gl)
             inserted = True

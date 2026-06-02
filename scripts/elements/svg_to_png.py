@@ -46,7 +46,11 @@ def svg_to_png(svg_path, output_path, width=None, height=None, dpi=2, bg_color="
         height = height or int(svg_h * dpi)
 
     html = f"""<!DOCTYPE html>
-<html><body style="margin:0;padding:0;background:{bg_color};">
+<html><head><style>
+* {{ font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif !important; }}
+svg, svg text {{ font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif !important; }}
+</style></head>
+<body style="margin:0;padding:0;background:{bg_color};">
 <div id="svg-container" style="width:{width}px;height:{height}px;display:flex;align-items:center;justify-content:center;">
 {svg_content}
 </div>
@@ -54,7 +58,7 @@ def svg_to_png(svg_path, output_path, width=None, height=None, dpi=2, bg_color="
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": width + 40, "height": height + 40})
+        page = browser.new_page(viewport={"width": width + 40, "height": height + 40}, device_scale_factor=dpi)
         page.set_content(html)
         container = page.query_selector("#svg-container")
         container.screenshot(path=output_path)
