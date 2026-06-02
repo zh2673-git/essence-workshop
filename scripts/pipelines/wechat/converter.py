@@ -4,7 +4,7 @@
 
 功能：
 - Markdown → 微信兼容 HTML（纯内联样式，无 <style> 标签）
-- 4 套主题（essence / claude-warm / claude-clean / claude-dark）
+- 3 套主题（essence / claude-warm / claude-clean）
 - brand-spec.json 动态主题生成
 - Frontmatter 解析
 - 标题去重
@@ -37,12 +37,12 @@ THEMES = {
         "ul": "margin:16px 0;padding-left:24px;color:#3D3A36;",
         "ol": "margin:16px 0;padding-left:24px;color:#3D3A36;",
         "li": "margin:8px 0;line-height:1.8;",
-        "strong": "font-weight:600;color:#1F1D1A;",
+        "strong": "font-weight:700;color:#1F1D1A;background:linear-gradient(to top,rgba(212,118,58,0.18) 40%,transparent 40%);padding:0 2px;",
         "em": "font-style:italic;color:#8C8278;",
         "a": "color:#C96442;text-decoration:none;",
         "hr": "border:none;border-top:1px solid #E8E2DA;margin:36px 0;",
-        "code": "background:#2D2A26;color:#E8E2DA;padding:2px 6px;border-radius:4px;font-size:0.9em;",
-        "pre": "background:#2D2A26;color:#E8E2DA;padding:16px 20px;border-radius:10px;overflow-x:auto;margin:28px 0;",
+        "code": "background:#F5E6DC;color:#8B5E3C;padding:2px 6px;border-radius:4px;font-size:0.9em;",
+        "pre": "background:#F5E6DC;color:#3D3A36;padding:16px 20px;border-radius:10px;overflow-x:auto;margin:28px 0;",
         "img": "max-width:100%;height:auto;border-radius:6px;margin:12px 0;",
         "table": "width:100%;border-collapse:collapse;margin:20px 0;",
         "th": "background:#F5E6DC;font-weight:600;padding:10px 14px;border:1px solid #E8E2DA;text-align:left;",
@@ -65,44 +65,16 @@ THEMES = {
         "ul": "margin:14px 0;padding-left:24px;color:#37352F;",
         "ol": "margin:14px 0;padding-left:24px;color:#37352F;",
         "li": "margin:6px 0;line-height:1.8;",
-        "strong": "font-weight:600;color:#1A1A1A;",
+        "strong": "font-weight:700;color:#1A1A1A;background:linear-gradient(to top,rgba(120,140,200,0.12) 40%,transparent 40%);padding:0 2px;",
         "em": "font-style:italic;color:#9B9B9B;",
         "a": "color:#C96442;text-decoration:none;border-bottom:1px solid #FBF4EF;",
         "hr": "border:none;border-top:1px solid #ECECEC;margin:32px 0;",
-        "code": "background:#1F1F1F;color:#E0E0E0;padding:2px 6px;border-radius:4px;font-size:0.9em;",
-        "pre": "background:#1F1F1F;color:#E0E0E0;padding:16px 20px;border-radius:8px;overflow-x:auto;margin:24px 0;",
+        "code": "background:#F0F0F2;color:#5A5A6A;padding:2px 6px;border-radius:4px;font-size:0.9em;",
+        "pre": "background:#F0F0F2;color:#2A2A2E;padding:16px 20px;border-radius:8px;overflow-x:auto;margin:24px 0;",
         "img": "max-width:100%;height:auto;border-radius:4px;margin:10px 0;",
         "table": "width:100%;border-collapse:collapse;margin:18px 0;font-size:14px;",
         "th": "background:#FBF4EF;color:#1A1A1A;font-weight:600;padding:8px 12px;border:1px solid #ECECEC;text-align:left;",
         "td": "padding:8px 12px;border:1px solid #ECECEC;color:#37352F;",
-    },
-    "claude-dark": {
-        "_root": (
-            "max-width:680px;margin:0 auto;padding:24px 16px;"
-            "background:#1A1816;"
-            "font-family:-apple-system,BlinkMacSystemFont,"
-            '"PingFang SC","Noto Sans SC",sans-serif;'
-            "font-size:16px;line-height:1.8;letter-spacing:0.01em;color:#D4CFC8;"
-        ),
-        "h1": "font-size:22px;font-weight:700;color:#F0EBE3;margin:36px 0 16px;line-height:1.4;",
-        "h2": "font-size:19px;font-weight:600;color:#F0EBE3;margin:36px 0 16px;line-height:1.45;padding-bottom:8px;border-bottom:1px solid #3D3A36;",
-        "h3": "font-size:17px;font-weight:600;color:#F0EBE3;margin:20px 0 12px;",
-        "h4": "font-size:16px;font-weight:600;color:#F0EBE3;margin:16px 0 8px;",
-        "p": "margin:0 0 16px;color:#D4CFC8;line-height:1.8;",
-        "blockquote": "border-left:3px solid #D4896C;background:#242120;margin:28px 0;padding:16px 20px;border-radius:0 10px 10px 0;color:#F0EBE3;",
-        "ul": "margin:16px 0;padding-left:24px;color:#D4CFC8;",
-        "ol": "margin:16px 0;padding-left:24px;color:#D4CFC8;",
-        "li": "margin:8px 0;line-height:1.8;",
-        "strong": "font-weight:600;color:#F0EBE3;",
-        "em": "font-style:italic;color:#8C8278;",
-        "a": "color:#D4896C;text-decoration:none;border-bottom:1px solid #3D2E24;",
-        "hr": "border:none;border-top:1px solid #3D3A36;margin:36px 0;",
-        "code": "background:#0F0E0D;color:#D4CFC8;padding:2px 6px;border-radius:4px;font-size:0.9em;",
-        "pre": "background:#0F0E0D;color:#D4CFC8;padding:16px 20px;border-radius:10px;overflow-x:auto;margin:28px 0;",
-        "img": "max-width:100%;height:auto;border-radius:6px;margin:12px 0;",
-        "table": "width:100%;border-collapse:collapse;margin:20px 0;font-size:15px;",
-        "th": "background:#3D2E24;color:#F0EBE3;font-weight:600;padding:10px 14px;border:1px solid #3D3A36;text-align:left;",
-        "td": "padding:10px 14px;border:1px solid #3D3A36;color:#D4CFC8;",
     },
     "essence": {
         "_root": (
@@ -110,17 +82,17 @@ THEMES = {
             "background:#FAFAF8;"
             "font-family:-apple-system,BlinkMacSystemFont,"
             '"PingFang SC","Noto Sans SC",sans-serif;'
-            "font-size:15px;line-height:2;color:#2C2C2C;"
+            "font-size:15px;line-height:1.8;color:#2C2C2C;"
         ),
         "h1": "font-size:20px;font-weight:700;color:#1A1A1A;margin:32px 0 20px;line-height:1.5;letter-spacing:0.02em;",
         "h2": "font-size:17px;font-weight:600;color:#1A1A1A;margin:28px 0 16px;line-height:1.5;padding-bottom:6px;border-bottom:1px solid #E8E5E0;",
         "h3": "font-size:15px;font-weight:600;color:#444;margin:20px 0 10px;",
         "h4": "font-size:15px;font-weight:600;color:#555;margin:14px 0 8px;",
-        "p": "margin:0 0 14px;color:#2C2C2C;line-height:2;",
-        "blockquote": "border-left:3px solid #C96442;background:linear-gradient(135deg,#FFF8F3,#FEFCF9);margin:24px 0;padding:18px 22px;border-radius:0 8px 8px 0;color:#5A4A3A;font-size:14px;line-height:1.9;",
+        "p": "margin:0 0 14px;color:#2C2C2C;line-height:1.8;",
+        "blockquote": "border-left:3px solid #C96442;background:linear-gradient(135deg,#FFF8F3,#FEFCF9);margin:24px 0;padding:18px 22px;border-radius:0 8px 8px 0;color:#5A4A3A;font-size:14px;line-height:1.8;",
         "ul": "margin:12px 0;padding-left:22px;color:#2C2C2C;",
         "ol": "margin:12px 0;padding-left:22px;color:#2C2C2C;",
-        "li": "margin:6px 0;line-height:2;",
+        "li": "margin:6px 0;line-height:1.8;",
         "strong": "font-weight:700;color:#1A1A1A;background:linear-gradient(to top,rgba(201,100,66,0.15) 40%,transparent 40%);padding:0 2px;",
         "em": "font-style:italic;color:#8C7A6A;",
         "a": "color:#C96442;text-decoration:none;border-bottom:1px solid rgba(201,100,66,0.3);",
@@ -256,8 +228,7 @@ def _style_blockquote_paras(html, theme="essence"):
     bq_p_styles = {
         "claude-warm": "margin:0 0 8px;color:#3D3A36;line-height:1.8;",
         "claude-clean": "margin:0 0 8px;color:#1A1A1A;line-height:1.8;",
-        "claude-dark": "margin:0 0 8px;color:#F0EBE3;line-height:1.8;",
-        "essence": "margin:0 0 6px;color:#5A4A3A;line-height:1.9;",
+        "essence": "margin:0 0 6px;color:#5A4A3A;line-height:1.8;",
     }
     bq_p_style = bq_p_styles.get(theme, bq_p_styles["essence"])
 
@@ -331,22 +302,17 @@ def _inject_intro_decoration(html, theme="essence"):
         "essence": {
             "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:8px;background:linear-gradient(135deg,#FFF8F3 0%,#FEFCF9 100%);border-left:3px solid #C96442;position:relative;",
             "icon": "position:absolute;top:-8px;left:12px;font-size:28px;color:#C96442;font-family:Georgia,serif;line-height:1;",
-            "text": "margin:0;color:#5A4A3A;font-size:14px;line-height:1.9;letter-spacing:0.02em;",
+            "text": "margin:0;color:#5A4A3A;font-size:14px;line-height:1.8;letter-spacing:0.02em;",
         },
         "claude-warm": {
             "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:8px;background:linear-gradient(135deg,#FEFCF9 0%,#FAF7F2 100%);border-left:3px solid #C96442;position:relative;",
             "icon": "position:absolute;top:-8px;left:12px;font-size:28px;color:#C96442;font-family:Georgia,serif;line-height:1;",
-            "text": "margin:0;color:#3D3A36;font-size:14px;line-height:1.9;",
+            "text": "margin:0;color:#3D3A36;font-size:14px;line-height:1.8;",
         },
         "claude-clean": {
             "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:6px;background:#FEFEFE;border-left:3px solid #C96442;position:relative;",
             "icon": "position:absolute;top:-8px;left:12px;font-size:28px;color:#C96442;font-family:Georgia,serif;line-height:1;",
-            "text": "margin:0;color:#1A1A1A;font-size:14px;line-height:1.9;",
-        },
-        "claude-dark": {
-            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:8px;background:linear-gradient(135deg,#242120 0%,#1A1816 100%);border-left:3px solid #D4896C;position:relative;",
-            "icon": "position:absolute;top:-8px;left:12px;font-size:28px;color:#D4896C;font-family:Georgia,serif;line-height:1;",
-            "text": "margin:0;color:#D4CFC8;font-size:14px;line-height:1.9;",
+            "text": "margin:0;color:#1A1A1A;font-size:14px;line-height:1.8;",
         },
     }
 

@@ -21,6 +21,7 @@
 """
 
 import json
+import math
 import os
 import re
 
@@ -36,42 +37,47 @@ THEMES = {
     "dark": {
         "name": "dark",
         "label": "深空",
-        "bg": {"bg1": "#0F0F23", "bg2": "#1A1A2E", "bg3": "#16213E"},
+        "bg": {
+            "bg1": "#2B2D42", "bg2": "#3D3F5C", "bg3": "#1E2035",
+            "layout": "side-panel",
+            "panel_color": "#3A3C58",
+            "panel_x": 0.62,
+        },
         "palette": {
-            "accent": "#E94560",
-            "accentGlow": "rgba(233,69,96,0.15)",
-            "gold": "#F0C27F",
-            "goldDim": "rgba(240,194,127,0.3)",
-            "cyan": "#00D2FF",
-            "cyanDim": "rgba(0,210,255,0.15)",
+            "accent": "#EF6461",
+            "accentGlow": "rgba(239,100,97,0.18)",
+            "gold": "#E4B363",
+            "goldDim": "rgba(228,179,99,0.3)",
+            "cyan": "#58C4DC",
+            "cyanDim": "rgba(88,196,220,0.18)",
             "success": "#4ECDC4",
             "warn": "#FFE66D",
         },
         "text": {
-            "primary": "#F0F0F0",
-            "secondary": "#7A7A9E",
-            "dim": "rgba(240,240,240,0.6)",
-            "inverse": "#1A1A2E",
+            "primary": "#F2F0ED",
+            "secondary": "#A8A5BE",
+            "dim": "rgba(242,240,237,0.6)",
+            "inverse": "#2B2D42",
         },
         "card": {
-            "fill": "rgba(255,255,255,0.04)",
-            "border": "rgba(255,255,255,0.08)",
+            "fill": "rgba(255,255,255,0.06)",
+            "border": "rgba(255,255,255,0.1)",
             "radius": 32,
-            "shadow": "rgba(233,69,96,0.1)",
+            "shadow": "rgba(239,100,97,0.12)",
         },
         "decor": {
             "style": "circles",
-            "opacity": 0.03,
+            "opacity": 0.12,
             "elements": ["floating-circles", "grid", "accent-line"],
         },
         "atmosphere": {
             "glow": [
-                {"cx": 0.5, "cy": 0.35, "r": 0.5, "color": "accent", "alpha": 0.08},
-                {"cx": 0.8, "cy": 0.15, "r": 0.35, "color": "gold", "alpha": 0.05},
-                {"cx": 0.2, "cy": 0.85, "r": 0.3, "color": "cyan", "alpha": 0.04},
+                {"cx": 0.5, "cy": 0.35, "r": 0.55, "color": "accent", "alpha": 0.14},
+                {"cx": 0.82, "cy": 0.15, "r": 0.38, "color": "gold", "alpha": 0.10},
+                {"cx": 0.18, "cy": 0.85, "r": 0.32, "color": "cyan", "alpha": 0.08},
             ],
             "gradient_dir": "vertical",
-            "grain": 0.015,
+            "grain": 0.012,
         },
         "font": {
             "display": "'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif",
@@ -83,41 +89,49 @@ THEMES = {
     "warm": {
         "name": "warm",
         "label": "暖阳",
-        "bg": {"bg1": "#FDF6EC", "bg2": "#FAF0E1", "bg3": "#F5E6D0"},
+        "bg": {
+            "bg1": "#DCC8A8", "bg2": "#D0BC98", "bg3": "#C4B088",
+            "layout": "soft-glow",
+            "glow_color": "#F5EDE0",
+            "glow_cx": 0.78,
+            "glow_cy": 0.72,
+            "glow_r": 0.4,
+            "glow_alpha": 0.3,
+        },
         "palette": {
-            "accent": "#D4763A",
-            "accentGlow": "rgba(212,118,58,0.12)",
-            "gold": "#8B5E3C",
-            "goldDim": "rgba(139,94,60,0.25)",
-            "cyan": "#5B8C5A",
-            "cyanDim": "rgba(91,140,90,0.12)",
-            "success": "#5B8C5A",
-            "warn": "#D4763A",
+            "accent": "#B86030",
+            "accentGlow": "rgba(184,96,48,0.16)",
+            "gold": "#7A4820",
+            "goldDim": "rgba(122,72,32,0.28)",
+            "cyan": "#2E7A6A",
+            "cyanDim": "rgba(46,122,106,0.14)",
+            "success": "#2E7A6A",
+            "warn": "#B86030",
         },
         "text": {
-            "primary": "#3C2415",
-            "secondary": "#8B7355",
-            "dim": "rgba(60,36,21,0.6)",
-            "inverse": "#FAF0E1",
+            "primary": "#2A1608",
+            "secondary": "#5A3E22",
+            "dim": "rgba(42,22,8,0.6)",
+            "inverse": "#DCC8A8",
         },
         "card": {
-            "fill": "rgba(255,255,255,0.7)",
-            "border": "rgba(139,94,60,0.12)",
+            "fill": "rgba(255,255,255,0.5)",
+            "border": "rgba(184,96,48,0.15)",
             "radius": 24,
-            "shadow": "rgba(212,118,58,0.08)",
+            "shadow": "rgba(184,96,48,0.10)",
         },
         "decor": {
             "style": "dots",
-            "opacity": 0.06,
+            "opacity": 0.18,
             "elements": ["dot-grid", "warm-gradient", "accent-corner"],
         },
         "atmosphere": {
             "glow": [
-                {"cx": 0.3, "cy": 0.3, "r": 0.45, "color": "accent", "alpha": 0.06},
-                {"cx": 0.7, "cy": 0.7, "r": 0.35, "color": "gold", "alpha": 0.04},
+                {"cx": 0.3, "cy": 0.3, "r": 0.48, "color": "accent", "alpha": 0.10},
+                {"cx": 0.72, "cy": 0.72, "r": 0.38, "color": "cyan", "alpha": 0.08},
             ],
             "gradient_dir": "diagonal",
-            "grain": 0.008,
+            "grain": 0.006,
         },
         "font": {
             "display": "'Noto Serif SC',Georgia,'PingFang SC',serif",
@@ -129,36 +143,43 @@ THEMES = {
     "minimal": {
         "name": "minimal",
         "label": "极简",
-        "bg": {"bg1": "#FFFFFF", "bg2": "#FAFAFA", "bg3": "#F5F5F5"},
+        "bg": {
+            "bg1": "#E8E8EE", "bg2": "#DDDEE6", "bg3": "#D2D3DC",
+            "layout": "accent-edge",
+            "edge_color": "#2A2A40",
+            "edge_width": 3,
+        },
         "palette": {
-            "accent": "#333333",
-            "accentGlow": "rgba(51,51,51,0.08)",
-            "gold": "#666666",
-            "goldDim": "rgba(102,102,102,0.2)",
-            "cyan": "#888888",
-            "cyanDim": "rgba(136,136,136,0.1)",
+            "accent": "#2A2A40",
+            "accentGlow": "rgba(42,42,64,0.12)",
+            "gold": "#50506A",
+            "goldDim": "rgba(80,80,106,0.25)",
+            "cyan": "#4A6A8A",
+            "cyanDim": "rgba(74,106,138,0.15)",
             "success": "#2D8C3C",
             "warn": "#CC8800",
         },
         "text": {
-            "primary": "#111111",
-            "secondary": "#999999",
-            "dim": "rgba(17,17,17,0.6)",
-            "inverse": "#FFFFFF",
+            "primary": "#0E0E1E",
+            "secondary": "#3A3A52",
+            "dim": "rgba(14,14,30,0.6)",
+            "inverse": "#E8E8EE",
         },
         "card": {
-            "fill": "rgba(0,0,0,0.02)",
-            "border": "rgba(0,0,0,0.06)",
+            "fill": "rgba(255,255,255,0.4)",
+            "border": "rgba(42,42,64,0.08)",
             "radius": 16,
-            "shadow": "rgba(0,0,0,0.04)",
+            "shadow": "rgba(42,42,64,0.06)",
         },
         "decor": {
             "style": "lines",
-            "opacity": 0.04,
+            "opacity": 0.22,
             "elements": ["thin-lines", "single-accent", "whitespace"],
         },
         "atmosphere": {
-            "glow": [],
+            "glow": [
+                {"cx": 0.5, "cy": 0.5, "r": 0.5, "color": "accent", "alpha": 0.06},
+            ],
             "gradient_dir": "vertical",
             "grain": 0,
         },
@@ -172,41 +193,48 @@ THEMES = {
     "nature": {
         "name": "nature",
         "label": "自然",
-        "bg": {"bg1": "#0D1F0D", "bg2": "#142814", "bg3": "#1A331A"},
+        "bg": {
+            "bg1": "#3A5A40", "bg2": "#4A6B4F", "bg3": "#2D4A34",
+            "layout": "curved-horizon",
+            "sky_color": "#C8D8C0",
+            "sky_alpha": 0.2,
+            "horizon_y": 0.55,
+            "curve_depth": 0.06,
+        },
         "palette": {
-            "accent": "#C9A84C",
-            "accentGlow": "rgba(201,168,76,0.12)",
+            "accent": "#D4A843",
+            "accentGlow": "rgba(212,168,67,0.16)",
             "gold": "#8FAA6B",
-            "goldDim": "rgba(143,170,107,0.25)",
+            "goldDim": "rgba(143,170,107,0.3)",
             "cyan": "#6BA3A0",
-            "cyanDim": "rgba(107,163,160,0.12)",
+            "cyanDim": "rgba(107,163,160,0.16)",
             "success": "#8FAA6B",
-            "warn": "#C9A84C",
+            "warn": "#D4A843",
         },
         "text": {
-            "primary": "#E8E4D8",
-            "secondary": "#7A8B6A",
-            "dim": "rgba(232,228,216,0.6)",
-            "inverse": "#142814",
+            "primary": "#F0EAD6",
+            "secondary": "#A8BF8E",
+            "dim": "rgba(240,234,214,0.6)",
+            "inverse": "#3A5A40",
         },
         "card": {
-            "fill": "rgba(255,255,255,0.04)",
-            "border": "rgba(201,168,76,0.1)",
+            "fill": "rgba(255,255,255,0.06)",
+            "border": "rgba(212,168,67,0.12)",
             "radius": 28,
-            "shadow": "rgba(201,168,76,0.06)",
+            "shadow": "rgba(212,168,67,0.08)",
         },
         "decor": {
             "style": "organic",
-            "opacity": 0.04,
+            "opacity": 0.12,
             "elements": ["leaf-curves", "earth-tones", "golden-accent"],
         },
         "atmosphere": {
             "glow": [
-                {"cx": 0.5, "cy": 0.4, "r": 0.5, "color": "gold", "alpha": 0.06},
-                {"cx": 0.2, "cy": 0.8, "r": 0.3, "color": "accent", "alpha": 0.04},
+                {"cx": 0.5, "cy": 0.4, "r": 0.52, "color": "gold", "alpha": 0.12},
+                {"cx": 0.2, "cy": 0.8, "r": 0.32, "color": "accent", "alpha": 0.08},
             ],
             "gradient_dir": "vertical",
-            "grain": 0.01,
+            "grain": 0.008,
         },
         "font": {
             "display": "'Noto Serif SC',Georgia,'PingFang SC',serif",
@@ -218,40 +246,46 @@ THEMES = {
     "ink": {
         "name": "ink",
         "label": "水墨",
-        "bg": {"bg1": "#F5F0E8", "bg2": "#EDE6D8", "bg3": "#E0D5C3"},
+        "bg": {
+            "bg1": "#E8E2D6", "bg2": "#DED8CA", "bg3": "#D4CEC0",
+            "layout": "ink-wash",
+            "ink_color": "#2E2820",
+            "ink_x": 0.65,
+            "ink_opacity": 0.08,
+        },
         "palette": {
-            "accent": "#2C2C2C",
-            "accentGlow": "rgba(44,44,44,0.08)",
-            "gold": "#8B4513",
-            "goldDim": "rgba(139,69,19,0.2)",
-            "cyan": "#5B7A7A",
-            "cyanDim": "rgba(91,122,122,0.1)",
+            "accent": "#943828",
+            "accentGlow": "rgba(148,56,40,0.14)",
+            "gold": "#2E2820",
+            "goldDim": "rgba(46,40,32,0.30)",
+            "cyan": "#5A6A72",
+            "cyanDim": "rgba(90,106,114,0.14)",
             "success": "#4A7C59",
             "warn": "#B8860B",
         },
         "text": {
-            "primary": "#1A1A1A",
-            "secondary": "#6B6B6B",
-            "dim": "rgba(26,26,26,0.5)",
-            "inverse": "#F5F0E8",
+            "primary": "#1E1A14",
+            "secondary": "#4A4238",
+            "dim": "rgba(30,26,20,0.6)",
+            "inverse": "#E8E2D6",
         },
         "card": {
-            "fill": "rgba(255,255,255,0.5)",
-            "border": "rgba(44,44,44,0.08)",
+            "fill": "rgba(255,255,255,0.35)",
+            "border": "rgba(148,56,40,0.10)",
             "radius": 20,
-            "shadow": "rgba(44,44,44,0.04)",
+            "shadow": "rgba(46,40,32,0.06)",
         },
         "decor": {
             "style": "brush",
-            "opacity": 0.05,
+            "opacity": 0.18,
             "elements": ["ink-wash", "seal-stamp", "bamboo-line"],
         },
         "atmosphere": {
             "glow": [
-                {"cx": 0.5, "cy": 0.5, "r": 0.6, "color": "gold", "alpha": 0.03},
+                {"cx": 0.5, "cy": 0.5, "r": 0.6, "color": "accent", "alpha": 0.06},
             ],
             "gradient_dir": "vertical",
-            "grain": 0.012,
+            "grain": 0.008,
         },
         "font": {
             "display": "'Noto Serif SC','STSong','SimSun',serif",
@@ -263,41 +297,47 @@ THEMES = {
     "cyber": {
         "name": "cyber",
         "label": "赛博",
-        "bg": {"bg1": "#0A0A1A", "bg2": "#111128", "bg3": "#0D0D2B"},
+        "bg": {
+            "bg1": "#1A1A3E", "bg2": "#252550", "bg3": "#12122E",
+            "layout": "diagonal-beam",
+            "beam_color": "#FF4D8D",
+            "beam_opacity": 0.06,
+            "beam_angle": 25,
+        },
         "palette": {
-            "accent": "#FF0080",
-            "accentGlow": "rgba(255,0,128,0.15)",
-            "gold": "#00FFCC",
-            "goldDim": "rgba(0,255,204,0.25)",
-            "cyan": "#7B61FF",
-            "cyanDim": "rgba(123,97,255,0.15)",
-            "success": "#00FFCC",
+            "accent": "#FF4D8D",
+            "accentGlow": "rgba(255,77,141,0.18)",
+            "gold": "#00E5C8",
+            "goldDim": "rgba(0,229,200,0.3)",
+            "cyan": "#8B6FFF",
+            "cyanDim": "rgba(139,111,255,0.18)",
+            "success": "#00E5C8",
             "warn": "#FFD600",
         },
         "text": {
-            "primary": "#E0E0FF",
-            "secondary": "#6B6B9E",
-            "dim": "rgba(224,224,255,0.5)",
-            "inverse": "#0A0A1A",
+            "primary": "#E8E8FF",
+            "secondary": "#9090C0",
+            "dim": "rgba(232,232,255,0.55)",
+            "inverse": "#1A1A3E",
         },
         "card": {
-            "fill": "rgba(255,255,255,0.03)",
-            "border": "rgba(255,0,128,0.12)",
+            "fill": "rgba(255,255,255,0.05)",
+            "border": "rgba(255,77,141,0.15)",
             "radius": 24,
-            "shadow": "rgba(255,0,128,0.08)",
+            "shadow": "rgba(255,77,141,0.10)",
         },
         "decor": {
             "style": "neon",
-            "opacity": 0.04,
+            "opacity": 0.12,
             "elements": ["neon-lines", "scan-line", "glitch-bar"],
         },
         "atmosphere": {
             "glow": [
-                {"cx": 0.5, "cy": 0.3, "r": 0.45, "color": "accent", "alpha": 0.1},
-                {"cx": 0.2, "cy": 0.7, "r": 0.3, "color": "cyan", "alpha": 0.06},
+                {"cx": 0.5, "cy": 0.3, "r": 0.48, "color": "accent", "alpha": 0.16},
+                {"cx": 0.2, "cy": 0.72, "r": 0.32, "color": "cyan", "alpha": 0.10},
             ],
             "gradient_dir": "diagonal",
-            "grain": 0.02,
+            "grain": 0.015,
         },
         "font": {
             "display": "'Orbitron','PingFang SC','Microsoft YaHei',sans-serif",
@@ -305,6 +345,57 @@ THEMES = {
             "mono": "'JetBrains Mono','Fira Code',monospace",
         },
         "mood": ["赛博", "未来", "黑客", "元宇宙", "Web3", "区块链", "数字"],
+    },
+    "indigo": {
+        "name": "indigo",
+        "label": "靛蓝",
+        "bg": {
+            "bg1": "#0F0C2A", "bg2": "#1E1A4A", "bg3": "#302B62",
+            "layout": "side-panel",
+            "panel_color": "#252050",
+            "panel_x": 0.65,
+        },
+        "palette": {
+            "accent": "#C96442",
+            "accentGlow": "rgba(201,100,66,0.18)",
+            "gold": "#E4B363",
+            "goldDim": "rgba(228,179,99,0.3)",
+            "cyan": "#FF6B6B",
+            "cyanDim": "rgba(255,107,107,0.18)",
+            "success": "#4ECDC4",
+            "warn": "#FFE66D",
+        },
+        "text": {
+            "primary": "#E0E0E0",
+            "secondary": "#9B97B0",
+            "dim": "rgba(224,224,224,0.6)",
+            "inverse": "#0F0C2A",
+        },
+        "card": {
+            "fill": "rgba(255,255,255,0.06)",
+            "border": "rgba(255,255,255,0.1)",
+            "radius": 32,
+            "shadow": "rgba(201,100,66,0.12)",
+        },
+        "decor": {
+            "style": "circles",
+            "opacity": 0.12,
+            "elements": ["floating-circles", "accent-line"],
+        },
+        "atmosphere": {
+            "glow": [
+                {"cx": 0.5, "cy": 0.35, "r": 0.55, "color": "accent", "alpha": 0.10},
+                {"cx": 0.82, "cy": 0.72, "r": 0.35, "color": "cyan", "alpha": 0.08},
+            ],
+            "gradient_dir": "vertical",
+            "grain": 0.008,
+        },
+        "font": {
+            "display": "'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif",
+            "body": "'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif",
+            "mono": "'JetBrains Mono','Fira Code',monospace",
+        },
+        "mood": ["认知", "思维", "本质", "哲学", "深度", "沉思", "智慧", "洞察"],
     },
 }
 
@@ -379,73 +470,122 @@ def theme_to_brand_spec(theme_name):
 def _svg_decor_circles(t, w, h):
     parts = []
     p = t["palette"]
-    for i in range(5):
-        cx = w * (0.15 + i * 0.18)
-        cy = h * (0.3 + (i % 3) * 0.15)
-        r = 40 + i * 25
+    op = t["decor"]["opacity"]
+    for i in range(3):
+        cx = w * (0.72 + i * 0.10)
+        cy = h * (0.15 + (i % 2) * 0.55)
+        r = 28 + i * 18
         color = p["accent"] if i % 2 == 0 else p["cyan"]
-        parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{color}" stroke-width="1" opacity="{t["decor"]["opacity"]}"/>')
+        parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{color}" stroke-width="1" opacity="{op}"/>')
+    parts.append(f'<circle cx="{w*0.85}" cy="{h*0.2}" r="40" fill="none" stroke="{p["gold"]}" stroke-width="0.6" opacity="{op * 0.5}"/>')
     return "\n    ".join(parts)
 
 
 def _svg_decor_dots(t, w, h):
     parts = []
     p = t["palette"]
-    spacing = 40
-    for x in range(spacing, int(w), spacing):
-        for y in range(spacing, int(h), spacing):
-            if (x + y) % (spacing * 3) == 0:
-                parts.append(f'<circle cx="{x}" cy="{y}" r="1.5" fill="{p["accent"]}" opacity="{t["decor"]["opacity"]}"/>')
-    return "\n    ".join(parts[:30])
+    op = t["decor"]["opacity"]
+    for i in range(3):
+        cx = w * (0.70 + i * 0.12)
+        cy = h * (0.18 + (i % 2) * 0.50)
+        r = 22 + i * 14
+        parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{p["accent"]}" stroke-width="0.8" opacity="{op}"/>')
+    parts.append(
+        f'<path d="M{w*0.6},{h*0.75} Q{w*0.75},{h*0.68} {w*0.9},{h*0.72}" '
+        f'fill="none" stroke="{p["cyan"]}" stroke-width="0.8" opacity="{op * 0.4}"/>'
+    )
+    parts.append(f'<circle cx="{w*0.82}" cy="{h*0.18}" r="30" fill="none" stroke="{p["cyan"]}" stroke-width="0.5" opacity="{op * 0.35}"/>')
+    return "\n    ".join(parts)
 
 
 def _svg_decor_lines(t, w, h):
     parts = []
     p = t["palette"]
-    for i in range(3):
-        y = h * (0.25 + i * 0.25)
-        parts.append(f'<line x1="0" y1="{y}" x2="{w}" y2="{y}" stroke="{p["accent"]}" stroke-width="0.5" opacity="{t["decor"]["opacity"]}"/>')
+    op = t["decor"]["opacity"]
+    for i in range(2):
+        rx = w * (0.68 + i * 0.14)
+        ry = h * (0.08 + (i % 2) * 0.40)
+        rw = 40 + i * 16
+        rh = 28 + i * 12
+        parts.append(f'<rect x="{rx}" y="{ry}" width="{rw}" height="{rh}" fill="none" stroke="{p["accent"]}" stroke-width="0.8" opacity="{op * 0.7}" rx="2"/>')
+    for i in range(2):
+        cx = w * (0.72 + i * 0.15)
+        cy = h * (0.60 + (i % 2) * 0.20)
+        size = 10 + i * 4
+        parts.append(
+            f'<line x1="{cx-size}" y1="{cy}" x2="{cx+size}" y2="{cy}" stroke="{p["cyan"]}" stroke-width="0.8" opacity="{op * 0.6}"/>'
+        )
+        parts.append(
+            f'<line x1="{cx}" y1="{cy-size}" x2="{cx}" y2="{cy+size}" stroke="{p["cyan"]}" stroke-width="0.8" opacity="{op * 0.6}"/>'
+        )
+    dx = w * 0.82
+    dy = h * 0.72
+    ds = 14
+    pts = f"{dx},{dy-ds} {dx+ds},{dy} {dx},{dy+ds} {dx-ds},{dy}"
+    parts.append(f'<polygon points="{pts}" fill="none" stroke="{p["cyan"]}" stroke-width="0.7" opacity="{op * 0.45}"/>')
+    parts.append(
+        f'<line x1="{w*0.6}" y1="{h*0.52}" x2="{w*0.95}" y2="{h*0.52}" stroke="{p["accent"]}" stroke-width="0.5" opacity="{op * 0.4}"/>'
+    )
     return "\n    ".join(parts)
 
 
 def _svg_decor_organic(t, w, h):
     parts = []
     p = t["palette"]
-    for i in range(3):
-        cy = h * (0.2 + i * 0.3)
+    op = t["decor"]["opacity"]
+    for i in range(2):
+        cy = h * (0.20 + i * 0.50)
+        amp = 20 + i * 10
         parts.append(
-            f'<path d="M0,{cy} Q{w*0.25},{cy-30} {w*0.5},{cy} T{w},{cy}" '
-            f'fill="none" stroke="{p["gold"]}" stroke-width="1" opacity="{t["decor"]["opacity"]}"/>'
+            f'<path d="M{w*0.55},{cy} Q{w*0.7},{cy-amp} {w*0.85},{cy} T{w},{cy}" '
+            f'fill="none" stroke="{p["gold"]}" stroke-width="1" opacity="{op}"/>'
         )
+    parts.append(
+        f'<path d="M{w*0.6},{h*0.85} Q{w*0.75},{h*0.78} {w*0.9},{h*0.82}" '
+        f'fill="none" stroke="{p["accent"]}" stroke-width="1" opacity="{op * 0.5}"/>'
+    )
     return "\n    ".join(parts)
 
 
 def _svg_decor_brush(t, w, h):
     parts = []
     p = t["palette"]
+    op = t["decor"]["opacity"]
+    for i in range(2):
+        cx = w * (0.72 + i * 0.15)
+        cy = h * (0.18 + (i % 2) * 0.50)
+        r = 20 + i * 12
+        parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{p["gold"]}" opacity="{op * 0.12}"/>')
     parts.append(
-        f'<path d="M{w*0.1},{h*0.85} Q{w*0.3},{h*0.82} {w*0.5},{h*0.85} T{w*0.9},{h*0.83}" '
-        f'fill="none" stroke="{p["accent"]}" stroke-width="2" opacity="{t["decor"]["opacity"]*2}"/>'
+        f'<path d="M{w*0.6},{h*0.5} Q{w*0.75},{h*0.42} {w*0.9},{h*0.48}" '
+        f'fill="none" stroke="{p["gold"]}" stroke-width="1.2" opacity="{op * 0.6}" stroke-linecap="round"/>'
     )
-    stamp_x, stamp_y = w * 0.85, h * 0.12
-    parts.append(
-        f'<rect x="{stamp_x-15}" y="{stamp_y-15}" width="30" height="30" fill="{p["accent"]}" opacity="{t["decor"]["opacity"]*3}" rx="2"/>'
-    )
+    parts.append(f'<circle cx="{w*0.85}" cy="{h*0.15}" r="18" fill="none" stroke="{p["accent"]}" stroke-width="0.8" opacity="{op * 0.5}"/>')
+    parts.append(f'<rect x="{w*0.82}" y="{h*0.72}" width="14" height="14" fill="{p["accent"]}" opacity="{op * 0.3}" rx="2"/>')
     return "\n    ".join(parts)
 
 
 def _svg_decor_neon(t, w, h):
     parts = []
     p = t["palette"]
-    for i in range(4):
-        y = h * (0.15 + i * 0.22)
-        parts.append(
-            f'<line x1="0" y1="{y}" x2="{w}" y2="{y}" stroke="{p["accent"]}" stroke-width="0.5" opacity="{t["decor"]["opacity"]}"/>'
-        )
+    op = t["decor"]["opacity"]
+    hex_r = 24
+    for i in range(2):
+        cx = w * (0.72 + i * 0.16)
+        cy = h * (0.15 + (i % 2) * 0.55)
+        pts = []
+        for j in range(6):
+            angle = math.pi / 3 * j - math.pi / 6
+            px = cx + hex_r * (1 + i * 0.15) * math.cos(angle)
+            py = cy + hex_r * (1 + i * 0.15) * math.sin(angle)
+            pts.append(f"{px:.1f},{py:.1f}")
+        points_str = " ".join(pts)
+        parts.append(f'<polygon points="{points_str}" fill="none" stroke="{p["accent"]}" stroke-width="0.7" opacity="{op * 0.6}"/>')
     parts.append(
-        f'<rect x="{w*0.02}" y="{h*0.02}" width="{w*0.96}" height="{h*0.96}" fill="none" '
-        f'stroke="{p["accent"]}" stroke-width="1" opacity="{t["decor"]["opacity"]*0.5}" rx="4"/>'
+        f'<path d="M{w*0.65},{h*0.85} L{w*0.75},{h*0.85} L{w*0.80},{h*0.78} L{w*0.92},{h*0.78}" '
+        f'fill="none" stroke="{p["accent"]}" stroke-width="0.6" opacity="{op * 0.4}"/>'
     )
+    parts.append(f'<circle cx="{w*0.88}" cy="{h*0.2}" r="14" fill="none" stroke="{p["gold"]}" stroke-width="0.7" opacity="{op * 0.5}"/>')
     return "\n    ".join(parts)
 
 
@@ -548,15 +688,94 @@ def render_svg_atmosphere_body(theme_name, width, height):
     return "\n  ".join(parts)
 
 
+def _render_bg_layout(t, width, height):
+    bg = t["bg"]
+    layout = bg.get("layout", "solid")
+    parts = []
+    defs = []
+
+    if layout == "side-panel":
+        px = int(width * bg.get("panel_x", 0.62))
+        pc = bg.get("panel_color", "#3A3C58")
+        parts.append(f'<rect x="{px}" y="0" width="{width - px}" height="{height}" fill="{pc}" opacity="0.35"/>')
+
+    elif layout == "soft-glow":
+        gc = bg.get("glow_color", "#F5EDE0")
+        gcx = bg.get("glow_cx", 0.78)
+        gcy = bg.get("glow_cy", 0.72)
+        gr = bg.get("glow_r", 0.4)
+        ga = bg.get("glow_alpha", 0.3)
+        cx = int(width * gcx)
+        cy = int(height * gcy)
+        r = int(max(width, height) * gr)
+        grad_id = "bg-layout-glow"
+        defs.append(
+            f'<radialGradient id="{grad_id}" cx="{cx}" cy="{cy}" r="{r}" gradientUnits="userSpaceOnUse">\n'
+            f'  <stop offset="0%" stop-color="{gc}" stop-opacity="{ga}"/>\n'
+            f'  <stop offset="100%" stop-color="{gc}" stop-opacity="0"/>\n'
+            f'</radialGradient>'
+        )
+        parts.append(f'<rect width="{width}" height="{height}" fill="url(#{grad_id})"/>')
+
+    elif layout == "accent-edge":
+        ec = bg.get("edge_color", "#2A2A40")
+        ew = bg.get("edge_width", 3)
+        parts.append(f'<rect x="0" y="0" width="{ew}" height="{height}" fill="{ec}"/>')
+
+    elif layout == "curved-horizon":
+        sc = bg.get("sky_color", "#C8D8C0")
+        sa = bg.get("sky_alpha", 0.2)
+        hy = bg.get("horizon_y", 0.55)
+        cd = bg.get("curve_depth", 0.06)
+        curve_y = int(height * hy)
+        dip = int(height * cd)
+        grad_id = "bg-sky-grad"
+        defs.append(
+            f'<linearGradient id="{grad_id}" x1="0" y1="0" x2="0" y2="1">\n'
+            f'  <stop offset="0%" stop-color="{sc}" stop-opacity="{sa}"/>\n'
+            f'  <stop offset="70%" stop-color="{sc}" stop-opacity="{sa * 0.3}"/>\n'
+            f'  <stop offset="100%" stop-color="{sc}" stop-opacity="0"/>\n'
+            f'</linearGradient>'
+        )
+        parts.append(
+            f'<path d="M0,0 L{width},0 L{width},{curve_y} Q{width//2},{curve_y + dip} 0,{curve_y} Z" fill="url(#{grad_id})"/>'
+        )
+
+    elif layout == "ink-wash":
+        ic = bg.get("ink_color", "#2E2820")
+        ix = bg.get("ink_x", 0.65)
+        io = bg.get("ink_opacity", 0.08)
+        cx = int(width * ix)
+        r = int(min(width, height) * 0.45)
+        parts.append(f'<circle cx="{cx}" cy="{int(height * 0.4)}" r="{r}" fill="{ic}" opacity="{io}"/>')
+        parts.append(f'<circle cx="{cx + 50}" cy="{int(height * 0.55)}" r="{int(r * 0.5)}" fill="{ic}" opacity="{io * 0.6}"/>')
+
+    elif layout == "diagonal-beam":
+        bc = bg.get("beam_color", "#FF4D8D")
+        bo = bg.get("beam_opacity", 0.06)
+        bw = int(width * 0.22)
+        parts.append(
+            f'<polygon points="0,0 {bw},0 {width},{height} {width - bw},{height}" fill="{bc}" opacity="{bo}"/>'
+        )
+
+    body = "\n  ".join(parts)
+    defs_str = "\n  ".join(defs)
+    return defs_str, body
+
+
 def _svg_header(theme_name, width, height):
     atm_defs = render_svg_atmosphere_defs(theme_name, width, height)
     atm_body = render_svg_atmosphere_body(theme_name, width, height)
+    t = get_theme(theme_name)
+    bg_defs, bg_layout = _render_bg_layout(t, width, height)
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">\n'
         f'  <defs>\n'
         f'    {atm_defs}\n'
+        f'    {bg_defs}\n'
         f'  </defs>\n'
         f'  <rect width="{width}" height="{height}" fill="url(#bg-grad)"/>\n'
+        f'  {bg_layout}\n'
         f'  {atm_body}'
     )
 
@@ -574,18 +793,18 @@ def render_svg_cover(title, subtitle="", author="", theme_name="dark", width=900
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
 
-    accent_line_y_top = 18
-    accent_line_y_bot = height - 18
-    accent_line_w = width - 60
+    accent_x = 50
+    accent_w = 60
+    accent_y = height * 0.28
 
     svg = f'''{header}
-  <rect x="30" y="{accent_line_y_top}" width="{accent_line_w}" height="2" fill="{p["accent"]}" opacity="0.3"/>
-  <rect x="30" y="{accent_line_y_bot}" width="{accent_line_w}" height="2" fill="{p["accent"]}" opacity="0.3"/>
   {decor_svg}
-  <line x1="{width/2}" y1="{height*0.35}" x2="{width/2}" y2="{height*0.35+3}" stroke="{p["accent"]}" stroke-width="3" stroke-linecap="round"/>
-  <text x="{width/2}" y="{height*0.30}" text-anchor="middle" font-family="{f["display"]}" font-size="34" font-weight="700" fill="{tx["primary"]}">{display_title}</text>
-  <text x="{width/2}" y="{height*0.45}" text-anchor="middle" font-family="{f["body"]}" font-size="13" fill="{tx["secondary"]}">{display_author}</text>
-  <text x="{width/2}" y="{height*0.90}" text-anchor="middle" font-family="{f["body"]}" font-size="11" fill="{tx["secondary"]}" opacity="0.6">{display_sub}</text>
+  <rect x="{accent_x}" y="{accent_y}" width="{accent_w}" height="3" fill="{p["accent"]}" rx="1.5"/>
+  <text x="{accent_x}" y="{accent_y + 38}" font-family="{f["display"]}" font-size="32" font-weight="700" fill="{tx["primary"]}">{display_title}</text>
+  <text x="{accent_x}" y="{accent_y + 62}" font-family="{f["body"]}" font-size="15" fill="{tx["secondary"]}">{display_author}</text>
+  <line x1="{accent_x}" y1="{height - 50}" x2="{width - 50}" y2="{height - 50}" stroke="{p["accent"]}" stroke-width="0.6" opacity="0.25"/>
+  <text x="{accent_x}" y="{height - 28}" font-family="{f["body"]}" font-size="12" fill="{tx["secondary"]}" opacity="0.8">{display_sub}</text>
+  <circle cx="{width - 55}" cy="{height - 30}" r="3" fill="{p["accent"]}" opacity="0.5"/>
 </svg>'''
     return svg
 

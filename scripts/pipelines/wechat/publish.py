@@ -30,7 +30,6 @@ def generate_cover_svg(title, subtitle="", author="", theme="claude-warm", outpu
     theme_map = {
         "claude-warm": "warm",
         "claude-clean": "minimal",
-        "claude-dark": "dark",
     }
     theme_name = theme_map.get(theme, "warm")
 
@@ -106,57 +105,6 @@ def generate_cover_png(title, subtitle="", author="", theme="claude-warm", outpu
 
 def _get_cover_layout(theme):
     layouts = {
-        "space": {
-            "palette": {
-                "bg_main": (28, 25, 23),
-                "bg_mid": (37, 34, 32),
-                "bg_deep": (17, 15, 13),
-                "accent": (201, 100, 66),
-                "gold": (212, 167, 106),
-                "gold_light": (232, 201, 138),
-                "text_main": (245, 240, 235),
-                "text_sub": (168, 159, 149),
-            },
-            "elements": [
-                "gradient_bg",
-                "center_glow",
-                "topright_glow",
-                "bottomleft_glow",
-                "side_lines",
-                "orbit_rings",
-                "star_field",
-                "crescent_moon",
-                "corner_marks",
-                "bell_lines",
-                "title_divider",
-            ],
-            "element_config": {
-                "center_glow": {"cx_ratio": 0.5, "cy_ratio": 0.44, "r_ratio": 0.9, "max_alpha": 46},
-                "topright_glow": {"cx_ratio": 0.78, "cy_ratio": 0.15, "r_ratio": 0.8, "max_alpha": 26},
-                "bottomleft_glow": {"cx_ratio": 0.22, "cy_ratio": 0.85, "r_ratio": 0.6, "max_alpha": 30},
-                "orbit_rings": {"cx_ratio": 0.5, "cy_ratio": 0.46, "rx": 170, "ry": 45, "angles": [-8, 22]},
-                "star_field": {
-                    "stars": [
-                        (-120, 60, 1.8, "gold_light", 128),
-                        (95, 52, 1.2, "gold", 89),
-                        (140, 310, 1.5, "gold_light", 102),
-                        (-80, 300, 1.0, "gold", 77),
-                        (-155, 180, 0.8, "gold", 51),
-                        (60, 250, 1.3, "gold_light", 77),
-                        (-30, 340, 0.7, "gold", 64),
-                    ]
-                },
-                "crescent_moon": {"offset_x": -45, "offset_y": 52, "radius": 10, "crescent_offset": 4},
-                "corner_marks": {"length": 20, "padding": 12, "alpha": 115, "crop_l": 259, "crop_r": 641},
-                "bell_lines": {"y_top": 18, "y_bot_offset": 18, "x_start": 30, "x_end": 870, "max_alpha": 179},
-                "title_divider": {"half_width": 60, "y_ratio": 0.386, "width": 3, "alpha": 204},
-            },
-            "title_y": 105,
-            "author_y": 165,
-            "title_font_size": 34,
-            "author_font_size": 13,
-            "sub_font_size": 11,
-        },
         "warm_space": {
             "palette": {
                 "bg_main": (45, 35, 28),
@@ -241,9 +189,8 @@ def _get_cover_layout(theme):
     theme_map = {
         "claude-warm": "warm_space",
         "claude-clean": "minimal_space",
-        "claude-dark": "space",
     }
-    layout_name = theme_map.get(theme, "space")
+    layout_name = theme_map.get(theme, "warm_space")
     return layouts[layout_name]
 
 
@@ -304,36 +251,6 @@ def _cover_topright_glow(img, draw, w, h, palette, config):
     return img, draw
 
 
-def _cover_bottomleft_glow(img, draw, w, h, palette, config):
-    from PIL import Image, ImageDraw
-    cfg = config.get("bottomleft_glow", {})
-    cx = int(w * cfg.get("cx_ratio", 0.22))
-    cy = int(h * cfg.get("cy_ratio", 0.85))
-    glow_r = int(h * cfg.get("r_ratio", 0.6))
-    max_alpha = cfg.get("max_alpha", 30)
-    color = palette["accent"]
-
-    overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    od = ImageDraw.Draw(overlay)
-    for i in range(glow_r, 0, -2):
-        t = i / glow_r
-        alpha = int(max_alpha * (1 - t) ** 2)
-        od.ellipse([cx - i, cy - i, cx + i, cy + i], fill=color + (alpha,))
-    img = Image.alpha_composite(img, overlay)
-    draw = ImageDraw.Draw(img)
-    return img, draw
-
-
-def _cover_side_lines(img, draw, w, h, palette, config):
-    gold = palette["gold"]
-    accent = palette["accent"]
-    draw.line([(w - 60, 40), (w - 60, h - 40)], fill=gold + (46,), width=1)
-    draw.line([(w - 45, 60), (w - 45, h - 60)], fill=gold + (26,), width=1)
-    draw.line([(60, 40), (60, h - 40)], fill=accent + (38,), width=1)
-    draw.line([(45, 60), (45, h - 60)], fill=accent + (20,), width=1)
-    return img, draw
-
-
 def _cover_orbit_rings(img, draw, w, h, palette, config):
     import math
     from PIL import Image, ImageDraw
@@ -388,22 +305,6 @@ def _cover_star_field(img, draw, w, h, palette, config):
         sr = random.uniform(0.3, 0.7)
         alpha = random.randint(20, 50)
         draw.ellipse([sx - sr, sy - sr, sx + sr, sy + sr], fill=palette["gold"] + (alpha,))
-    return img, draw
-
-
-def _cover_crescent_moon(img, draw, w, h, palette, config):
-    cfg = config.get("crescent_moon", {})
-    crop_r = cfg.get("crop_r", 641)
-    moon_cx = crop_r + cfg.get("offset_x", -45)
-    moon_cy = cfg.get("offset_y", 52)
-    moon_r = cfg.get("radius", 10)
-    crescent_offset = cfg.get("crescent_offset", 4)
-    gold = palette["gold"]
-    bg_main = palette["bg_main"]
-
-    draw.ellipse([moon_cx - moon_r, moon_cy - moon_r, moon_cx + moon_r, moon_cy + moon_r], fill=gold + (38,))
-    draw.ellipse([moon_cx + crescent_offset - moon_r, moon_cy - crescent_offset - moon_r + 1,
-                  moon_cx + crescent_offset + moon_r, moon_cy - crescent_offset + moon_r + 1], fill=bg_main + (217,))
     return img, draw
 
 
@@ -468,11 +369,8 @@ _COVER_ELEMENTS = {
     "gradient_bg": _cover_gradient_bg,
     "center_glow": _cover_center_glow,
     "topright_glow": _cover_topright_glow,
-    "bottomleft_glow": _cover_bottomleft_glow,
-    "side_lines": _cover_side_lines,
     "orbit_rings": _cover_orbit_rings,
     "star_field": _cover_star_field,
-    "crescent_moon": _cover_crescent_moon,
     "corner_marks": _cover_corner_marks,
     "bell_lines": _cover_bell_lines,
     "title_divider": _cover_title_divider,
@@ -731,7 +629,7 @@ def publish(file_path, theme="claude-warm", cover="", title="", author="",
 def main():
     parser = argparse.ArgumentParser(description="本质工坊 · 公众号发布管线")
     parser.add_argument("file", help="Markdown 文件路径")
-    parser.add_argument("--theme", default="essence", help="主题 (essence/claude-warm/claude-clean/claude-dark)")
+    parser.add_argument("--theme", default="essence", help="主题 (essence/claude-warm/claude-clean)")
     parser.add_argument("--brand-spec", default="", help="品牌配置文件路径 (brand-spec.json)")
     parser.add_argument("--cover", default="", help="封面图片路径")
     parser.add_argument("--title", default="", help="覆盖标题")

@@ -122,7 +122,7 @@ Self-contained modules — no external `wechat-pub` dependency:
 # One-click publish: Markdown → HTML + Cover + Push draft
 python scripts/wechat_publish.py article.md --auto-cover --author "Your Name"
 
-# With specific theme (essence/claude-warm/claude-clean/claude-dark)
+# With specific theme (essence/claude-warm/claude-clean)
 python scripts/wechat_publish.py article.md --theme essence --auto-cover
 
 # Fetch articles from your account
