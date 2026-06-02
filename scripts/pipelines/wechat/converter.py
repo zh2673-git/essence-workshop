@@ -369,7 +369,6 @@ def _inject_intro_decoration(html, theme="essence"):
 
     intro_html = (
         f'<section style="{intro_cfg["wrapper"]}">'
-        f'<span style="{intro_cfg["icon"]}">\u201C</span>'
         f'<p style="{intro_cfg["text"]}">{bq_content}</p>'
         f'</section>'
     )
