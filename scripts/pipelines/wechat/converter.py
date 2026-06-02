@@ -1,23 +1,28 @@
 """
 本质工坊 · Markdown → 微信公众号 HTML 转换器
-基于 md2wechat-py 最新代码，自包含无 wechat-pub 依赖
+
+核心原则：微信草稿箱会剥离 <style> 标签和 class 属性，
+因此所有样式必须 100% 内联，绝不使用 CSS 类或 <style> 块。
 
 功能：
-- Markdown → 微信兼容 HTML（纯内联样式，无 <style> 标签）
+- Markdown → 微信兼容 HTML（纯内联样式）
 - 3 套主题（essence / claude-warm / claude-clean）
 - brand-spec.json 动态主题生成
 - Frontmatter 解析
 - 标题去重
-- HTML 压缩（控制在 20000 字符限制内）
+- HTML 压缩（控制在 20000 字符限制内，通过精简属性值而非提取 CSS 类）
 - 文章检查（inspect）
 """
 
 import json
 import os
 import re
+from html.parser import HTMLParser
 
 from markdown_it import MarkdownIt
 
+
+# ─── 主题定义 ───────────────────────────────────────────────
 
 THEMES = {
     "claude-warm": {
@@ -110,6 +115,8 @@ _FM_PATTERN = re.compile(r'^---\s*\n(.*?)\n---\s*\n', re.DOTALL)
 _H2_PATTERN = re.compile(r'^##\s+(.+)\s*$', re.MULTILINE)
 
 
+# ─── 品牌主题生成 ──────────────────────────────────────────
+
 def _hex_to_rgb(hex_color):
     hex_color = hex_color.lstrip('#')
     if len(hex_color) != 6:
@@ -174,6 +181,8 @@ def build_theme_from_brand_spec(brand_spec_path):
     return theme
 
 
+# ─── Frontmatter 解析 ──────────────────────────────────────
+
 def _extract_frontmatter(md):
     match = _FM_PATTERN.match(md)
     metadata = {"title": "", "author": "", "digest": ""}
@@ -204,289 +213,505 @@ def _strip_duplicate_title(md, title):
     return md
 
 
-def _inject_bare_tags(html, tag, style):
-    if tag in ("hr", "img", "br"):
-        pattern = re.compile(rf'<{tag}(\s[^>]*?)?/?>', re.IGNORECASE)
-    else:
-        pattern = re.compile(rf'<{tag}(\s[^>]*?)?>', re.IGNORECASE)
+# ─── HTML 树遍历式样式注入 ─────────────────────────────────
+# 核心改动：用 HTMLParser 逐节点遍历，精准注入内联 style，
+# 不依赖正则，不产生 <style> 标签或 class 属性。
 
-    def replacer(m):
-        full = m.group(0)
-        attrs = m.group(1) or ""
-        if re.search(r'\bstyle\s*=', attrs, re.IGNORECASE):
-            return full
-        attrs = attrs.rstrip()
-        if attrs:
-            return f'<{tag}{attrs} style="{style}">'
+class _StyleInjector(HTMLParser):
+    """遍历 HTML 节点，为每个目标标签注入内联 style 属性。
+
+    微信草稿箱会剥离 <style> 标签和 class 属性，
+    因此所有样式必须 100% 内联。
+    """
+
+    # 自闭合标签
+    VOID_TAGS = frozenset([
+        'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+        'link', 'meta', 'param', 'source', 'track', 'wbr',
+    ])
+
+    def __init__(self, styles, blockquote_p_style, pre_code_style, intro_config):
+        super().__init__(convert_charrefs=False)
+        self.styles = styles              # tag -> inline style string
+        self.bq_p_style = blockquote_p_style
+        self.pre_code_style = pre_code_style
+        self.intro_config = intro_config
+
+        self.output = []
+        self._tag_stack = []              # 追踪嵌套的标签
+        self._in_blockquote = 0           # blockquote 嵌套深度
+        self._in_pre = False              # 是否在 <pre> 内
+        self._first_bq_handled = False    # 引言装饰是否已处理
+        self._bq_buffer = []              # 缓存第一个 blockquote 用于引言装饰
+        self._buffering_bq = False        # 是否正在缓存 blockquote
+
+    def _current_tag(self):
+        return self._tag_stack[-1] if self._tag_stack else None
+
+    def _get_style(self, tag):
+        """获取标签对应的内联样式，考虑上下文（blockquote 内的 p、pre 内的 code）。"""
+        if tag == 'p' and self._in_blockquote > 0:
+            return self.bq_p_style
+        if tag == 'code' and self._in_pre:
+            return self.pre_code_style
+        return self.styles.get(tag)
+
+    def _build_tag(self, tag, attrs, self_closing=False):
+        """重建标签 HTML，注入 style 属性。"""
+        style = self._get_style(tag)
+
+        # 过滤已有属性
+        filtered = []
+        has_style = False
+        for k, v in attrs:
+            if k == 'style':
+                has_style = True
+                if style:
+                    # 已有 style 则追加，不覆盖
+                    filtered.append(('style', v.rstrip(';') + ';' + style))
+                else:
+                    filtered.append(('style', v))
+            elif k == 'class':
+                # 微信不支持 class，直接丢弃
+                pass
+            else:
+                filtered.append((k, v))
+
+        if not has_style and style:
+            filtered.append(('style', style))
+
+        # 构建属性字符串
+        attr_str = ''
+        for k, v in filtered:
+            if v is None:
+                attr_str += f' {k}'
+            else:
+                attr_str += f' {k}="{v}"'
+
+        if tag in self.VOID_TAGS:
+            return f'<{tag}{attr_str} />'
+        elif self_closing:
+            return f'<{tag}{attr_str}></{tag}>'
         else:
-            return f'<{tag} style="{style}">'
+            return f'<{tag}{attr_str}>'
 
-    return pattern.sub(replacer, html)
+    def handle_starttag(self, tag, attrs):
+        tag_lower = tag.lower()
+
+        # 追踪 blockquote 嵌套
+        if tag_lower == 'blockquote':
+            self._in_blockquote += 1
+            # 检查是否需要引言装饰（第一个 blockquote，且在文章前 25%）
+            if (self._in_blockquote == 1
+                    and not self._first_bq_handled
+                    and self.intro_config
+                    and not self._buffering_bq):
+                self._buffering_bq = True
+                self._bq_buffer = []
+                # 不直接输出，开始缓存
+                self._bq_buffer.append(self._build_tag(tag_lower, attrs))
+                self._tag_stack.append(tag_lower)
+                return
+
+        # 追踪 pre
+        if tag_lower == 'pre':
+            self._in_pre = True
+
+        self._tag_stack.append(tag_lower)
+        rendered = self._build_tag(tag_lower, attrs)
+
+        if self._buffering_bq:
+            self._bq_buffer.append(rendered)
+        else:
+            self.output.append(rendered)
+
+    def handle_endtag(self, tag):
+        tag_lower = tag.lower()
+
+        if tag_lower == 'blockquote':
+            if self._buffering_bq and self._in_blockquote == 1:
+                # 结束引言缓存，生成装饰后的引言
+                self._bq_buffer.append(f'</{tag_lower}>')
+                bq_inner = ''.join(self._bq_buffer)
+                # 提取 blockquote 内部内容（去掉开闭标签）
+                inner_start = bq_inner.find('>')
+                inner_end = bq_inner.rfind('</')
+                if inner_start != -1 and inner_end != -1:
+                    inner_content = bq_inner[inner_start + 1:inner_end]
+                else:
+                    inner_content = bq_inner
+
+                # 生成引言装饰 HTML
+                cfg = self.intro_config
+                intro_html = (
+                    f'<section style="{cfg["wrapper"]}">'
+                    f'<p style="{cfg["text"]}">{inner_content}</p>'
+                    f'</section>'
+                )
+                self.output.append(intro_html)
+                self._buffering_bq = False
+                self._first_bq_handled = True
+                self._bq_buffer = []
+                self._in_blockquote -= 1
+                if self._tag_stack and self._tag_stack[-1] == tag_lower:
+                    self._tag_stack.pop()
+                return
+
+            self._in_blockquote = max(0, self._in_blockquote - 1)
+
+        if tag_lower == 'pre':
+            self._in_pre = False
+
+        if self._tag_stack and self._tag_stack[-1] == tag_lower:
+            self._tag_stack.pop()
+
+        closing = f'</{tag_lower}>'
+        if self._buffering_bq:
+            self._bq_buffer.append(closing)
+        else:
+            self.output.append(closing)
+
+    def handle_startendtag(self, tag, attrs):
+        tag_lower = tag.lower()
+        rendered = self._build_tag(tag_lower, attrs, self_closing=True)
+        if self._buffering_bq:
+            self._bq_buffer.append(rendered)
+        else:
+            self.output.append(rendered)
+
+    def handle_data(self, data):
+        if self._buffering_bq:
+            self._bq_buffer.append(data)
+        else:
+            self.output.append(data)
+
+    def handle_entityref(self, name):
+        text = f'&{name};'
+        if self._buffering_bq:
+            self._bq_buffer.append(text)
+        else:
+            self.output.append(text)
+
+    def handle_charref(self, name):
+        text = f'&#{name};'
+        if self._buffering_bq:
+            self._bq_buffer.append(text)
+        else:
+            self.output.append(text)
+
+    def handle_comment(self, data):
+        pass  # 丢弃注释
+
+    def get_result(self):
+        return ''.join(self.output)
 
 
-def _style_blockquote_paras(html, theme="essence"):
-    bq_p_styles = {
+def _get_blockquote_p_style(theme):
+    styles = {
         "claude-warm": "margin:0 0 8px;color:#3D3A36;line-height:1.8;",
         "claude-clean": "margin:0 0 8px;color:#1A1A1A;line-height:1.8;",
         "essence": "margin:0 0 6px;color:#5A4A3A;line-height:1.8;",
     }
-    bq_p_style = bq_p_styles.get(theme, bq_p_styles["essence"])
-
-    result = []
-    i = 0
-    while i < len(html):
-        bq_start = html.find("<blockquote", i)
-        if bq_start == -1:
-            result.append(html[i:])
-            break
-
-        result.append(html[i:bq_start])
-
-        depth = 1
-        j = html.find(">", bq_start) + 1
-        while depth > 0 and j < len(html):
-            next_open = html.find("<blockquote", j)
-            next_close = html.find("</blockquote>", j)
-            if next_close == -1:
-                break
-            if next_open != -1 and next_open < next_close:
-                depth += 1
-                j = next_open + 12
-            else:
-                depth -= 1
-                if depth == 0:
-                    inner = html[bq_start:next_close + 13]
-                    inner = _inject_bare_tags(inner, "p", bq_p_style)
-                    result.append(inner)
-                    i = next_close + 13
-                    break
-                j = next_close + 13
-
-        if depth > 0:
-            result.append(html[bq_start:])
-            break
-
-    return "".join(result)
+    return styles.get(theme, styles["essence"])
 
 
-def _style_pre_code(html, pre_code_style="background:none;padding:0;color:inherit;font-size:inherit;"):
-    result = []
-    i = 0
-    while i < len(html):
-        pre_start = html.find("<pre", i)
-        if pre_start == -1:
-            result.append(html[i:])
-            break
-
-        result.append(html[i:pre_start])
-
-        pre_open_end = html.find(">", pre_start) + 1
-        pre_close = html.find("</pre>", pre_open_end)
-        if pre_close == -1:
-            result.append(html[pre_start:])
-            break
-
-        inner = html[pre_open_end:pre_close]
-        inner = _inject_bare_tags(inner, "code", pre_code_style)
-
-        result.append(html[pre_start:pre_open_end])
-        result.append(inner)
-        result.append(html[pre_close:pre_close + 6])
-        i = pre_close + 6
-
-    return "".join(result)
-
-
-def _inject_intro_decoration(html, theme="essence"):
-    intro_themes = {
+def _get_intro_config(theme):
+    """返回引言装饰配置，如果不需要引言装饰则返回 None。"""
+    configs = {
         "essence": {
-            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:8px;background:linear-gradient(135deg,#FFF8F3 0%,#FEFCF9 100%);border-left:3px solid #C96442;position:relative;",
-            "icon": "position:absolute;top:-8px;left:12px;font-size:28px;color:#C96442;font-family:Georgia,serif;line-height:1;",
+            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:8px;background:linear-gradient(135deg,#FFF8F3 0%,#FEFCF9 100%);border-left:3px solid #C96442;",
             "text": "margin:0;color:#5A4A3A;font-size:14px;line-height:1.8;letter-spacing:0.02em;",
         },
         "claude-warm": {
-            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:8px;background:linear-gradient(135deg,#FEFCF9 0%,#FAF7F2 100%);border-left:3px solid #C96442;position:relative;",
-            "icon": "position:absolute;top:-8px;left:12px;font-size:28px;color:#C96442;font-family:Georgia,serif;line-height:1;",
+            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:8px;background:linear-gradient(135deg,#FEFCF9 0%,#FAF7F2 100%);border-left:3px solid #C96442;",
             "text": "margin:0;color:#3D3A36;font-size:14px;line-height:1.8;",
         },
         "claude-clean": {
-            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:6px;background:#FEFEFE;border-left:3px solid #C96442;position:relative;",
-            "icon": "position:absolute;top:-8px;left:12px;font-size:28px;color:#C96442;font-family:Georgia,serif;line-height:1;",
+            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:6px;background:#FEFEFE;border-left:3px solid #C96442;",
             "text": "margin:0;color:#1A1A1A;font-size:14px;line-height:1.8;",
         },
     }
+    return configs.get(theme, configs["essence"])
 
-    intro_cfg = intro_themes.get(theme, intro_themes["essence"])
 
-    first_bq = re.search(r'<blockquote\s+style="[^"]*">([\s\S]*?)</blockquote>', html)
-    if not first_bq:
-        return html
+def apply_inline_styles(html, theme="essence", brand_spec_path=None):
+    """将主题样式注入 HTML，100% 内联，不使用 <style> 或 class。"""
+    if brand_spec_path:
+        custom_theme = build_theme_from_brand_spec(brand_spec_path)
+        styles = custom_theme if custom_theme else THEMES.get(theme, THEMES["essence"])
+    else:
+        styles = THEMES.get(theme, THEMES["essence"])
 
-    bq_content = first_bq.group(1)
-    bq_full = first_bq.group(0)
+    # 清理已有的 <style> 和 class（来自 markdown_it 或其他来源）
+    html = re.sub(r"<style[^>]*>[\s\S]*?</style>", "", html, flags=re.IGNORECASE)
 
-    text_only = re.sub(r'<[^>]+>', '', bq_content).strip()
-    if len(text_only) > 120:
-        return html
+    # 构建不含 _root 的样式映射
+    tag_styles = {k: v for k, v in styles.items() if not k.startswith("_")}
 
-    is_first_significant = html.find(bq_full) < len(html) * 0.25
-    if not is_first_significant:
-        return html
+    bq_p_style = _get_blockquote_p_style(theme)
+    pre_code_style = "background:none;padding:0;color:inherit;font-size:inherit;"
+    intro_config = _get_intro_config(theme)
 
-    intro_html = (
-        f'<section style="{intro_cfg["wrapper"]}">'
-        f'<p style="{intro_cfg["text"]}">{bq_content}</p>'
-        f'</section>'
-    )
+    injector = _StyleInjector(tag_styles, bq_p_style, pre_code_style, intro_config)
+    injector.feed(html)
+    return injector.get_result()
 
-    html = html.replace(bq_full, intro_html, 1)
-    return html
 
+# ─── HTML 压缩 ─────────────────────────────────────────────
+# 核心原则：绝不使用 <style> 标签或 class。
+# 压缩方式：移除注释、精简空白、移除继承/冗余属性值。
+
+# 从外层 section 继承的属性，子元素无需重复声明
+_INHERITED_PROPS = [
+    'color:#2C2C2C', 'color:#3D3A36', 'color:#37352F', 'color:#1A1A1A',
+    'line-height:1.8',
+    'font-family:-apple-system,BlinkMacSystemFont,',
+]
+_INHERITED_PROPS_CLEAN = [
+    'color:#37352F', 'color:#2C2C2C', 'color:#3D3A36', 'color:#1A1A1A',
+    'line-height:1.8',
+]
 
 def _compress_html(html, char_limit=20000):
+    """压缩 HTML，确保不超过字符限制，绝不使用 <style> 或 class。
+
+    注意：publish.py 会在上传图片后将本地路径替换为 CDN URL，
+    本地路径约 25 字符，CDN URL 约 150 字符，每张图多约 125 字符。
+    7 张图共多约 875 字符，需要预留空间。
+    """
+    # 预留 CDN URL 替换空间
+    img_count = len(re.findall(r'<img[^>]+src="[^h][^t]', html))
+    cdn_overhead = img_count * 130  # 每张图约多 130 字符
+    effective_limit = char_limit - cdn_overhead
+
+    # 移除 HTML 注释
     html = re.sub(r'<!--[\s\S]*?-->', '', html)
 
+    # 精简 style 属性值中的多余空白
     def _compact_style(m):
         val = re.sub(r'\s+', ' ', m.group(1)).strip()
         return f'style="{val}"'
     html = re.sub(r'style="([\s\S]*?)"', _compact_style, html)
+
+    # 精简标签间空白
     html = re.sub(r'[ \t]+', ' ', html)
     html = re.sub(r'\n\s*\n', '\n', html)
     html = re.sub(r'>\s+<', '><', html)
     html = html.strip()
 
-    if len(html) <= char_limit:
+    if len(html) <= effective_limit:
         return html
 
-    html = _deduplicate_styles(html)
+    # 第一轮：移除继承属性
+    html = _remove_inherited_styles(html)
 
-    if len(html) <= char_limit:
+    if len(html) <= effective_limit:
         return html
 
-    html = _strip_redundant_styles(html)
+    # 第二轮：移除零值属性
+    html = _shorten_styles(html)
+
+    if len(html) <= effective_limit:
+        return html
+
+    # 第三轮：移除更多可省略属性
+    html = _aggressive_shorten(html)
 
     return html
 
 
-def _deduplicate_styles(html):
-    style_map = {}
-    counter = [0]
+def _remove_inherited_styles(html):
+    """移除子元素中与外层容器重复的继承属性（如 color、line-height）。"""
+    def _clean_style(m):
+        prefix = m.group(1) or ''
+        style_val = m.group(2)
+        suffix = m.group(3) or ''
 
-    def _short_class():
-        n = counter[0]
-        counter[0] += 1
-        chars = "abcdefghijklmnopqrstuvwxyz"
-        if n < 26:
-            return f"c{chars[n]}"
-        return f"c{chars[n // 26 - 1]}{chars[n % 26]}"
+        # 对于 section/article 保留所有样式
+        if prefix and re.search(r'<(section|article)\s*$', prefix, re.IGNORECASE):
+            return m.group(0)
 
-    def _replace_style(m):
-        style_val = m.group(1)
-        if style_val not in style_map:
-            style_map[style_val] = _short_class()
-        cls = style_map[style_val]
-        return f'class="{cls}"'
+        # 移除继承属性
+        for prop in _INHERITED_PROPS_CLEAN:
+            style_val = style_val.replace(prop + ';', '')
+            style_val = style_val.replace(prop, '')
 
-    new_html = re.sub(r'style="([^"]*)"', _replace_style, html)
+        style_val = re.sub(r';\s*;', ';', style_val)
+        style_val = style_val.strip('; ')
+        if not style_val:
+            return prefix.rstrip() + suffix
+        return f'{prefix}style="{style_val}"{suffix}'
 
-    if not style_map:
-        return html
-
-    css_lines = []
-    for style_val, cls in style_map.items():
-        css_lines.append(f".{cls}{{{style_val}}}")
-    css_block = "<style>" + "".join(css_lines) + "</style>"
-
-    body_start = new_html.find("<article>")
-    if body_start != -1:
-        insert_pos = body_start + len("<article>")
-        new_html = new_html[:insert_pos] + css_block + new_html[insert_pos:]
-    else:
-        new_html = css_block + new_html
-
-    return new_html
-
-
-def _strip_redundant_styles(html):
-    html = re.sub(r'style="[^"]*margin:0[^"]*"', '', html)
-    html = re.sub(r'style="[^"]*padding:0[^"]*"', '', html)
-    html = re.sub(r'style="[^"]*border:none[^"]*"', '', html)
+    html = re.sub(r'(<[^>]*?)style="([^"]*)"([^>]*?>)', _clean_style, html)
     html = re.sub(r'\s+style=""', '', html)
     return html
 
 
-def apply_inline_styles(html, theme="essence", brand_spec_path=None):
-    if brand_spec_path:
-        custom_theme = build_theme_from_brand_spec(brand_spec_path)
-        if custom_theme:
-            styles = custom_theme
-        else:
-            styles = THEMES.get(theme, THEMES["essence"])
-    else:
-        styles = THEMES.get(theme, THEMES["essence"])
+def _shorten_styles(html):
+    """精简 style 属性值：移除零值属性。"""
+    def _clean_style(m):
+        prefix = m.group(1) or ''
+        style_val = m.group(2)
+        suffix = m.group(3) or ''
 
-    html = re.sub(r"<style[^>]*>[\s\S]*?</style>", "", html, flags=re.IGNORECASE)
-    html = re.sub(r'\s+class="[^"]*"', "", html)
+        if prefix and re.search(r'<(section|article)\s*$', prefix, re.IGNORECASE):
+            return m.group(0)
 
-    for tag, style in styles.items():
-        if tag.startswith("_"):
-            continue
-        html = _inject_bare_tags(html, tag, style)
+        style_val = re.sub(r'\bmargin:0;', '', style_val)
+        style_val = re.sub(r'\bpadding:0;', '', style_val)
+        style_val = re.sub(r'\bborder:none;', '', style_val)
+        style_val = re.sub(r';\s*;', ';', style_val)
+        style_val = style_val.strip('; ')
+        if not style_val:
+            return prefix.rstrip() + suffix
+        return f'{prefix}style="{style_val}"{suffix}'
 
-    html = _style_blockquote_paras(html, theme)
-    html = _style_pre_code(html)
-    html = _inject_intro_decoration(html, theme)
-
+    html = re.sub(r'(<[^>]*?)style="([^"]*)"([^>]*?>)', _clean_style, html)
+    html = re.sub(r'\s+style=""', '', html)
     return html
 
 
-def _reorder_images_for_chapters(md_content):
+def _aggressive_shorten(html):
+    """更激进的压缩：移除可省略的属性、缩短数值。"""
+    def _clean_style(m):
+        prefix = m.group(1) or ''
+        style_val = m.group(2)
+        suffix = m.group(3) or ''
+
+        if prefix and re.search(r'<(section|article)\s*$', prefix, re.IGNORECASE):
+            return m.group(0)
+
+        # li 的 line-height 可省略（从 ul/ol 继承）
+        if re.search(r'<li\s*$', prefix, re.IGNORECASE):
+            style_val = re.sub(r'line-height:[\d.]+;?', '', style_val)
+
+        # margin:0 0 Xpx -> margin-bottom:Xpx（更短）
+        style_val = re.sub(r'margin:0\s+0\s+(\d+)px', r'margin-bottom:\1px', style_val)
+        style_val = re.sub(r'margin:0\s+(\d+)px\s+0', r'margin-left:\1px', style_val)
+
+        # 移除 font-size:15px（与根元素相同）
+        style_val = re.sub(r'font-size:15px;?', '', style_val)
+
+        # h1/h2/h3 保留 font-weight（微信不保证标题默认加粗）
+
+        # strong 的 font-weight:700 可省略（strong 本身就是加粗）
+        if re.search(r'<strong\s*$', prefix, re.IGNORECASE):
+            style_val = re.sub(r'font-weight:[\d]+;?', '', style_val)
+
+        # th 的 font-weight:600 可省略
+        if re.search(r'<th\s*$', prefix, re.IGNORECASE):
+            style_val = re.sub(r'font-weight:[\d]+;?', '', style_val)
+
+        # ul/ol 的 margin 可省略（微信默认有间距）
+        if re.search(r'<(ul|ol)\s*$', prefix, re.IGNORECASE):
+            style_val = re.sub(r'margin:[^;]+;?', '', style_val)
+
+        # img 的 border-radius:4px 和 height:auto 可省略
+        if re.search(r'<img\s*$', prefix, re.IGNORECASE):
+            style_val = re.sub(r'border-radius:[^;]+;?', '', style_val)
+            style_val = re.sub(r'height:auto;?', '', style_val)
+
+        # strong 的 gradient background 保留半高效果，不压缩为纯色
+
+        # p 的 margin-bottom 可省略（微信默认段落间距）
+        if re.search(r'<p\s*$', prefix, re.IGNORECASE):
+            style_val = re.sub(r'margin-bottom:\d+px;?', '', style_val)
+
+        style_val = re.sub(r';\s*;', ';', style_val)
+        style_val = style_val.strip('; ')
+        if not style_val:
+            return prefix.rstrip() + suffix
+        return f'{prefix}style="{style_val}"{suffix}'
+
+    html = re.sub(r'(<[^>]*?)style="([^"]*)"([^>]*?>)', _clean_style, html)
+    html = re.sub(r'\s+style=""', '', html)
+    return html
+
+
+# ─── Markdown 预处理 ──────────────────────────────────────
+
+def _distribute_images_evenly(md_content):
+    """将图片均匀分布到各章节标题下方，每章节最多一张图。
+    
+    逻辑：
+    1. 按章节（## 标题）分组，收集所有图片
+    2. 按章节在文章中的位置比例，等间距分配图片
+    3. 每个章节最多放一张图，放在标题下方第一个空行后
+    4. 如果图片数 > 章节数，多余的图放在最长的无图章节中
+    """
     lines = md_content.split('\n')
-    headings = []
-    images = []
-    image_line_indices = []
+    total_lines = len(lines)
 
+    # 收集章节标题行索引（仅 ## 二级标题）
+    heading_indices = []
     for i, line in enumerate(lines):
-        stripped = line.strip()
-        if re.match(r'^#{1,3}\s+', stripped):
-            headings.append(i)
-        if re.match(r'^!\[.*?\]\(.*?\)', stripped):
-            images.append(i)
-            image_line_indices.append(i)
+        if re.match(r'^##\s+', line.strip()):
+            heading_indices.append(i)
 
-    if not headings or not images:
+    # 收集图片行索引和内容
+    img_indices = []
+    img_contents = []
+    for i, line in enumerate(lines):
+        if re.match(r'^!\[.*?\]\(.*?\)', line.strip()):
+            img_indices.append(i)
+            img_contents.append(line)
+
+    if not heading_indices or not img_indices:
         return md_content
 
-    heading_images = {}
-    for img_idx in images:
-        best_heading = None
-        for h_idx in headings:
-            if h_idx < img_idx:
-                best_heading = h_idx
-            else:
-                break
-        if best_heading is not None:
-            heading_images.setdefault(best_heading, []).append(img_idx)
+    num_imgs = len(img_contents)
+    num_headings = len(heading_indices)
 
+    # 计算每个章节的行范围（从标题到下一个标题或文末）
+    section_ranges = []
+    for si, h_idx in enumerate(heading_indices):
+        start = h_idx
+        end = heading_indices[si + 1] if si + 1 < num_headings else total_lines
+        section_ranges.append((start, end))
+
+    # 等间距分配：在章节中均匀选取目标位置
+    # 例如 8 张图 6 个章节 → 每章节 1 张，多出 2 张放最长章节
+    target_sections = []
+    if num_imgs <= num_headings:
+        # 图片少于等于章节数：等间距选章节
+        step = num_headings / num_imgs
+        for k in range(num_imgs):
+            target_sections.append(int(k * step))
+    else:
+        # 图片多于章节数：每章节至少一张，多出的放最长章节
+        for k in range(num_headings):
+            target_sections.append(k)
+        remaining = num_imgs - num_headings
+        # 按章节长度排序，最长的多放
+        sections_by_len = sorted(range(num_headings),
+                                  key=lambda s: section_ranges[s][1] - section_ranges[s][0],
+                                  reverse=True)
+        for k in range(remaining):
+            target_sections.append(sections_by_len[k])
+
+    target_sections.sort()
+
+    # 先移除所有原始图片行
     result_lines = list(lines)
-    insertions = {}
-    for h_idx, img_indices in heading_images.items():
-        img_blocks = []
-        for img_idx in sorted(img_indices):
-            img_blocks.append(result_lines[img_idx])
-        insertions[h_idx] = img_blocks
+    for idx in sorted(img_indices, reverse=True):
+        result_lines[idx] = None
 
-    for img_idx in sorted(image_line_indices, reverse=True):
-        result_lines[img_idx] = None
+    # 在目标章节标题下方插入图片
+    insertions = {}  # heading_index -> [img_line, ...]
+    for img_idx_in_list, section_idx in enumerate(target_sections):
+        if img_idx_in_list >= num_imgs:
+            break
+        h_idx = heading_indices[section_idx]
+        insertions.setdefault(h_idx, []).append(img_contents[img_idx_in_list])
 
     final_lines = []
     for i, line in enumerate(result_lines):
         if line is not None:
             final_lines.append(line)
+        # 在标题行后插入分配的图片
         if i in insertions:
             for img_line in insertions[i]:
-                if img_line not in final_lines:
-                    final_lines.append(img_line)
+                final_lines.append(img_line)
 
     return '\n'.join(final_lines)
 
@@ -513,14 +738,6 @@ def _prioritize_gifs(md_content, min_text_gap=8):
     need_move = [idx for idx in gif_indices if idx > threshold]
     if not need_move:
         return md_content
-
-    def _count_text_lines_between(a, b):
-        count = 0
-        lo, hi = min(a, b), max(a, b)
-        for j in range(lo + 1, hi):
-            if j < len(lines) and lines[j].strip() and not re.match(r'^!\[.*?\]\(.*?\)', lines[j].strip()) and not re.match(r'^#{1,3}\s+', lines[j].strip()):
-                count += 1
-        return count
 
     first_heading = None
     for i, line in enumerate(lines):
@@ -635,6 +852,8 @@ def _limit_images(md_content, max_png=6, max_gif=1):
     return '\n'.join(result)
 
 
+# ─── 主转换函数 ─────────────────────────────────────────────
+
 def convert_markdown(file_path="", markdown="", theme="essence",
                      title="", author="", digest="", brand_spec_path=None):
     if file_path:
@@ -648,7 +867,7 @@ def convert_markdown(file_path="", markdown="", theme="essence",
         md_content = _strip_duplicate_title(md_content, effective_title)
 
     md_content = _prioritize_gifs(md_content)
-    md_content = _reorder_images_for_chapters(md_content)
+    md_content = _distribute_images_evenly(md_content)
     md_content = _limit_references(md_content)
     md_content = _limit_images(md_content)
 
@@ -657,7 +876,7 @@ def convert_markdown(file_path="", markdown="", theme="essence",
 
     styled_html = apply_inline_styles(body_html, theme, brand_spec_path)
 
-    bg_color = "#FAFAFA"
+    # 获取背景色
     theme_styles = THEMES.get(theme, THEMES["essence"])
     if brand_spec_path:
         custom_theme = build_theme_from_brand_spec(brand_spec_path)
@@ -665,10 +884,12 @@ def convert_markdown(file_path="", markdown="", theme="essence",
             theme_styles = custom_theme
     root_style = theme_styles.get("_root", "")
     bg_match = re.search(r'background:([^;]+)', root_style)
-    if bg_match:
-        bg_color = bg_match.group(1).strip()
+    bg_color = bg_match.group(1).strip() if bg_match else "#FAFAFA"
 
+    # 压缩（绝不使用 <style> 或 class）
     full_html = _compress_html(styled_html)
+
+    # 外层容器：用 section + 内联 style（不用 class）
     full_html = (
         f'<section style="max-width:680px;margin:0 auto;padding:24px 16px;background:{bg_color};">'
         '<article>'
