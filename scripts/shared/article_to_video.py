@@ -187,12 +187,21 @@ def detect_visual_style(sections):
                         "哪个", "更好", "替代", "竞品", "优劣", "分析"]
     philosophy_keywords = ["哲学", "思考", "本质", "意义", "价值", "人生",
                           "存在", "意识", "自由", "真理", "智慧", "境界"]
+    space_keywords = ["宇宙", "太空", "星空", "探索", "无限", "维度", "量子",
+                      "引力", "暗物质", "黑洞", "光年", "银河", "天文", "深空"]
+    ink_keywords = ["书法", "水墨", "禅", "道", "古典", "传统", "文人", "诗意",
+                    "留白", "意境", "气韵", "古风", "国风", "雅"]
+    nature_keywords = ["自然", "生态", "环境", "植物", "动物", "森林", "海洋",
+                       "气候", "可持续", "生物", "绿色", "有机", "山水", "田园"]
 
     scores = {
         "tech": sum(text.count(k) for k in tech_keywords),
         "edu": sum(text.count(k) for k in edu_keywords),
         "compare": sum(text.count(k) for k in compare_keywords),
         "philosophy": sum(text.count(k) for k in philosophy_keywords),
+        "space": sum(text.count(k) for k in space_keywords),
+        "ink": sum(text.count(k) for k in ink_keywords),
+        "nature": sum(text.count(k) for k in nature_keywords),
     }
 
     best = max(scores, key=scores.get)

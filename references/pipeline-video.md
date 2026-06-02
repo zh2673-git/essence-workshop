@@ -40,6 +40,31 @@
 - ⚠️ 每个镜头必须有旁白（narration字段）
 - ⚠️ 镜头类型多样性 ≥3种
 
+### 视觉语言系统
+
+7种视觉语言，根据文章内容自动匹配（`detect_visual_style`），也可手动指定：
+
+| 视觉语言 | 背景风格 | 过渡偏好 | 摄像机偏好 | 适用内容 | 关键词 |
+|---------|---------|---------|-----------|---------|--------|
+| **tech** | 网格+连线 | morph | zoomIn | AI/编程/算法 | AI、编程、代码、算法 |
+| **edu** | 点阵 | crossfade | zoomIn | 教育/学习/成长 | 教育、学习、习惯 |
+| **compare** | 网格 | morph | none | 对比/分析 | 对比、vs、优劣 |
+| **philosophy** | 呼吸圆环 | crossfade | breathe | 哲学/思考 | 哲学、本质、意义 |
+| **space** | 星点粒子+轨道环 | morph | breathe | 宇宙/太空/量子 | 宇宙、太空、黑洞 |
+| **ink** | 水墨晕染+留白 | crossfade | zoomIn | 书法/禅意/古典 | 水墨、禅、国风 |
+| **nature** | 摇曳枝条+光晕 | slideAndFade | panDown | 自然/生态/环境 | 自然、生态、森林 |
+
+> **场景模板系统**：每种视觉语言有独立的场景模板配置（`VISUAL_LANG_TEMPLATES`），控制不同slide类型的背景/摄像机/过渡效果。例如space语言下bullet用circles背景+morph过渡，而默认用grid+slideAndFade。
+
+### 装饰元素
+
+| 函数 | 效果 | 使用场景 |
+|------|------|---------|
+| `drawCornerDecor` | 四角L型装饰线 | space/ink |
+| `drawFloatingParticles` | 漂浮粒子场 | space |
+| `drawOrbitRing` | 轨道环+运动点 | space |
+| `drawInkWash` | 水墨晕染效果 | ink |
+
 ### 镜头类型
 
 | 类型 | 适用内容 | 视觉样式 |
@@ -120,9 +145,11 @@ python -m scripts.shared.article_to_video --url "https://mp.weixin.qq.com/s/xxx"
 
 | 模式 | 命令 | 适用场景 |
 |------|------|---------|
-| 纯模板 | `--style warm` | 快速出片 |
-| 模板+品牌 | `--style warm --brand-spec xxx.json` | 有品牌素材 |
+| 纯模板 | `--style tech` | 快速出片 |
+| 模板+品牌 | `--style tech --brand-spec xxx.json` | 有品牌素材 |
 | 纯品牌 | `--brand-spec xxx.json` | 完全由品牌决定 |
+
+> 可选style值：tech / edu / compare / philosophy / space / ink / nature
 
 ## 质量自检
 

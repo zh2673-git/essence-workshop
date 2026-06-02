@@ -551,6 +551,8 @@ def publish(file_path, theme="claude-warm", cover="", title="", author="",
             if not json_output:
                 return {"success": False, "error": "缺少 GIF 动图，至少需要 1 张 GIF",
                         "image_count": total_images, "png_count": png_count, "gif_count": gif_count}
+        if png_count > 6 or gif_count > 1:
+            print(f"INFO: 配图超出限制（{png_count} PNG + {gif_count} GIF），将截断为 6 PNG + 1 GIF")
         print(f"  配图检查通过: {png_count} PNG + {gif_count} GIF = {total_images} 张")
 
     result = convert_markdown(
@@ -729,7 +731,7 @@ def publish(file_path, theme="claude-warm", cover="", title="", author="",
 def main():
     parser = argparse.ArgumentParser(description="本质工坊 · 公众号发布管线")
     parser.add_argument("file", help="Markdown 文件路径")
-    parser.add_argument("--theme", default="claude-warm", help="主题 (claude-warm/clean/dark)")
+    parser.add_argument("--theme", default="essence", help="主题 (essence/claude-warm/claude-clean/claude-dark)")
     parser.add_argument("--brand-spec", default="", help="品牌配置文件路径 (brand-spec.json)")
     parser.add_argument("--cover", default="", help="封面图片路径")
     parser.add_argument("--title", default="", help="覆盖标题")

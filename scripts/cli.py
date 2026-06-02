@@ -2,8 +2,8 @@
 本质工坊 · 统一CLI入口
 
 用法:
-  python -m scripts.cli publish article.md [--auto-cover] [--theme warm]
-  python -m scripts.cli video slides.json [--output output/video/] [--style warm]
+  python -m scripts.cli publish article.md [--auto-cover] [--theme essence]
+  python -m scripts.cli video slides.json [--output output/video/] [--style tech]
   python -m scripts.cli html --elements output/elements/ --output output/html/
   python -m scripts.cli slides --elements output/elements/ --output output/slides/
   python -m scripts.cli pptx --elements output/elements/ --output output/pptx/

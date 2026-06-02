@@ -24,6 +24,17 @@
 
 ## 微信约束
 
+### 主题系统
+
+| 主题 | 风格 | 适用场景 |
+|------|------|---------|
+| **essence**（默认） | 简洁重点突出：加粗带橙色底线高亮、引言装饰、正文留白充足 | 知识类文章 |
+| claude-warm | 暖色系全装饰：橙色强调、奶油背景 | 情感/生活类 |
+| claude-clean | 极简白底：黑白为主、最小装饰 | 技术/学术类 |
+| claude-dark | 深色主题：暗底亮字 | 夜间/高端感 |
+
+> **引言装饰**：文章前25%位置的blockquote（≤120字）自动装饰为引言样式——渐变背景+左上角大号引号图标+独立section区块。
+
 ### 排版约束
 
 详见 [wechat-formatting.md](wechat-formatting.md)
@@ -42,7 +53,7 @@
 
 ### 配图约束
 
-- ⚠️ 每篇文章必须5张配图（4 PNG + 1 GIF）
+- ⚠️ 每篇文章必须7张配图（6 PNG + 1 GIF）
 - ⚠️ GIF 不可省略，文件大小 ≥100KB
 - ⚠️ 每个主要章节开头放一张配图
 - ⚠️ 连续无图文字 ≤1500字
@@ -85,7 +96,7 @@ python -m scripts.cli publish article.md --auto-cover --author "公众号名"
 python -m scripts.pipelines.wechat.publish article.md --auto-cover --author "公众号名"
 
 # 仅转换不推送
-python -m scripts.pipelines.wechat.converter article.md --theme warm
+python -m scripts.pipelines.wechat.converter article.md --theme essence
 ```
 
 ## 质量自检
@@ -97,4 +108,4 @@ python -m scripts.pipelines.wechat.converter article.md --theme warm
 | SVG→PNG清晰度 | 2x DPI | 模糊则检查device_scale_factor |
 | GIF文件大小 | ≥100KB且≤3MB | <100KB说明动画未生效 |
 | 连续无图文字 | ≤1500字 | 超过则补图 |
-| 总字符数 | ≤20000 | 超出则精简 |
+| 总字符数 | ≤20000 | 超出则智能样式去重（提取重复内联样式为CSS类+短类名），不截断正文 |

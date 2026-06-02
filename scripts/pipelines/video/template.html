@@ -271,6 +271,55 @@ function drawAccentLine(x, y, w) {
   ctx.fillStyle = g; ctx.fillRect(x, y, w, 4*S);
 }
 
+function drawCornerDecor(size, position) {
+  ctx.save(); ctx.strokeStyle = C.accent; ctx.lineWidth = 2*S; ctx.globalAlpha = 0.2;
+  const s = size;
+  switch(position) {
+    case 'tl': ctx.beginPath(); ctx.moveTo(s,0); ctx.lineTo(0,0); ctx.lineTo(0,s); ctx.stroke(); break;
+    case 'tr': ctx.beginPath(); ctx.moveTo(W-s,0); ctx.lineTo(W,0); ctx.lineTo(W,s); ctx.stroke(); break;
+    case 'bl': ctx.beginPath(); ctx.moveTo(s,H); ctx.lineTo(0,H); ctx.lineTo(0,H-s); ctx.stroke(); break;
+    case 'br': ctx.beginPath(); ctx.moveTo(W-s,H); ctx.lineTo(W,H); ctx.lineTo(W,H-s); ctx.stroke(); break;
+  }
+  ctx.restore();
+}
+
+function drawFloatingParticles(count, t, color) {
+  ctx.save(); ctx.fillStyle = color || C.accent;
+  for(let i=0;i<count;i++){
+    const px = (Math.sin(i*4.7+t*0.3)*0.4+0.5)*W;
+    const py = (Math.cos(i*3.2+t*0.2)*0.4+0.5)*H;
+    const pr = (1+Math.sin(i*2.1+t))*1.5*S;
+    ctx.globalAlpha = 0.08+Math.sin(i*1.7+t)*0.04;
+    ctx.beginPath(); ctx.arc(px,py,pr,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawOrbitRing(cx, cy, r, t, dashCount) {
+  ctx.save(); ctx.strokeStyle = C.accent; ctx.lineWidth = 1*S; ctx.globalAlpha = 0.08;
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+  ctx.globalAlpha = 0.15;
+  for(let i=0;i<dashCount;i++){
+    const a = t*0.5+(i/dashCount)*Math.PI*2;
+    const dx = cx+Math.cos(a)*r, dy = cy+Math.sin(a)*r;
+    ctx.beginPath(); ctx.arc(dx,dy,3*S,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawInkWash(x, y, w, h, t) {
+  ctx.save(); ctx.globalAlpha = 0.03; ctx.fillStyle = C.muted;
+  for(let i=0;i<3;i++){
+    const bx = x+Math.sin(t*0.2+i*2)*w*0.1;
+    const by = y+i*h*0.3;
+    const bw = w*0.3+Math.sin(t*0.3+i)*w*0.1;
+    ctx.beginPath();
+    ctx.ellipse(bx,by,bw,h*0.15,0,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 function drawBigNumber(num, x, y, color) {
   ctx.save(); ctx.fillStyle = color || C.accent; ctx.font = F.bigNum; ctx.textAlign = 'center';
   ctx.globalAlpha = 0.12; ctx.fillText(num, x, y); ctx.restore();
@@ -369,6 +418,48 @@ const VISUAL_LANG = {
     iconSet:['diamond','lightbulb','brain','scale','layers'],
     accentEasing:'easeInOut', enterEasing:'expoOut',
   },
+  space: {
+    drawBg(t) {
+      ctx.save();
+      drawFloatingParticles(40, t, C.accent);
+      drawOrbitRing(W*0.7, H*0.3, 200*S, t, 6);
+      drawOrbitRing(W*0.7, H*0.3, 380*S, t*0.7, 8);
+      drawCornerDecor(60*S, 'tr');
+      drawCornerDecor(60*S, 'bl');
+      ctx.restore();
+    },
+    iconSet:['diamond','zap','hexagon','layers','target'],
+    accentEasing:'expoOut', enterEasing:'spring',
+  },
+  ink: {
+    drawBg(t) {
+      ctx.save();
+      drawInkWash(W*0.2, H*0.1, W*0.6, H*0.8, t);
+      drawCornerDecor(40*S, 'tl');
+      drawCornerDecor(40*S, 'br');
+      ctx.restore();
+    },
+    iconSet:['diamond','lightbulb','brain','layers','check'],
+    accentEasing:'easeInOut', enterEasing:'anticipation',
+  },
+  nature: {
+    drawBg(t) {
+      ctx.save();
+      ctx.globalAlpha = 0.025; ctx.strokeStyle = C.gold; ctx.lineWidth = 1.5*S;
+      for(let i=0;i<6;i++){
+        const lx=W*0.15+i*W*0.14, ly=H*0.7;
+        const sway=Math.sin(t*0.5+i*1.2)*15*S;
+        ctx.beginPath(); ctx.moveTo(lx,ly);
+        ctx.quadraticCurveTo(lx+sway,ly-H*0.2-i*H*0.03,lx+sway*0.5,ly-H*0.35-i*H*0.02);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 0.02; ctx.fillStyle = C.gold;
+      ctx.beginPath(); ctx.arc(W*0.8,H*0.2,60*S,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    },
+    iconSet:['lightbulb','target','check','arrow','layers'],
+    accentEasing:'anticipation', enterEasing:'overshoot',
+  },
 };
 
 function getVisualLang() { return VISUAL_LANG[window.visualStyle] || VISUAL_LANG.tech; }
@@ -389,9 +480,70 @@ const SCENE_TEMPLATES = {
   qa:       { bg:'grid',    camera:'none',    transition:'flip' },
 };
 
+const VISUAL_LANG_TEMPLATES = {
+  tech: {
+    title:    { bg:'grid',    camera:'zoomIn',  transition:'morph' },
+    bullet:   { bg:'grid',    camera:'none',    transition:'slideAndFade' },
+    quote:    { bg:'grid',    camera:'none',    transition:'morph' },
+    stat:     { bg:'grid',    camera:'breathe', transition:'morph' },
+    focus:    { bg:'grid',    camera:'zoomIn',  transition:'morph' },
+    summary:  { bg:'grid',    camera:'zoomOut', transition:'morph' },
+  },
+  edu: {
+    title:    { bg:'dots',    camera:'zoomIn',  transition:'crossfade' },
+    bullet:   { bg:'dots',    camera:'none',    transition:'slideAndFade' },
+    steps:    { bg:'dots',    camera:'panDown', transition:'slideAndFade' },
+    summary:  { bg:'dots',    camera:'zoomOut', transition:'crossfade' },
+  },
+  compare: {
+    title:    { bg:'grid',    camera:'zoomIn',  transition:'morph' },
+    compare:  { bg:'grid',    camera:'none',    transition:'morph' },
+    stat:     { bg:'grid',    camera:'breathe', transition:'morph' },
+  },
+  philosophy: {
+    title:    { bg:'circles', camera:'zoomIn',  transition:'crossfade' },
+    quote:    { bg:'circles', camera:'breathe', transition:'crossfade' },
+    focus:    { bg:'circles', camera:'zoomIn',  transition:'crossfade' },
+    summary:  { bg:'circles', camera:'zoomOut', transition:'crossfade' },
+  },
+  space: {
+    title:    { bg:'circles', camera:'zoomIn',  transition:'morph' },
+    bullet:   { bg:'circles', camera:'none',    transition:'morph' },
+    quote:    { bg:'circles', camera:'breathe', transition:'crossfade' },
+    stat:     { bg:'circles', camera:'breathe', transition:'morph' },
+    focus:    { bg:'circles', camera:'zoomIn',  transition:'morph' },
+    timeline: { bg:'circles', camera:'panDown', transition:'morph' },
+    summary:  { bg:'circles', camera:'zoomOut', transition:'morph' },
+  },
+  ink: {
+    title:    { bg:'none',    camera:'zoomIn',  transition:'crossfade' },
+    bullet:   { bg:'none',    camera:'none',    transition:'crossfade' },
+    quote:    { bg:'none',    camera:'breathe', transition:'crossfade' },
+    focus:    { bg:'none',    camera:'zoomIn',  transition:'crossfade' },
+    summary:  { bg:'none',    camera:'zoomOut', transition:'crossfade' },
+  },
+  nature: {
+    title:    { bg:'dots',    camera:'zoomIn',  transition:'slideAndFade' },
+    bullet:   { bg:'dots',    camera:'none',    transition:'slideAndFade' },
+    steps:    { bg:'dots',    camera:'panDown', transition:'slideAndFade' },
+    timeline: { bg:'dots',    camera:'panDown', transition:'slideAndFade' },
+    summary:  { bg:'dots',    camera:'zoomOut', transition:'crossfade' },
+  },
+};
+
+let currentVisualLang = 'tech';
+
+function getSceneTemplate(slideType) {
+  const langOverrides = VISUAL_LANG_TEMPLATES[currentVisualLang];
+  if (langOverrides && langOverrides[slideType]) {
+    return langOverrides[slideType];
+  }
+  return SCENE_TEMPLATES[slideType] || SCENE_TEMPLATES.bullet;
+}
+
 function setupScene(type, progress, isTop) {
   if (!isTop) return;
-  const tpl = SCENE_TEMPLATES[type] || SCENE_TEMPLATES.bullet;
+  const tpl = getSceneTemplate(type);
   switch (tpl.bg) {
     case 'grid': drawGrid(); break;
     case 'circles': drawGrid(); drawBgCircles(progress); break;
@@ -1055,6 +1207,7 @@ function startPresentation() {
     if (bc.bg) { C.bg1 = bc.bg; C.bg2 = bc.bg; C.bg3 = bc.bg; }
   }
   currentSlide = 0; slideStart = performance.now(); running = true;
+  currentVisualLang = window.visualStyle || 'tech';
   requestAnimationFrame(tick);
 }
 
@@ -1093,7 +1246,7 @@ function tick(ts) {
     const localDur = scene.duration;
     const localProgress = Math.min(1, localT / localDur);
     const slide = scene.slide;
-    const tpl = SCENE_TEMPLATES[slide.type] || SCENE_TEMPLATES.bullet;
+    const tpl = getSceneTemplate(slide.type);
     if (isEntering) {
       applyTransition(tpl.transition, (elapsed - scene.enter) / fadeInDur, false);
     } else if (isExiting) {

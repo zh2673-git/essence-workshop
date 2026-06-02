@@ -4,7 +4,7 @@
 
 功能：
 - Markdown → 微信兼容 HTML（纯内联样式，无 <style> 标签）
-- 3 套 Claude 主题（warm / clean / dark）
+- 4 套主题（essence / claude-warm / claude-clean / claude-dark）
 - brand-spec.json 动态主题生成
 - Frontmatter 解析
 - 标题去重
@@ -103,6 +103,34 @@ THEMES = {
         "table": "width:100%;border-collapse:collapse;margin:20px 0;font-size:15px;",
         "th": "background:#3D2E24;color:#F0EBE3;font-weight:600;padding:10px 14px;border:1px solid #3D3A36;text-align:left;",
         "td": "padding:10px 14px;border:1px solid #3D3A36;color:#D4CFC8;",
+    },
+    "essence": {
+        "_root": (
+            "max-width:680px;margin:0 auto;padding:28px 16px;"
+            "background:#FAFAF8;"
+            "font-family:-apple-system,BlinkMacSystemFont,"
+            '"PingFang SC","Noto Sans SC",sans-serif;'
+            "font-size:15px;line-height:2;color:#2C2C2C;"
+        ),
+        "h1": "font-size:20px;font-weight:700;color:#1A1A1A;margin:32px 0 20px;line-height:1.5;letter-spacing:0.02em;",
+        "h2": "font-size:17px;font-weight:600;color:#1A1A1A;margin:28px 0 16px;line-height:1.5;padding-bottom:6px;border-bottom:1px solid #E8E5E0;",
+        "h3": "font-size:15px;font-weight:600;color:#444;margin:20px 0 10px;",
+        "h4": "font-size:15px;font-weight:600;color:#555;margin:14px 0 8px;",
+        "p": "margin:0 0 14px;color:#2C2C2C;line-height:2;",
+        "blockquote": "border-left:3px solid #C96442;background:linear-gradient(135deg,#FFF8F3,#FEFCF9);margin:24px 0;padding:18px 22px;border-radius:0 8px 8px 0;color:#5A4A3A;font-size:14px;line-height:1.9;",
+        "ul": "margin:12px 0;padding-left:22px;color:#2C2C2C;",
+        "ol": "margin:12px 0;padding-left:22px;color:#2C2C2C;",
+        "li": "margin:6px 0;line-height:2;",
+        "strong": "font-weight:700;color:#1A1A1A;background:linear-gradient(to top,rgba(201,100,66,0.15) 40%,transparent 40%);padding:0 2px;",
+        "em": "font-style:italic;color:#8C7A6A;",
+        "a": "color:#C96442;text-decoration:none;border-bottom:1px solid rgba(201,100,66,0.3);",
+        "hr": "border:none;border-top:1px solid #E8E5E0;margin:28px 0;",
+        "code": "background:#F5F0EB;color:#8B5E3C;padding:1px 5px;border-radius:3px;font-size:0.88em;",
+        "pre": "background:#2D2A26;color:#E8E2DA;padding:16px 20px;border-radius:8px;overflow-x:auto;margin:20px 0;font-size:14px;",
+        "img": "max-width:100%;height:auto;border-radius:4px;margin:10px 0;",
+        "table": "width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;",
+        "th": "background:#F5F0EB;font-weight:600;padding:8px 12px;border:1px solid #E8E5E0;text-align:left;color:#1A1A1A;",
+        "td": "padding:8px 12px;border:1px solid #E8E5E0;color:#2C2C2C;",
     },
 }
 
@@ -224,13 +252,14 @@ def _inject_bare_tags(html, tag, style):
     return pattern.sub(replacer, html)
 
 
-def _style_blockquote_paras(html, theme="claude-warm"):
+def _style_blockquote_paras(html, theme="essence"):
     bq_p_styles = {
         "claude-warm": "margin:0 0 8px;color:#3D3A36;line-height:1.8;",
         "claude-clean": "margin:0 0 8px;color:#1A1A1A;line-height:1.8;",
         "claude-dark": "margin:0 0 8px;color:#F0EBE3;line-height:1.8;",
+        "essence": "margin:0 0 6px;color:#5A4A3A;line-height:1.9;",
     }
-    bq_p_style = bq_p_styles.get(theme, bq_p_styles["claude-warm"])
+    bq_p_style = bq_p_styles.get(theme, bq_p_styles["essence"])
 
     result = []
     i = 0
@@ -297,7 +326,59 @@ def _style_pre_code(html, pre_code_style="background:none;padding:0;color:inheri
     return "".join(result)
 
 
-def _compress_html(html):
+def _inject_intro_decoration(html, theme="essence"):
+    intro_themes = {
+        "essence": {
+            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:8px;background:linear-gradient(135deg,#FFF8F3 0%,#FEFCF9 100%);border-left:3px solid #C96442;position:relative;",
+            "icon": "position:absolute;top:-8px;left:12px;font-size:28px;color:#C96442;font-family:Georgia,serif;line-height:1;",
+            "text": "margin:0;color:#5A4A3A;font-size:14px;line-height:1.9;letter-spacing:0.02em;",
+        },
+        "claude-warm": {
+            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:8px;background:linear-gradient(135deg,#FEFCF9 0%,#FAF7F2 100%);border-left:3px solid #C96442;position:relative;",
+            "icon": "position:absolute;top:-8px;left:12px;font-size:28px;color:#C96442;font-family:Georgia,serif;line-height:1;",
+            "text": "margin:0;color:#3D3A36;font-size:14px;line-height:1.9;",
+        },
+        "claude-clean": {
+            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:6px;background:#FEFEFE;border-left:3px solid #C96442;position:relative;",
+            "icon": "position:absolute;top:-8px;left:12px;font-size:28px;color:#C96442;font-family:Georgia,serif;line-height:1;",
+            "text": "margin:0;color:#1A1A1A;font-size:14px;line-height:1.9;",
+        },
+        "claude-dark": {
+            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:8px;background:linear-gradient(135deg,#242120 0%,#1A1816 100%);border-left:3px solid #D4896C;position:relative;",
+            "icon": "position:absolute;top:-8px;left:12px;font-size:28px;color:#D4896C;font-family:Georgia,serif;line-height:1;",
+            "text": "margin:0;color:#D4CFC8;font-size:14px;line-height:1.9;",
+        },
+    }
+
+    intro_cfg = intro_themes.get(theme, intro_themes["essence"])
+
+    first_bq = re.search(r'<blockquote\s+style="[^"]*">([\s\S]*?)</blockquote>', html)
+    if not first_bq:
+        return html
+
+    bq_content = first_bq.group(1)
+    bq_full = first_bq.group(0)
+
+    text_only = re.sub(r'<[^>]+>', '', bq_content).strip()
+    if len(text_only) > 120:
+        return html
+
+    is_first_significant = html.find(bq_full) < len(html) * 0.25
+    if not is_first_significant:
+        return html
+
+    intro_html = (
+        f'<section style="{intro_cfg["wrapper"]}">'
+        f'<span style="{intro_cfg["icon"]}">\u201C</span>'
+        f'<p style="{intro_cfg["text"]}">{bq_content}</p>'
+        f'</section>'
+    )
+
+    html = html.replace(bq_full, intro_html, 1)
+    return html
+
+
+def _compress_html(html, char_limit=20000):
     html = re.sub(r'<!--[\s\S]*?-->', '', html)
 
     def _compact_style(m):
@@ -307,18 +388,77 @@ def _compress_html(html):
     html = re.sub(r'[ \t]+', ' ', html)
     html = re.sub(r'\n\s*\n', '\n', html)
     html = re.sub(r'>\s+<', '><', html)
-    return html.strip()
+    html = html.strip()
+
+    if len(html) <= char_limit:
+        return html
+
+    html = _deduplicate_styles(html)
+
+    if len(html) <= char_limit:
+        return html
+
+    html = _strip_redundant_styles(html)
+
+    return html
 
 
-def apply_inline_styles(html, theme="claude-warm", brand_spec_path=None):
+def _deduplicate_styles(html):
+    style_map = {}
+    counter = [0]
+
+    def _short_class():
+        n = counter[0]
+        counter[0] += 1
+        chars = "abcdefghijklmnopqrstuvwxyz"
+        if n < 26:
+            return f"c{chars[n]}"
+        return f"c{chars[n // 26 - 1]}{chars[n % 26]}"
+
+    def _replace_style(m):
+        style_val = m.group(1)
+        if style_val not in style_map:
+            style_map[style_val] = _short_class()
+        cls = style_map[style_val]
+        return f'class="{cls}"'
+
+    new_html = re.sub(r'style="([^"]*)"', _replace_style, html)
+
+    if not style_map:
+        return html
+
+    css_lines = []
+    for style_val, cls in style_map.items():
+        css_lines.append(f".{cls}{{{style_val}}}")
+    css_block = "<style>" + "".join(css_lines) + "</style>"
+
+    body_start = new_html.find("<article>")
+    if body_start != -1:
+        insert_pos = body_start + len("<article>")
+        new_html = new_html[:insert_pos] + css_block + new_html[insert_pos:]
+    else:
+        new_html = css_block + new_html
+
+    return new_html
+
+
+def _strip_redundant_styles(html):
+    html = re.sub(r'style="[^"]*margin:0[^"]*"', '', html)
+    html = re.sub(r'style="[^"]*padding:0[^"]*"', '', html)
+    html = re.sub(r'style="[^"]*border:none[^"]*"', '', html)
+    html = re.sub(r'\s+style=""', '', html)
+    return html
+
+
+def apply_inline_styles(html, theme="essence", brand_spec_path=None):
     if brand_spec_path:
         custom_theme = build_theme_from_brand_spec(brand_spec_path)
         if custom_theme:
             styles = custom_theme
         else:
-            styles = THEMES.get(theme, THEMES["claude-warm"])
+            styles = THEMES.get(theme, THEMES["essence"])
     else:
-        styles = THEMES.get(theme, THEMES["claude-warm"])
+        styles = THEMES.get(theme, THEMES["essence"])
 
     html = re.sub(r"<style[^>]*>[\s\S]*?</style>", "", html, flags=re.IGNORECASE)
     html = re.sub(r'\s+class="[^"]*"', "", html)
@@ -330,6 +470,7 @@ def apply_inline_styles(html, theme="claude-warm", brand_spec_path=None):
 
     html = _style_blockquote_paras(html, theme)
     html = _style_pre_code(html)
+    html = _inject_intro_decoration(html, theme)
 
     return html
 
@@ -429,7 +570,80 @@ def _prioritize_gifs(md_content):
     return '\n'.join(result)
 
 
-def convert_markdown(file_path="", markdown="", theme="claude-warm",
+def _limit_references(md_content, min_refs=3, max_refs=5):
+    ref_section_pattern = re.compile(
+        r'^(#{1,3}\s+(?:参考文献|参考资料|References?))\s*$',
+        re.MULTILINE
+    )
+    match = ref_section_pattern.search(md_content)
+    if not match:
+        return md_content
+
+    section_start = match.start()
+    before_section = md_content[:section_start]
+    section_header = match.group(0)
+    after_header = md_content[match.end():]
+
+    next_heading = re.search(r'^#{1,3}\s+', after_header, re.MULTILINE)
+    if next_heading:
+        ref_body = after_header[:next_heading.start()]
+        after_section = after_header[next_heading.start():]
+    else:
+        ref_body = after_header
+        after_section = ""
+
+    ref_lines = ref_body.split('\n')
+    kept = []
+    count = 0
+    for line in ref_lines:
+        stripped = line.strip()
+        if not stripped:
+            kept.append(line)
+            continue
+        if re.match(r'^[\-\*\d]+[.\s]', stripped) or re.match(r'^\[\d+\]', stripped):
+            count += 1
+            if count <= max_refs:
+                kept.append(line)
+        else:
+            kept.append(line)
+
+    if count < min_refs:
+        return md_content
+
+    new_ref_body = '\n'.join(kept)
+    return before_section + section_header + '\n' + new_ref_body + '\n' + after_section
+
+
+def _limit_images(md_content, max_png=6, max_gif=1):
+    lines = md_content.split('\n')
+    png_count = 0
+    gif_count = 0
+    result = []
+
+    for line in lines:
+        stripped = line.strip()
+        img_match = re.match(r'^!\[.*?\]\(.*?(\.\w+)\)', stripped)
+        if img_match:
+            ext = img_match.group(1).lower()
+            if ext == '.gif':
+                if gif_count < max_gif:
+                    gif_count += 1
+                    result.append(line)
+            elif ext == '.png':
+                if png_count < max_png:
+                    png_count += 1
+                    result.append(line)
+            else:
+                if png_count < max_png:
+                    png_count += 1
+                    result.append(line)
+        else:
+            result.append(line)
+
+    return '\n'.join(result)
+
+
+def convert_markdown(file_path="", markdown="", theme="essence",
                      title="", author="", digest="", brand_spec_path=None):
     if file_path:
         with open(file_path, encoding="utf-8") as f:
@@ -443,6 +657,8 @@ def convert_markdown(file_path="", markdown="", theme="claude-warm",
 
     md_content = _prioritize_gifs(md_content)
     md_content = _reorder_images_for_chapters(md_content)
+    md_content = _limit_references(md_content)
+    md_content = _limit_images(md_content)
 
     md_parser = MarkdownIt("default", {"html": True})
     body_html = md_parser.render(md_content)
@@ -450,7 +666,7 @@ def convert_markdown(file_path="", markdown="", theme="claude-warm",
     styled_html = apply_inline_styles(body_html, theme, brand_spec_path)
 
     bg_color = "#FAFAFA"
-    theme_styles = THEMES.get(theme, THEMES["claude-warm"])
+    theme_styles = THEMES.get(theme, THEMES["essence"])
     if brand_spec_path:
         custom_theme = build_theme_from_brand_spec(brand_spec_path)
         if custom_theme:
