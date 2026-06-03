@@ -467,22 +467,23 @@ _INHERITED_PROPS_CLEAN = [
     'line-height:1.8',
 ]
 
-# strong 半高亮：gradient → box-shadow 映射（视觉等价，每处省约29字符）
-_GRADIENT_TO_BOXSHADOW = [
-    # essence 主题
+# strong 半高亮：gradient 简化映射（微信不支持 box-shadow，必须保留 gradient）
+# 策略：缩短 gradient 参数（0.15→.15, transparent→transparent 等）
+_GRADIENT_SHORTEN = [
+    # essence: rgba(201,100,66,0.15) → rgba(201,100,66,.15)
     (
         'background:linear-gradient(to top,rgba(201,100,66,0.15) 40%,transparent 40%)',
-        'box-shadow:inset 0 -.5em 0 rgba(201,100,66,.15)',
+        'background:linear-gradient(to top,rgba(201,100,66,.15) 40%,transparent 40%)',
     ),
-    # claude-warm 主题
+    # claude-warm
     (
         'background:linear-gradient(to top,rgba(212,118,58,0.18) 40%,transparent 40%)',
-        'box-shadow:inset 0 -.5em 0 rgba(212,118,58,.18)',
+        'background:linear-gradient(to top,rgba(212,118,58,.18) 40%,transparent 40%)',
     ),
-    # claude-clean 主题
+    # claude-clean
     (
         'background:linear-gradient(to top,rgba(120,140,200,0.12) 40%,transparent 40%)',
-        'box-shadow:inset 0 -.5em 0 rgba(120,140,200,.12)',
+        'background:linear-gradient(to top,rgba(120,140,200,.12) 40%,transparent 40%)',
     ),
 ]
 
@@ -498,7 +499,7 @@ def _compress_html(html, char_limit=20000):
 
     两阶段策略：
     1. 基础压缩（始终执行）：移除注释、精简空白、移除继承/零值属性
-    2. 紧凑模式（超限时一步到位）：gradient→box-shadow、简化装饰、移除非核心样式
+    2. 紧凑模式（超限时一步到位）：gradient参数简化、简化装饰、移除非核心样式
 
     注意：publish.py 会在上传图片后将本地路径替换为 CDN URL，
     本地路径约 25 字符，CDN URL 约 150 字符，每张图多约 125 字符。
@@ -540,7 +541,7 @@ def _compress_html(html, char_limit=20000):
         return html
 
     # ── 阶段二：紧凑模式（超限时一步到位）──
-    # 保留的核心视觉：橙色半高亮(box-shadow)、段落间距(margin-bottom)、引言块(边框+背景)
+    # 保留的核心视觉：橙色半高亮(gradient)、段落间距(margin-bottom)、引言块(边框+背景)
     # 移除的非核心：h2装饰线、em/hr/img样式、strong padding、外层包装等
     html = _apply_compact_mode(html)
 
@@ -602,22 +603,41 @@ def _apply_compact_mode(html):
     """紧凑模式：超限时一步到位的样式精简。
 
     保留的核心视觉（不可删除）：
-    - strong 的橙色半高亮（gradient→box-shadow，视觉等价）
+    - strong 的橙色半高亮（gradient，微信不支持box-shadow）
     - p 的 margin-bottom（段落间距）
     - 引言块（intro section）的边框和背景
     - h2/h3 的 font-size 和 font-weight
 
     移除的非核心（微信默认合理或视觉影响极小）：
-    - strong: gradient→box-shadow, 移除 font-weight/padding
+    - strong: gradient参数简化(0.15→.15), 移除 font-weight/padding
     - h2: 移除 border-bottom/padding-bottom/line-height/color
     - h3: 移除 color
     - em/hr/img: 移除全部样式
     - 引言 section: 渐变→纯色, 移除 border-radius/letter-spacing
     - 外层 section/article 包装
     """
-    # 1. strong 半高亮：gradient → box-shadow（视觉等价，每处省约29字符）
-    for gradient, boxshadow in _GRADIENT_TO_BOXSHADOW:
-        html = html.replace(gradient, boxshadow)
+    # 1. strong 半高亮：gradient 参数简化（0.15→.15，每处省1字符）
+    for original, shortened in _GRADIENT_SHORTEN:
+        html = html.replace(original, shortened)
+
+    # 1b. 限制 strong gradient 数量：均匀分布保留 MAX_HIGHLIGHT 个，其余降级为普通加粗
+    # 每个 gradient 约75字符，降级后省约84字符
+    MAX_HIGHLIGHT = 20
+    total_strongs = len(re.findall(r'<strong\s', html))
+    if total_strongs > MAX_HIGHLIGHT:
+        step = total_strongs / MAX_HIGHLIGHT  # 如 42/20=2.1，约每2个保留1个
+        strong_idx = 0
+        # 预计算哪些序号保留gradient（均匀分布）
+        keep_indices = set(round(i * step) for i in range(MAX_HIGHLIGHT))
+        def _limit_strong_gradient(m):
+            nonlocal strong_idx
+            keep = strong_idx in keep_indices
+            strong_idx += 1
+            if keep:
+                return m.group(0)
+            # 降级：移除整个 style 属性，保留 <strong> 本身的加粗语义
+            return m.group(1).rstrip() + m.group(2)
+        html = re.sub(r'(<strong\s+)style="[^"]*"([^>]*>)', _limit_strong_gradient, html)
 
     # 2. 引言 section：渐变背景 → 纯色
     for gradient, solid in _INTRO_GRADIENT_TO_SOLID:
@@ -633,7 +653,7 @@ def _apply_compact_mode(html):
         if prefix and re.search(r'<(section|article)\s*$', prefix, re.IGNORECASE):
             return m.group(0)
 
-        # strong：保留 box-shadow 半高亮，移除 font-weight/padding
+        # strong：保留 gradient 半高亮，移除 font-weight/padding
         if re.search(r'<strong\s*$', prefix, re.IGNORECASE):
             style_val = re.sub(r'font-weight:[\d]+;?', '', style_val)
             style_val = re.sub(r'padding:0\s*\d+px;?', '', style_val)
@@ -691,7 +711,13 @@ def _apply_compact_mode(html):
     html = html.replace('border-radius:8px;', '')
     html = html.replace('letter-spacing:0.02em;', '')
 
-    # 5. 移除 section/article 外层包装（微信不需要，省约170字符）
+    # 5. gradient 方向简写：to top → 0deg（省4字符/个，微信支持）
+    html = html.replace('linear-gradient(to top,', 'linear-gradient(0deg,')
+
+    # 6. p 段落间距简写：margin-bottom:28px → margin:0 0 28px（省3字符/个）
+    html = html.replace('margin-bottom:28px', 'margin:0 0 28px')
+
+    # 7. 移除 section/article 外层包装（微信不需要，省约170字符）
     html = re.sub(r'<section style="max-width:[^"]*">', '', html)
     html = re.sub(r'</section>', '', html)
     html = re.sub(r'<article>', '', html)
