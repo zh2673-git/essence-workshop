@@ -276,6 +276,8 @@ essence-workshop/
 │   ├── skill-template.md                 # 认知操作系统Skill模板
 │   ├── writing-style-guide.md            # 写作风格规范
 │   ├── wechat-formatting.md              # 微信排版规范
+│   ├── topic-selection.md                # 选题规范
+│   ├── content-template-spec.md          # 内容模板规范
 │   ├── element-spec.md                   # 元素层规范（原子资产定义）
 │   ├── pipeline-wechat.md                # 公众号管线规范
 │   ├── pipeline-video.md                 # 视频号管线规范
@@ -302,7 +304,27 @@ essence-workshop/
 │   │   ├── index.html
 │   │   ├── style.css
 │   │   └── script.js
-│   └── comparison-table/                 # 对比表格（表格/卡片双视图）
+│   ├── comparison-table/                 # 对比表格（表格/卡片双视图）
+│   │   ├── index.html
+│   │   ├── style.css
+│   │   └── script.js
+│   ├── tts-narrator/                     # TTS旁白播放器
+│   │   ├── index.html
+│   │   ├── style.css
+│   │   └── script.js
+│   ├── section-hints/                    # 章节提示（阅读引导）
+│   │   ├── index.html
+│   │   ├── style.css
+│   │   └── script.js
+│   ├── quiz-widget/                      # 问答组件（知识检测）
+│   │   ├── index.html
+│   │   ├── style.css
+│   │   └── script.js
+│   ├── mentor-card/                      # 导师卡片（人物展示）
+│   │   ├── index.html
+│   │   ├── style.css
+│   │   └── script.js
+│   └── ai-companion/                     # AI伴侣（智能对话）
 │       ├── index.html
 │       ├── style.css
 │       └── script.js
@@ -310,8 +332,11 @@ essence-workshop/
 │   ├── cli.py                            # 统一CLI入口
 │   ├── elements/                         # 元素层工具
 │   │   ├── record_gif.py                 # SVG动画→GIF录制
-│   │   ├── brand_extractor.py            # 品牌素材提取→brand-spec.json
-│   │   └── svg_to_png.py                 # SVG→PNG渲染器（Playwright）
+│   │   ├── svg_to_png.py                 # SVG→PNG渲染器（Playwright）
+│   │   ├── svg_themes.py                 # SVG主题定义
+│   │   ├── shape_primitives.py           # SVG形状基元库
+│   │   ├── content_templates.py          # 内容模板生成器
+│   │   └── brand_extractor.py            # 品牌素材提取→brand-spec.json
 │   ├── pipelines/                        # 管线层（按管线分目录）
 │   │   ├── wechat/                       # 公众号管线
 │   │   │   ├── client.py                 # 微信API客户端（token+上传+草稿+文章拉取）
@@ -326,7 +351,9 @@ essence-workshop/
 │   │   ├── slides/                       # 演示管线
 │   │   │   └── generator.py              # 元素层→Reveal.js HTML
 │   │   └── pptx/                         # PPT管线
-│   │       └── generator.py              # 元素层→.pptx文件
+│   │       ├── generator.py              # 元素层→.pptx文件
+│   │       ├── bridge.py                 # Python↔Node.js桥接
+│   │       └── html2pptx.js              # HTML→PPTX转换（Node.js）
 │   └── shared/                           # 跨管线共享
 │       ├── article_fetcher.py            # 公众号文章拉取（API+URL）
 │       └── article_to_video.py           # 文章转视频（拉取→拆镜头→视频）
@@ -346,9 +373,7 @@ essence-workshop/
 │   ├── four-layer-design.md              # 四层设计
 │   ├── project-analysis.md               # 项目解析
 │   ├── distillation-skill.md             # 蒸馏Skill模板
-│   ├── brand-spec.json                   # 品牌规格
-│   ├── course-skeleton.html              # HTML课程骨架模板
-│   └── reveal-template.html              # Reveal.js演示模板
+│   └── brand-spec.json                   # 品牌规格
 ├── examples/                             # 蒸馏实例（每个都是自包含的）
 │   ├── nihaixia.skill/
 │   ├── socrates.skill/

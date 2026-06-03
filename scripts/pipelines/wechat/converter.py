@@ -101,7 +101,7 @@ THEMES = {
         "strong": "font-weight:700;color:#1A1A1A;background:linear-gradient(to top,rgba(201,100,66,0.15) 40%,transparent 40%);padding:0 2px;",
         "em": "font-style:italic;color:#8C7A6A;",
         "a": "color:#C96442;text-decoration:none;border-bottom:1px solid rgba(201,100,66,0.3);",
-        "hr": "border:none;border-top:1px solid #E8E5E0;margin:28px 0;",
+        "hr": "border:none;border-top:1px solid #E8E5E0;margin:32px 0 28px;",
         "code": "background:#F5F0EB;color:#8B5E3C;padding:1px 5px;border-radius:3px;font-size:0.88em;",
         "pre": "background:#2D2A26;color:#E8E2DA;padding:16px 20px;border-radius:8px;overflow-x:auto;margin:20px 0;font-size:14px;",
         "img": "max-width:100%;height:auto;border-radius:4px;margin:10px 0;",

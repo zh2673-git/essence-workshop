@@ -404,7 +404,7 @@ def _load_font(size, bold=False):
 
 
 def publish(file_path, theme="claude-warm", cover="", title="", author="",
-            auto_cover=False, min_chars=19000, upload_images=True, json_output=False,
+            auto_cover=False, max_chars=20000, upload_images=True, json_output=False,
             check_plain_text=True, check_images=True, brand_spec_path=None):
     file_path = Path(file_path)
     if not file_path.exists():
@@ -478,12 +478,12 @@ def publish(file_path, theme="claude-warm", cover="", title="", author="",
 
     plain_text = re.sub(r"<[^>]+>", "", html)
     char_count = len(plain_text)
-    if char_count < min_chars:
-        print(f"WARNING: 正文仅 {char_count} 字符，未达 {min_chars} 字符要求")
-        print(f"  可用 --min-chars 0 跳过检查")
+    html_size = len(html)
+    if html_size > max_chars:
+        print(f"WARNING: HTML 总字符 {html_size}，超过 {max_chars} 字符上限")
         if not json_output:
-            return {"success": False, "error": f"正文仅 {char_count} 字符，需 >= {min_chars} 字符",
-                    "char_count": char_count, "min_chars": min_chars}
+            return {"success": False, "error": f"HTML 总字符 {html_size}，需 <= {max_chars} 字符",
+                    "html_size": html_size, "max_chars": max_chars}
 
     cover_path = cover
     if not cover_path and auto_cover:
@@ -635,7 +635,7 @@ def main():
     parser.add_argument("--title", default="", help="覆盖标题")
     parser.add_argument("--author", default="", help="覆盖作者")
     parser.add_argument("--auto-cover", action="store_true", help="自动生成封面")
-    parser.add_argument("--min-chars", type=int, default=19000, help="正文最小字符数")
+    parser.add_argument("--max-chars", type=int, default=20000, help="HTML总字符上限（微信草稿箱限制）")
     parser.add_argument("--no-upload-images", action="store_true", help="不上传正文图片")
     parser.add_argument("--json", action="store_true", help="JSON 格式输出")
     parser.add_argument("--skip-plain-check", action="store_true", help="跳过纯文本字数检查")
@@ -650,7 +650,7 @@ def main():
         title=args.title,
         author=args.author,
         auto_cover=args.auto_cover,
-        min_chars=args.min_chars,
+        max_chars=args.max_chars,
         upload_images=not args.no_upload_images,
         json_output=args.json,
         check_plain_text=not args.skip_plain_check,

@@ -45,20 +45,28 @@ def svg_to_png(svg_path, output_path, width=None, height=None, dpi=2, bg_color="
         width = width or int(svg_w * dpi)
         height = height or int(svg_h * dpi)
 
+    # Force SVG to fill container by overriding width/height to 100%
+    import re as _re
+    svg_content = _re.sub(r'width="[^"]*"', 'width="100%"', svg_content, count=1)
+    svg_content = _re.sub(r'height="[^"]*"', 'height="100%"', svg_content, count=1)
+
     html = f"""<!DOCTYPE html>
 <html><head><style>
-* {{ font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif !important; }}
+* {{ margin:0; padding:0; box-sizing:border-box; font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif !important; }}
 svg, svg text {{ font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif !important; }}
+body {{ background:{bg_color}; margin:0; padding:0; }}
+#svg-container {{ width:{width}px; height:{height}px; overflow:hidden; }}
+#svg-container svg {{ display:block; }}
 </style></head>
-<body style="margin:0;padding:0;background:{bg_color};">
-<div id="svg-container" style="width:{width}px;height:{height}px;display:flex;align-items:center;justify-content:center;">
+<body>
+<div id="svg-container">
 {svg_content}
 </div>
 </body></html>"""
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": width + 40, "height": height + 40}, device_scale_factor=dpi)
+        page = browser.new_page(viewport={"width": width, "height": height}, device_scale_factor=dpi)
         page.set_content(html)
         container = page.query_selector("#svg-container")
         container.screenshot(path=output_path)
