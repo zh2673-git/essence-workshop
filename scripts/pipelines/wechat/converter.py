@@ -37,7 +37,7 @@ THEMES = {
         "h2": "font-size:19px;font-weight:600;color:#1F1D1A;margin:36px 0 16px;padding-bottom:8px;border-bottom:1px solid #E8E2DA;",
         "h3": "font-size:17px;font-weight:600;color:#8B5E3C;margin:20px 0 12px;",
         "h4": "font-size:16px;font-weight:600;color:#8B5E3C;margin:14px 0 8px;",
-        "p": "margin:0 0 16px;color:#3D3A36;line-height:1.8;",
+        "p": "margin:0 0 28px;color:#3D3A36;line-height:1.8;",
         "blockquote": "border-left:3px solid #C96442;background:#FEFCF9;margin:28px 0;padding:16px 20px;border-radius:0 10px 10px 0;",
         "ul": "margin:16px 0;padding-left:24px;color:#3D3A36;",
         "ol": "margin:16px 0;padding-left:24px;color:#3D3A36;",
@@ -65,7 +65,7 @@ THEMES = {
         "h2": "font-size:18px;font-weight:600;color:#1A1A1A;margin:32px 0 14px;line-height:1.45;padding-bottom:8px;border-bottom:1px solid #ECECEC;",
         "h3": "font-size:16px;font-weight:600;color:#1A1A1A;margin:20px 0 10px;",
         "h4": "font-size:15px;font-weight:600;color:#1A1A1A;margin:14px 0 8px;",
-        "p": "margin:0 0 14px;color:#37352F;line-height:1.8;",
+        "p": "margin:0 0 28px;color:#37352F;line-height:1.8;",
         "blockquote": "border-left:3px solid #C96442;background:#FEFEFE;margin:24px 0;padding:16px 20px;border-radius:0 8px 8px 0;color:#1A1A1A;",
         "ul": "margin:14px 0;padding-left:24px;color:#37352F;",
         "ol": "margin:14px 0;padding-left:24px;color:#37352F;",
@@ -93,7 +93,7 @@ THEMES = {
         "h2": "font-size:17px;font-weight:600;color:#1A1A1A;margin:28px 0 16px;line-height:1.5;padding-bottom:6px;border-bottom:1px solid #E8E5E0;",
         "h3": "font-size:15px;font-weight:600;color:#444;margin:20px 0 10px;",
         "h4": "font-size:15px;font-weight:600;color:#555;margin:14px 0 8px;",
-        "p": "margin:0 0 14px;color:#2C2C2C;line-height:1.8;",
+        "p": "margin:0 0 28px;color:#2C2C2C;line-height:1.8;",
         "blockquote": "border-left:3px solid #C96442;background:linear-gradient(135deg,#FFF8F3,#FEFCF9);margin:24px 0;padding:18px 22px;border-radius:0 8px 8px 0;color:#5A4A3A;font-size:14px;line-height:1.8;",
         "ul": "margin:12px 0;padding-left:22px;color:#2C2C2C;",
         "ol": "margin:12px 0;padding-left:22px;color:#2C2C2C;",
@@ -162,7 +162,7 @@ def build_theme_from_brand_spec(brand_spec_path):
         "h1": f"font-family:{font_display};font-size:22px;font-weight:700;color:{fg};margin:36px 0 16px;line-height:1.4;",
         "h2": f"font-size:19px;font-weight:600;color:{fg};margin:36px 0 16px;padding-bottom:8px;border-bottom:1px solid {border};",
         "h3": f"font-size:17px;font-weight:600;color:{primary};margin:20px 0 12px;",
-        "p": f"margin:0 0 16px;color:{fg};line-height:1.8;",
+        "p": f"margin:0 0 28px;color:{fg};line-height:1.8;",
         "blockquote": f"border-left:3px solid {primary};background:{primary_dim};margin:28px 0;padding:16px 20px;border-radius:0 10px 10px 0;color:{fg};",
         "ul": f"margin:16px 0;padding-left:24px;color:{fg};",
         "ol": f"margin:16px 0;padding-left:24px;color:{fg};",
@@ -613,9 +613,7 @@ def _aggressive_shorten(html):
 
         # strong 的 gradient background 保留半高效果，不压缩为纯色
 
-        # p 的 margin-bottom 可省略（微信默认段落间距）
-        if re.search(r'<p\s*$', prefix, re.IGNORECASE):
-            style_val = re.sub(r'margin-bottom:\d+px;?', '', style_val)
+        # p 的 margin-bottom 保留：用户要求段落之间有足够间距，不可省略
 
         style_val = re.sub(r';\s*;', ';', style_val)
         style_val = style_val.strip('; ')
@@ -867,7 +865,9 @@ def convert_markdown(file_path="", markdown="", theme="essence",
         md_content = _strip_duplicate_title(md_content, effective_title)
 
     md_content = _prioritize_gifs(md_content)
-    md_content = _distribute_images_evenly(md_content)
+    # _distribute_images_evenly 已禁用：该函数会覆盖 Markdown 中手动指定的图片位置，
+    # 导致多张图片被重新分配到相邻章节而贴在一起
+    # md_content = _distribute_images_evenly(md_content)
     md_content = _limit_references(md_content)
     md_content = _limit_images(md_content)
 
