@@ -718,10 +718,14 @@ def _apply_compact_mode(html):
     html = html.replace('margin-bottom:28px', 'margin:0 0 28px')
 
     # 7. 移除 section/article 外层包装（微信不需要，省约170字符）
+    # 注意：只移除 max-width 外层 section，保留引言块等有样式的 section
     html = re.sub(r'<section style="max-width:[^"]*">', '', html)
-    html = re.sub(r'</section>', '', html)
+    # 只移除与外层包装配对的 </section>（文章末尾的）
+    # 策略：移除 article 标签，然后移除最后一个 </section>
     html = re.sub(r'<article>', '', html)
     html = re.sub(r'</article>', '', html)
+    # 移除末尾的 </section>（外层包装的闭合标签）
+    html = re.sub(r'</section>\s*$', '', html)
 
     return html
 
