@@ -403,6 +403,64 @@ def _load_font(size, bold=False):
     return ImageFont.load_default()
 
 
+def check_article(file_path, check_plain_text=True, check_images=True, json_output=False):
+    """只执行质量检查（字数+配图），不转换不推送。用于W3.5步骤写完后立即检查。"""
+    file_path = Path(file_path)
+    if not file_path.exists():
+        print(f"ERROR: 文件不存在: {file_path}")
+        return {"success": False, "error": f"文件不存在: {file_path}"}
+
+    md_content = file_path.read_text(encoding="utf-8")
+    md_no_frontmatter = re.sub(r'^---.*?---', '', md_content, flags=re.DOTALL).strip()
+
+    result = {"success": True, "plain_text_count": 0, "image_count": 0, "png_count": 0, "gif_count": 0}
+
+    if check_plain_text:
+        md_no_img = re.sub(r'!\[.*?\]\(.*?\)', '', md_no_frontmatter)
+        md_no_md = re.sub(r'[#*>\-|=`~\[\](){}]', '', md_no_img)
+        chinese_chars = len(re.findall(r'[\u4e00-\u9fff]', md_no_md))
+        english_words = len(re.findall(r'[a-zA-Z]+', md_no_md))
+        plain_text_count = chinese_chars + english_words
+        result["plain_text_count"] = plain_text_count
+
+        if plain_text_count < 7000:
+            print(f"FAIL: 纯文本仅 {plain_text_count} 字，未达 7000 字硬性要求（差 {7000 - plain_text_count} 字）")
+            result["success"] = False
+        elif plain_text_count > 8000:
+            print(f"WARN: 纯文本 {plain_text_count} 字，超过 8000 字上限，建议精简")
+        else:
+            print(f"PASS: 纯文本 {plain_text_count} 字（目标 7000-8000）")
+
+    if check_images:
+        img_tags = re.findall(r'!\[.*?\]\(.*?\)', md_no_frontmatter)
+        png_count = sum(1 for t in img_tags if '.png' in t.lower())
+        gif_count = sum(1 for t in img_tags if '.gif' in t.lower())
+        total_images = len(img_tags)
+        result["image_count"] = total_images
+        result["png_count"] = png_count
+        result["gif_count"] = gif_count
+
+        if total_images < 7:
+            print(f"FAIL: 配图仅 {total_images} 张，未达 7 张硬性要求（6 PNG + 1 GIF）")
+            result["success"] = False
+        if png_count < 6:
+            print(f"FAIL: PNG 配图仅 {png_count} 张，至少需要 6 张 PNG")
+            result["success"] = False
+        if gif_count < 1:
+            print(f"FAIL: 缺少 GIF 动图，至少需要 1 张 GIF")
+            result["success"] = False
+        if result["success"] and total_images >= 7:
+            print(f"PASS: 配图 {png_count} PNG + {gif_count} GIF = {total_images} 张")
+
+    if json_output:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+    else:
+        status = "ALL CHECKS PASSED" if result["success"] else "SOME CHECKS FAILED"
+        print(f"\n--- 检查结果: {status} ---")
+
+    return result
+
+
 def publish(file_path, theme="claude-warm", cover="", title="", author="",
             auto_cover=False, max_chars=20000, upload_images=True, json_output=False,
             check_plain_text=True, check_images=True, brand_spec_path=None):
@@ -640,8 +698,18 @@ def main():
     parser.add_argument("--json", action="store_true", help="JSON 格式输出")
     parser.add_argument("--skip-plain-check", action="store_true", help="跳过纯文本字数检查")
     parser.add_argument("--skip-image-check", action="store_true", help="跳过配图数量检查")
+    parser.add_argument("--check-only", action="store_true", help="只执行质量检查（字数+配图），不转换不推送")
 
     args = parser.parse_args()
+
+    if args.check_only:
+        check_article(
+            file_path=args.file,
+            check_plain_text=not args.skip_plain_check,
+            check_images=not args.skip_image_check,
+            json_output=args.json,
+        )
+        return
 
     publish(
         file_path=args.file,

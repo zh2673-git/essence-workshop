@@ -344,9 +344,10 @@ data/
 
 **检查方法**：
 ```bash
-# 用publish.py的检查功能（不推送）
-python -m scripts.pipelines.wechat.publish article.md --skip-push
-# 或手动统计：去除frontmatter、图片标签、Markdown符号后统计中文字+英文词数
+# 用publish.py的 --check-only 模式（只检查字数+配图，不转换不推送）
+python -m scripts.pipelines.wechat.publish article.md --check-only
+# 配图尚未生成时，可跳过配图检查，只检查字数
+python -m scripts.pipelines.wechat.publish article.md --check-only --skip-image-check
 ```
 
 **字数闭环流程**：
