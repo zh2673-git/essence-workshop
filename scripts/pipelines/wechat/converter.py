@@ -459,21 +459,46 @@ def apply_inline_styles(html, theme="essence", brand_spec_path=None):
 
 # ─── HTML 压缩 ─────────────────────────────────────────────
 # 核心原则：绝不使用 <style> 标签或 class。
-# 压缩方式：移除注释、精简空白、移除继承/冗余属性值。
+# 两阶段策略：基础压缩（始终执行）→ 紧凑模式（超限时一步到位）
 
 # 从外层 section 继承的属性，子元素无需重复声明
-_INHERITED_PROPS = [
-    'color:#2C2C2C', 'color:#3D3A36', 'color:#37352F', 'color:#1A1A1A',
-    'line-height:1.8',
-    'font-family:-apple-system,BlinkMacSystemFont,',
-]
 _INHERITED_PROPS_CLEAN = [
     'color:#37352F', 'color:#2C2C2C', 'color:#3D3A36', 'color:#1A1A1A',
     'line-height:1.8',
 ]
 
+# strong 半高亮：gradient → box-shadow 映射（视觉等价，每处省约29字符）
+_GRADIENT_TO_BOXSHADOW = [
+    # essence 主题
+    (
+        'background:linear-gradient(to top,rgba(201,100,66,0.15) 40%,transparent 40%)',
+        'box-shadow:inset 0 -.5em 0 rgba(201,100,66,.15)',
+    ),
+    # claude-warm 主题
+    (
+        'background:linear-gradient(to top,rgba(212,118,58,0.18) 40%,transparent 40%)',
+        'box-shadow:inset 0 -.5em 0 rgba(212,118,58,.18)',
+    ),
+    # claude-clean 主题
+    (
+        'background:linear-gradient(to top,rgba(120,140,200,0.12) 40%,transparent 40%)',
+        'box-shadow:inset 0 -.5em 0 rgba(120,140,200,.12)',
+    ),
+]
+
+# 引言 section 渐变背景 → 纯色（微信渲染差异极小）
+_INTRO_GRADIENT_TO_SOLID = [
+    ('background:linear-gradient(135deg,#FFF8F3 0%,#FEFCF9 100%)', 'background:#FFF8F3'),
+    ('background:linear-gradient(135deg,#FEFCF9 0%,#FAF7F2 100%)', 'background:#FEFCF9'),
+]
+
+
 def _compress_html(html, char_limit=20000):
     """压缩 HTML，确保不超过字符限制，绝不使用 <style> 或 class。
+
+    两阶段策略：
+    1. 基础压缩（始终执行）：移除注释、精简空白、移除继承/零值属性
+    2. 紧凑模式（超限时一步到位）：gradient→box-shadow、简化装饰、移除非核心样式
 
     注意：publish.py 会在上传图片后将本地路径替换为 CDN URL，
     本地路径约 25 字符，CDN URL 约 150 字符，每张图多约 125 字符。
@@ -481,8 +506,10 @@ def _compress_html(html, char_limit=20000):
     """
     # 预留 CDN URL 替换空间
     img_count = len(re.findall(r'<img[^>]+src="[^h][^t]', html))
-    cdn_overhead = img_count * 130  # 每张图约多 130 字符
+    cdn_overhead = img_count * 130
     effective_limit = char_limit - cdn_overhead
+
+    # ── 阶段一：基础压缩（始终执行）──
 
     # 移除 HTML 注释
     html = re.sub(r'<!--[\s\S]*?-->', '', html)
@@ -499,23 +526,23 @@ def _compress_html(html, char_limit=20000):
     html = re.sub(r'>\s+<', '><', html)
     html = html.strip()
 
-    if len(html) <= effective_limit:
-        return html
-
-    # 第一轮：移除继承属性
+    # 移除继承属性（color/line-height 与根元素重复）
     html = _remove_inherited_styles(html)
 
-    if len(html) <= effective_limit:
-        return html
-
-    # 第二轮：移除零值属性
+    # 移除零值属性（margin:0 / padding:0 / border:none）
     html = _shorten_styles(html)
 
+    # margin:0 0 Xpx → margin-bottom:Xpx（更短，始终有益）
+    html = re.sub(r'margin:0\s+0\s+(\d+)px', r'margin-bottom:\1px', html)
+    html = re.sub(r'margin:0\s+(\d+)px\s+0', r'margin-left:\1px', html)
+
     if len(html) <= effective_limit:
         return html
 
-    # 第三轮：移除更多可省略属性
-    html = _aggressive_shorten(html)
+    # ── 阶段二：紧凑模式（超限时一步到位）──
+    # 保留的核心视觉：橙色半高亮(box-shadow)、段落间距(margin-bottom)、引言块(边框+背景)
+    # 移除的非核心：h2装饰线、em/hr/img样式、strong padding、外层包装等
+    html = _apply_compact_mode(html)
 
     return html
 
@@ -571,49 +598,85 @@ def _shorten_styles(html):
     return html
 
 
-def _aggressive_shorten(html):
-    """更激进的压缩：移除可省略的属性、缩短数值。"""
+def _apply_compact_mode(html):
+    """紧凑模式：超限时一步到位的样式精简。
+
+    保留的核心视觉（不可删除）：
+    - strong 的橙色半高亮（gradient→box-shadow，视觉等价）
+    - p 的 margin-bottom（段落间距）
+    - 引言块（intro section）的边框和背景
+    - h2/h3 的 font-size 和 font-weight
+
+    移除的非核心（微信默认合理或视觉影响极小）：
+    - strong: gradient→box-shadow, 移除 font-weight/padding
+    - h2: 移除 border-bottom/padding-bottom/line-height/color
+    - h3: 移除 color
+    - em/hr/img: 移除全部样式
+    - 引言 section: 渐变→纯色, 移除 border-radius/letter-spacing
+    - 外层 section/article 包装
+    """
+    # 1. strong 半高亮：gradient → box-shadow（视觉等价，每处省约29字符）
+    for gradient, boxshadow in _GRADIENT_TO_BOXSHADOW:
+        html = html.replace(gradient, boxshadow)
+
+    # 2. 引言 section：渐变背景 → 纯色
+    for gradient, solid in _INTRO_GRADIENT_TO_SOLID:
+        html = html.replace(gradient, solid)
+
+    # 3. 逐标签精简样式
     def _clean_style(m):
         prefix = m.group(1) or ''
         style_val = m.group(2)
         suffix = m.group(3) or ''
 
+        # section/article 保留所有样式（外层包装另有处理）
         if prefix and re.search(r'<(section|article)\s*$', prefix, re.IGNORECASE):
             return m.group(0)
 
-        # li 的 line-height 可省略（从 ul/ol 继承）
-        if re.search(r'<li\s*$', prefix, re.IGNORECASE):
+        # strong：保留 box-shadow 半高亮，移除 font-weight/padding
+        if re.search(r'<strong\s*$', prefix, re.IGNORECASE):
+            style_val = re.sub(r'font-weight:[\d]+;?', '', style_val)
+            style_val = re.sub(r'padding:0\s*\d+px;?', '', style_val)
+
+        # h2：保留 font-size/font-weight/margin，移除装饰线/行高/颜色
+        elif re.search(r'<h2\s*$', prefix, re.IGNORECASE):
+            style_val = re.sub(r'padding-bottom:[^;]+;?', '', style_val)
+            style_val = re.sub(r'border-bottom:[^;]+;?', '', style_val)
+            style_val = re.sub(r'line-height:[^;]+;?', '', style_val)
+            style_val = re.sub(r'color:#1A1A1A;?', '', style_val)
+
+        # h3：移除 color（与根色接近）
+        elif re.search(r'<h3\s*$', prefix, re.IGNORECASE):
+            style_val = re.sub(r'color:#444;?', '', style_val)
+
+        # li：移除 line-height（从 ul/ol 继承）
+        elif re.search(r'<li\s*$', prefix, re.IGNORECASE):
             style_val = re.sub(r'line-height:[\d.]+;?', '', style_val)
 
-        # margin:0 0 Xpx -> margin-bottom:Xpx（更短）
-        style_val = re.sub(r'margin:0\s+0\s+(\d+)px', r'margin-bottom:\1px', style_val)
-        style_val = re.sub(r'margin:0\s+(\d+)px\s+0', r'margin-left:\1px', style_val)
+        # th：移除 font-weight
+        elif re.search(r'<th\s*$', prefix, re.IGNORECASE):
+            style_val = re.sub(r'font-weight:[\d]+;?', '', style_val)
+
+        # ul/ol：移除 margin（微信默认有间距）
+        elif re.search(r'<(ul|ol)\s*$', prefix, re.IGNORECASE):
+            style_val = re.sub(r'margin:[^;]+;?', '', style_val)
+
+        # img：移除全部样式（微信默认合理）
+        elif re.search(r'<img\s*$', prefix, re.IGNORECASE):
+            style_val = ''
+
+        # em：移除全部样式（非核心视觉）
+        elif re.search(r'<em\s*$', prefix, re.IGNORECASE):
+            style_val = ''
+
+        # hr：移除全部样式（微信默认有分隔线）
+        elif re.search(r'<hr\s*$', prefix, re.IGNORECASE):
+            style_val = ''
 
         # 移除 font-size:15px（与根元素相同）
         style_val = re.sub(r'font-size:15px;?', '', style_val)
 
-        # h1/h2/h3 保留 font-weight（微信不保证标题默认加粗）
-
-        # strong 的 font-weight:700 可省略（strong 本身就是加粗）
-        if re.search(r'<strong\s*$', prefix, re.IGNORECASE):
-            style_val = re.sub(r'font-weight:[\d]+;?', '', style_val)
-
-        # th 的 font-weight:600 可省略
-        if re.search(r'<th\s*$', prefix, re.IGNORECASE):
-            style_val = re.sub(r'font-weight:[\d]+;?', '', style_val)
-
-        # ul/ol 的 margin 可省略（微信默认有间距）
-        if re.search(r'<(ul|ol)\s*$', prefix, re.IGNORECASE):
-            style_val = re.sub(r'margin:[^;]+;?', '', style_val)
-
-        # img 的 border-radius:4px 和 height:auto 可省略
-        if re.search(r'<img\s*$', prefix, re.IGNORECASE):
-            style_val = re.sub(r'border-radius:[^;]+;?', '', style_val)
-            style_val = re.sub(r'height:auto;?', '', style_val)
-
-        # strong 的 gradient background 保留半高效果，不压缩为纯色
-
-        # p 的 margin-bottom 保留：用户要求段落之间有足够间距，不可省略
+        # p 的 margin-bottom 保留：段落间距是核心视觉，不可省略
 
         style_val = re.sub(r';\s*;', ';', style_val)
         style_val = style_val.strip('; ')
@@ -623,6 +686,17 @@ def _aggressive_shorten(html):
 
     html = re.sub(r'(<[^>]*?)style="([^"]*)"([^>]*?>)', _clean_style, html)
     html = re.sub(r'\s+style=""', '', html)
+
+    # 4. 引言 section：移除 border-radius 和 letter-spacing（非核心装饰）
+    html = html.replace('border-radius:8px;', '')
+    html = html.replace('letter-spacing:0.02em;', '')
+
+    # 5. 移除 section/article 外层包装（微信不需要，省约170字符）
+    html = re.sub(r'<section style="max-width:[^"]*">', '', html)
+    html = re.sub(r'</section>', '', html)
+    html = re.sub(r'<article>', '', html)
+    html = re.sub(r'</article>', '', html)
+
     return html
 
 
@@ -886,17 +960,16 @@ def convert_markdown(file_path="", markdown="", theme="essence",
     bg_match = re.search(r'background:([^;]+)', root_style)
     bg_color = bg_match.group(1).strip() if bg_match else "#FAFAFA"
 
-    # 压缩（绝不使用 <style> 或 class）
-    full_html = _compress_html(styled_html)
-
-    # 外层容器：用 section + 内联 style（不用 class）
-    full_html = (
+    # 外层容器 + 压缩（绝不使用 <style> 或 class）
+    # 先加外层容器，再整体压缩——紧凑模式会在超限时自动移除它
+    wrapped_html = (
         f'<section style="max-width:680px;margin:0 auto;padding:24px 16px;background:{bg_color};">'
         '<article>'
-        f'{full_html}'
+        f'{styled_html}'
         '</article>'
         '</section>'
     )
+    full_html = _compress_html(wrapped_html)
 
     return {
         "success": True,
