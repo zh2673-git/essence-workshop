@@ -607,6 +607,7 @@ def _apply_compact_mode(html):
     - p 的 margin-bottom（段落间距）
     - 引言块（intro section）的边框和背景
     - h2/h3 的 font-size 和 font-weight
+    - article 的 padding（左右页边距，防止文章贴边）
 
     移除的非核心（微信默认合理或视觉影响极小）：
     - strong: gradient参数简化(0.15→.15), 移除 font-weight/padding
@@ -614,7 +615,7 @@ def _apply_compact_mode(html):
     - h3: 移除 color
     - em/hr/img: 移除全部样式
     - 引言 section: 渐变→纯色, 移除 border-radius/letter-spacing
-    - 外层 section/article 包装
+    - 外层 section 包装（max-width/background），padding 转移到 article
     """
     # 1. strong 半高亮：gradient 参数简化（0.15→.15，每处省1字符）
     for original, shortened in _GRADIENT_SHORTEN:
@@ -717,13 +718,11 @@ def _apply_compact_mode(html):
     # 6. p 段落间距简写：margin-bottom:28px → margin:0 0 28px（省3字符/个）
     html = html.replace('margin-bottom:28px', 'margin:0 0 28px')
 
-    # 7. 移除 section/article 外层包装（微信不需要，省约170字符）
+    # 7. 移除 section 外层包装，但保留页边距到 article 上（微信不需要 max-width/background，但 padding 是核心阅读体验）
     # 注意：只移除 max-width 外层 section，保留引言块等有样式的 section
     html = re.sub(r'<section style="max-width:[^"]*">', '', html)
-    # 只移除与外层包装配对的 </section>（文章末尾的）
-    # 策略：移除 article 标签，然后移除最后一个 </section>
-    html = re.sub(r'<article>', '', html)
-    html = re.sub(r'</article>', '', html)
+    # 将 padding 从被移除的 section 转移到 article 上（左右16px页边距，防止文章贴边）
+    html = html.replace('<article>', '<article style="padding:0 16px">')
     # 移除末尾的 </section>（外层包装的闭合标签）
     html = re.sub(r'</section>\s*$', '', html)
 
