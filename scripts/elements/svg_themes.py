@@ -68,7 +68,7 @@ THEMES = {
         "decor": {
             "style": "circles",
             "opacity": 0.12,
-            "elements": ["floating-circles", "grid", "accent-line"],
+            "elements": ["floating-circles", "grid", "accent-line", "diamonds", "curves", "cross-stars", "dot-matrix"],
         },
         "atmosphere": {
             "glow": [
@@ -380,7 +380,7 @@ THEMES = {
         "decor": {
             "style": "circles",
             "opacity": 0.12,
-            "elements": ["floating-circles", "accent-line"],
+            "elements": ["floating-circles", "accent-line", "diamonds", "curves", "cross-stars", "dot-matrix"],
         },
         "atmosphere": {
             "glow": [
@@ -474,24 +474,42 @@ def _svg_decor_circles(t, w, h):
     # 远景：大圆低透明度
     parts.append(f'<circle cx="{w*0.82}" cy="{h*0.12}" r="55" fill="{p["accent"]}" opacity="{op*0.06}"/>')
     parts.append(f'<circle cx="{w*0.15}" cy="{h*0.88}" r="45" fill="{p["cyan"]}" opacity="{op*0.05}"/>')
-    # 中景：圆环
-    for i in range(3):
-        cx = w * (0.72 + i * 0.10)
+    # 中景：圆环（4个，更丰富）
+    for i in range(4):
+        cx = w * (0.72 + i * 0.08)
         cy = h * (0.15 + (i % 2) * 0.55)
         r = 28 + i * 18
         color = p["accent"] if i % 2 == 0 else p["cyan"]
         parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{color}" stroke-width="1" opacity="{op}"/>')
     parts.append(f'<circle cx="{w*0.85}" cy="{h*0.2}" r="40" fill="none" stroke="{p["gold"]}" stroke-width="0.6" opacity="{op * 0.5}"/>')
-    # 近景：小圆点
-    for i in range(4):
-        dx = w * (0.65 + i * 0.08)
+    # 近景：小圆点（5个）
+    for i in range(5):
+        dx = w * (0.65 + i * 0.07)
         dy = h * (0.90 - i * 0.04)
         parts.append(f'<circle cx="{dx}" cy="{dy}" r="2.5" fill="{p["accent"]}" opacity="{op*0.5}"/>')
-    # 近景：小菱形
-    dx, dy = w*0.88, h*0.42
-    ds = 8
-    pts = f"{dx},{dy-ds} {dx+ds},{dy} {dx},{dy+ds} {dx-ds},{dy}"
-    parts.append(f'<polygon points="{pts}" fill="none" stroke="{p["gold"]}" stroke-width="0.7" opacity="{op*0.4}"/>')
+    # 近景：小菱形（3个，多位置）
+    for dx, dy, ds, c in [(w*0.88, h*0.42, 8, p["gold"]), (w*0.12, h*0.35, 6, p["cyan"]), (w*0.75, h*0.78, 5, p["accent"])]:
+        pts = f"{dx},{dy-ds} {dx+ds},{dy} {dx},{dy+ds} {dx-ds},{dy}"
+        parts.append(f'<polygon points="{pts}" fill="none" stroke="{c}" stroke-width="0.7" opacity="{op*0.4}"/>')
+    # 近景：曲线（2条）
+    parts.append(
+        f'<path d="M{w*0.6},{h*0.75} Q{w*0.75},{h*0.68} {w*0.9},{h*0.72}" '
+        f'fill="none" stroke="{p["cyan"]}" stroke-width="0.8" opacity="{op * 0.4}"/>'
+    )
+    parts.append(
+        f'<path d="M{w*0.55},{h*0.35} Q{w*0.68},{h*0.28} {w*0.82},{h*0.32}" '
+        f'fill="none" stroke="{p["gold"]}" stroke-width="0.6" opacity="{op * 0.3}"/>'
+    )
+    # 近景：十字星（3个）
+    for sx, sy, sl, sc in [(w*0.78, h*0.08, 12, p["gold"]), (w*0.22, h*0.15, 8, p["cyan"]), (w*0.92, h*0.55, 10, p["accent"])]:
+        parts.append(f'<line x1="{sx-sl}" y1="{sy}" x2="{sx+sl}" y2="{sy}" stroke="{sc}" stroke-width="0.5" opacity="{op*0.6}"/>')
+        parts.append(f'<line x1="{sx}" y1="{sy-sl}" x2="{sx}" y2="{sy+sl}" stroke="{sc}" stroke-width="0.5" opacity="{op*0.6}"/>')
+    # 近景：网格点阵（3x3）
+    for gx in range(3):
+        for gy in range(3):
+            px = w * (0.68 + gx * 0.08)
+            py = h * (0.50 + gy * 0.10)
+            parts.append(f'<circle cx="{px}" cy="{py}" r="1" fill="{t["text"]["secondary"]}" opacity="{op*0.3}"/>')
     return "\n    ".join(parts)
 
 
