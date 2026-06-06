@@ -24,14 +24,15 @@ from .client import WeChatClient
 from .converter import convert_markdown, inspect_article
 
 
-def generate_cover_svg(title, subtitle="", author="", theme="claude-warm", output_path=""):
+def generate_cover_svg(title, subtitle="", author="", theme="claude-warm", output_path="", svg_theme=""):
     from scripts.elements.svg_themes import render_svg_cover, save_svg, match_theme
 
-    theme_map = {
-        "claude-warm": "warm",
-        "claude-clean": "minimal",
-    }
-    theme_name = theme_map.get(theme, "warm")
+    # 优先使用显式指定的SVG主题，否则根据文章内容自动匹配
+    if svg_theme:
+        theme_name = svg_theme
+    else:
+        # 用标题+副标题做情绪匹配
+        theme_name = match_theme(f"{title} {subtitle}")
 
     svg = render_svg_cover(title, subtitle, author, theme_name=theme_name)
 
@@ -45,7 +46,7 @@ def generate_cover_svg(title, subtitle="", author="", theme="claude-warm", outpu
     return output_path
 
 
-def generate_cover_png(title, subtitle="", author="", theme="claude-warm", output_path=""):
+def generate_cover_png(title, subtitle="", author="", theme="claude-warm", output_path="", svg_theme=""):
     try:
         from PIL import Image, ImageDraw, ImageFont
     except ImportError:

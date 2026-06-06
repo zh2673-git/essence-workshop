@@ -383,6 +383,20 @@ python -m scripts.pipelines.wechat.publish article.md --check-only --skip-image-
 | Canvas动画 | Canvas → GIF |
 | 交互元素 | 降级为静态截图（PNG） |
 
+**配图主题选择**：SVG 配图支持 7 套视觉主题（dark/warm/minimal/nature/ink/cyber/indigo），根据文章内容自动匹配。生成配图时调用 `render_svg_cover(..., theme_name="主题名")` 或 `render_svg_card(..., theme_name="主题名")` 等，`theme_name` 由 `match_theme(标题+副标题)` 自动确定，也可手动指定。
+
+| 配图主题 | 情绪关键词 | 适用场景 |
+|---------|-----------|---------|
+| dark（深空） | 技术、编程、AI、工程 | 技术类 |
+| warm（暖阳） | 温暖、生活、教育、成长 | 生活/情感类 |
+| minimal（极简） | 极简、设计、美学、禅 | 设计/哲学类 |
+| nature（自然） | 自然、生态、中医、养生 | 中医/自然类 |
+| ink（水墨） | 水墨、国风、传统、诗词 | 传统文化类 |
+| cyber（赛博） | 赛博、未来、黑客、Web3 | 科技前沿类 |
+| indigo（靛蓝） | 认知、思维、本质、深度 | 认知/思维类 |
+
+> 排版主题和配图主题独立选择。例如：essence 排版 + ink 配图（国风知识文章），或 claude-warm 排版 + nature 配图（中医养生文章）。
+
 ### 步骤W5：图文间距检查 + 质量自检
 
 | 检查项 | 标准 | 处理方式 |
