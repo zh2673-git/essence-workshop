@@ -89,25 +89,25 @@ THEMES = {
             '"PingFang SC","Noto Sans SC",sans-serif;'
             "font-size:15px;line-height:1.8;color:#2C2C2C;"
         ),
-        "h1": "font-size:20px;font-weight:700;color:#1A1A1A;margin:32px 0 20px;line-height:1.5;letter-spacing:0.02em;",
-        "h2": "font-size:17px;font-weight:600;color:#1A1A1A;margin:28px 0 16px;line-height:1.5;padding-bottom:6px;border-bottom:1px solid #E8E5E0;",
-        "h3": "font-size:15px;font-weight:600;color:#444;margin:20px 0 10px;",
-        "h4": "font-size:15px;font-weight:600;color:#555;margin:14px 0 8px;",
-        "p": "margin:0 0 28px;color:#2C2C2C;line-height:1.8;",
-        "blockquote": "border-left:3px solid #C96442;background:linear-gradient(135deg,#FFF8F3,#FEFCF9);margin:24px 0;padding:18px 22px;border-radius:0 8px 8px 0;color:#5A4A3A;font-size:14px;line-height:1.8;",
-        "ul": "margin:12px 0;padding-left:22px;color:#2C2C2C;",
-        "ol": "margin:12px 0;padding-left:22px;color:#2C2C2C;",
-        "li": "margin:6px 0;line-height:1.8;",
-        "strong": "font-weight:700;color:#1A1A1A;background:linear-gradient(to top,rgba(201,100,66,0.15) 40%,transparent 40%);padding:0 2px;",
-        "em": "font-style:italic;color:#8C7A6A;",
-        "a": "color:#C96442;text-decoration:none;border-bottom:1px solid rgba(201,100,66,0.3);",
+        "h1": "font-size:20px;font-weight:700;margin:32px 0 20px;",
+        "h2": "font-size:17px;font-weight:600;margin:28px 0 16px;padding-bottom:6px;border-bottom:1px solid #E8E5E0;",
+        "h3": "font-weight:600;margin:20px 0 10px;",
+        "h4": "font-weight:600;margin:14px 0 8px;",
+        "p": "margin-bottom:28px;",
+        "blockquote": "border-left:3px solid #C96442;background:#FFF8F3;padding:18px 22px;margin:24px 0;",
+        "ul": "padding-left:22px;",
+        "ol": "padding-left:22px;",
+        "li": "margin:6px 0;",
+        "strong": "background:linear-gradient(to top,rgba(201,100,66,0.15) 40%,transparent 40%);",
+        "em": "font-style:italic;",
+        "a": "color:#C96442;",
         "hr": "border:none;border-top:1px solid #E8E5E0;margin:32px 0 28px;",
-        "code": "background:#F5F0EB;color:#8B5E3C;padding:1px 5px;border-radius:3px;font-size:0.88em;",
-        "pre": "background:#2D2A26;color:#E8E2DA;padding:16px 20px;border-radius:8px;overflow-x:auto;margin:20px 0;font-size:14px;",
-        "img": "max-width:100%;height:auto;border-radius:4px;margin:10px 0;",
+        "code": "background:#F5F0EB;padding:1px 5px;font-size:0.88em;",
+        "pre": "background:#F5F0EB;padding:16px 20px;overflow-x:auto;margin:20px 0;font-size:14px;",
+        "img": "max-width:100%;height:auto;",
         "table": "width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;",
-        "th": "background:#F5F0EB;font-weight:600;padding:8px 12px;border:1px solid #E8E5E0;text-align:left;color:#1A1A1A;",
-        "td": "padding:8px 12px;border:1px solid #E8E5E0;color:#2C2C2C;",
+        "th": "background:#F5F0EB;padding:8px 12px;border:1px solid #E8E5E0;text-align:left;",
+        "td": "padding:8px 12px;border:1px solid #E8E5E0;",
     },
 }
 
@@ -408,9 +408,9 @@ class _StyleInjector(HTMLParser):
 
 def _get_blockquote_p_style(theme):
     styles = {
-        "claude-warm": "margin:0 0 8px;color:#3D3A36;line-height:1.8;",
-        "claude-clean": "margin:0 0 8px;color:#1A1A1A;line-height:1.8;",
-        "essence": "margin:0 0 6px;color:#5A4A3A;line-height:1.8;",
+        "claude-warm": "margin:0 0 8px;line-height:1.8;",
+        "claude-clean": "margin:0 0 8px;line-height:1.8;",
+        "essence": "margin:0 0 6px;line-height:1.8;",
     }
     return styles.get(theme, styles["essence"])
 
@@ -419,16 +419,16 @@ def _get_intro_config(theme):
     """返回引言装饰配置，如果不需要引言装饰则返回 None。"""
     configs = {
         "essence": {
-            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:8px;background:linear-gradient(135deg,#FFF8F3 0%,#FEFCF9 100%);border-left:3px solid #C96442;",
-            "text": "margin:0;color:#5A4A3A;font-size:14px;line-height:1.8;letter-spacing:0.02em;",
+            "wrapper": "margin:0 0 28px;padding:20px 24px;border-left:3px solid #C96442;background:#FFF8F3;",
+            "text": "margin:0;line-height:1.8;",
         },
         "claude-warm": {
-            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:8px;background:linear-gradient(135deg,#FEFCF9 0%,#FAF7F2 100%);border-left:3px solid #C96442;",
-            "text": "margin:0;color:#3D3A36;font-size:14px;line-height:1.8;",
+            "wrapper": "margin:0 0 28px;padding:20px 24px;border-left:3px solid #C96442;background:#FEFCF9;",
+            "text": "margin:0;line-height:1.8;",
         },
         "claude-clean": {
-            "wrapper": "margin:0 0 28px;padding:20px 24px;border-radius:6px;background:#FEFEFE;border-left:3px solid #C96442;",
-            "text": "margin:0;color:#1A1A1A;font-size:14px;line-height:1.8;",
+            "wrapper": "margin:0 0 28px;padding:20px 24px;border-left:3px solid #C96442;background:#FEFEFE;",
+            "text": "margin:0;line-height:1.8;",
         },
     }
     return configs.get(theme, configs["essence"])
@@ -464,6 +464,7 @@ def apply_inline_styles(html, theme="essence", brand_spec_path=None):
 # 从外层 section 继承的属性，子元素无需重复声明
 _INHERITED_PROPS_CLEAN = [
     'color:#37352F', 'color:#2C2C2C', 'color:#3D3A36', 'color:#1A1A1A',
+    'color:#1F1D1A', 'color:#444', 'color:#555',
     'line-height:1.8',
 ]
 
@@ -488,8 +489,8 @@ _GRADIENT_SHORTEN = [
 ]
 
 # 引言 section 渐变背景 → 纯色（微信渲染差异极小）
+# 注意：essence 主题已直接使用纯色，此处仅保留 warm 的映射
 _INTRO_GRADIENT_TO_SOLID = [
-    ('background:linear-gradient(135deg,#FFF8F3 0%,#FEFCF9 100%)', 'background:#FFF8F3'),
     ('background:linear-gradient(135deg,#FEFCF9 0%,#FAF7F2 100%)', 'background:#FEFCF9'),
 ]
 

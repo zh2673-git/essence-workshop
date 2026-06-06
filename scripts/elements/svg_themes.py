@@ -109,13 +109,13 @@ THEMES = {
             "warn": "#B86030",
         },
         "text": {
-            "primary": "#2A1608",
-            "secondary": "#5A3E22",
-            "dim": "rgba(42,22,8,0.6)",
+            "primary": "#1A0800",
+            "secondary": "#3A1E08",
+            "dim": "rgba(26,8,0,0.55)",
             "inverse": "#DCC8A8",
         },
         "card": {
-            "fill": "rgba(255,255,255,0.5)",
+            "fill": "rgba(255,255,255,0.75)",
             "border": "rgba(184,96,48,0.15)",
             "radius": 24,
             "shadow": "rgba(184,96,48,0.10)",
@@ -166,7 +166,7 @@ THEMES = {
             "inverse": "#E8E8EE",
         },
         "card": {
-            "fill": "rgba(255,255,255,0.4)",
+            "fill": "rgba(255,255,255,0.65)",
             "border": "rgba(42,42,64,0.08)",
             "radius": 16,
             "shadow": "rgba(42,42,64,0.06)",
@@ -270,7 +270,7 @@ THEMES = {
             "inverse": "#E8E2D6",
         },
         "card": {
-            "fill": "rgba(255,255,255,0.35)",
+            "fill": "rgba(255,255,255,0.55)",
             "border": "rgba(148,56,40,0.10)",
             "radius": 20,
             "shadow": "rgba(46,40,32,0.06)",
@@ -471,6 +471,10 @@ def _svg_decor_circles(t, w, h):
     parts = []
     p = t["palette"]
     op = t["decor"]["opacity"]
+    # 远景：大圆低透明度
+    parts.append(f'<circle cx="{w*0.82}" cy="{h*0.12}" r="55" fill="{p["accent"]}" opacity="{op*0.06}"/>')
+    parts.append(f'<circle cx="{w*0.15}" cy="{h*0.88}" r="45" fill="{p["cyan"]}" opacity="{op*0.05}"/>')
+    # 中景：圆环
     for i in range(3):
         cx = w * (0.72 + i * 0.10)
         cy = h * (0.15 + (i % 2) * 0.55)
@@ -478,6 +482,16 @@ def _svg_decor_circles(t, w, h):
         color = p["accent"] if i % 2 == 0 else p["cyan"]
         parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{color}" stroke-width="1" opacity="{op}"/>')
     parts.append(f'<circle cx="{w*0.85}" cy="{h*0.2}" r="40" fill="none" stroke="{p["gold"]}" stroke-width="0.6" opacity="{op * 0.5}"/>')
+    # 近景：小圆点
+    for i in range(4):
+        dx = w * (0.65 + i * 0.08)
+        dy = h * (0.90 - i * 0.04)
+        parts.append(f'<circle cx="{dx}" cy="{dy}" r="2.5" fill="{p["accent"]}" opacity="{op*0.5}"/>')
+    # 近景：小菱形
+    dx, dy = w*0.88, h*0.42
+    ds = 8
+    pts = f"{dx},{dy-ds} {dx+ds},{dy} {dx},{dy+ds} {dx-ds},{dy}"
+    parts.append(f'<polygon points="{pts}" fill="none" stroke="{p["gold"]}" stroke-width="0.7" opacity="{op*0.4}"/>')
     return "\n    ".join(parts)
 
 
@@ -485,16 +499,35 @@ def _svg_decor_dots(t, w, h):
     parts = []
     p = t["palette"]
     op = t["decor"]["opacity"]
+    # 远景：大圆低透明度
+    parts.append(f'<circle cx="{w*0.82}" cy="{h*0.15}" r="50" fill="{p["accent"]}" opacity="{op*0.06}"/>')
+    parts.append(f'<circle cx="{w*0.15}" cy="{h*0.85}" r="40" fill="{p["cyan"]}" opacity="{op*0.05}"/>')
+    # 中景：圆环
     for i in range(3):
         cx = w * (0.70 + i * 0.12)
         cy = h * (0.18 + (i % 2) * 0.50)
         r = 22 + i * 14
         parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{p["accent"]}" stroke-width="0.8" opacity="{op}"/>')
+    # 中景：曲线
     parts.append(
         f'<path d="M{w*0.6},{h*0.75} Q{w*0.75},{h*0.68} {w*0.9},{h*0.72}" '
         f'fill="none" stroke="{p["cyan"]}" stroke-width="0.8" opacity="{op * 0.4}"/>'
     )
+    parts.append(
+        f'<path d="M{w*0.55},{h*0.35} Q{w*0.68},{h*0.28} {w*0.82},{h*0.32}" '
+        f'fill="none" stroke="{p["gold"]}" stroke-width="0.6" opacity="{op * 0.3}"/>'
+    )
     parts.append(f'<circle cx="{w*0.82}" cy="{h*0.18}" r="30" fill="none" stroke="{p["cyan"]}" stroke-width="0.5" opacity="{op * 0.35}"/>')
+    # 近景：小点
+    for i in range(5):
+        dx = w * (0.62 + i * 0.07)
+        dy = h * (0.88 - i * 0.03)
+        parts.append(f'<circle cx="{dx}" cy="{dy}" r="2" fill="{p["accent"]}" opacity="{op*0.5}"/>')
+    # 近景：小菱形
+    dx, dy = w*0.88, h*0.42
+    ds = 6
+    pts = f"{dx},{dy-ds} {dx+ds},{dy} {dx},{dy+ds} {dx-ds},{dy}"
+    parts.append(f'<polygon points="{pts}" fill="{p["gold"]}" opacity="{op*0.4}"/>')
     return "\n    ".join(parts)
 
 
@@ -502,12 +535,17 @@ def _svg_decor_lines(t, w, h):
     parts = []
     p = t["palette"]
     op = t["decor"]["opacity"]
+    # 远景：大矩形低透明度
+    parts.append(f'<rect x="{w*0.70}" y="{h*0.06}" width="60" height="40" fill="{p["accent"]}" opacity="{op*0.05}" rx="2"/>')
+    parts.append(f'<rect x="{w*0.12}" y="{h*0.80}" width="50" height="35" fill="{p["cyan"]}" opacity="{op*0.04}" rx="2"/>')
+    # 中景：线框矩形
     for i in range(2):
         rx = w * (0.68 + i * 0.14)
         ry = h * (0.08 + (i % 2) * 0.40)
         rw = 40 + i * 16
         rh = 28 + i * 12
         parts.append(f'<rect x="{rx}" y="{ry}" width="{rw}" height="{rh}" fill="none" stroke="{p["accent"]}" stroke-width="0.8" opacity="{op * 0.7}" rx="2"/>')
+    # 中景：十字线
     for i in range(2):
         cx = w * (0.72 + i * 0.15)
         cy = h * (0.60 + (i % 2) * 0.20)
@@ -518,14 +556,21 @@ def _svg_decor_lines(t, w, h):
         parts.append(
             f'<line x1="{cx}" y1="{cy-size}" x2="{cx}" y2="{cy+size}" stroke="{p["cyan"]}" stroke-width="0.8" opacity="{op * 0.6}"/>'
         )
+    # 中景：长横线
+    parts.append(
+        f'<line x1="{w*0.6}" y1="{h*0.52}" x2="{w*0.95}" y2="{h*0.52}" stroke="{p["accent"]}" stroke-width="0.5" opacity="{op * 0.4}"/>'
+    )
+    # 近景：菱形
     dx = w * 0.82
     dy = h * 0.72
     ds = 14
     pts = f"{dx},{dy-ds} {dx+ds},{dy} {dx},{dy+ds} {dx-ds},{dy}"
     parts.append(f'<polygon points="{pts}" fill="none" stroke="{p["cyan"]}" stroke-width="0.7" opacity="{op * 0.45}"/>')
-    parts.append(
-        f'<line x1="{w*0.6}" y1="{h*0.52}" x2="{w*0.95}" y2="{h*0.52}" stroke="{p["accent"]}" stroke-width="0.5" opacity="{op * 0.4}"/>'
-    )
+    # 近景：小点
+    for i in range(3):
+        dx = w * (0.70 + i * 0.09)
+        dy = h * (0.92 - i * 0.03)
+        parts.append(f'<circle cx="{dx}" cy="{dy}" r="2" fill="{p["accent"]}" opacity="{op*0.4}"/>')
     return "\n    ".join(parts)
 
 
@@ -533,6 +578,10 @@ def _svg_decor_organic(t, w, h):
     parts = []
     p = t["palette"]
     op = t["decor"]["opacity"]
+    # 远景：大椭圆低透明度
+    parts.append(f'<ellipse cx="{w*0.78}" cy="{h*0.20}" rx="50" ry="30" fill="{p["gold"]}" opacity="{op*0.06}"/>')
+    parts.append(f'<ellipse cx="{w*0.18}" cy="{h*0.82}" rx="40" ry="25" fill="{p["accent"]}" opacity="{op*0.05}"/>')
+    # 中景：波浪曲线
     for i in range(2):
         cy = h * (0.20 + i * 0.50)
         amp = 20 + i * 10
@@ -544,6 +593,16 @@ def _svg_decor_organic(t, w, h):
         f'<path d="M{w*0.6},{h*0.85} Q{w*0.75},{h*0.78} {w*0.9},{h*0.82}" '
         f'fill="none" stroke="{p["accent"]}" stroke-width="1" opacity="{op * 0.5}"/>'
     )
+    # 近景：叶片形小点
+    for i in range(3):
+        dx = w * (0.72 + i * 0.08)
+        dy = h * (0.92 - i * 0.03)
+        parts.append(f'<circle cx="{dx}" cy="{dy}" r="3" fill="{p["gold"]}" opacity="{op*0.35}"/>')
+    # 近景：小弧线
+    parts.append(
+        f'<path d="M{w*0.80},{h*0.60} Q{w*0.86},{h*0.56} {w*0.92},{h*0.58}" '
+        f'fill="none" stroke="{p["accent"]}" stroke-width="0.8" opacity="{op*0.4}"/>'
+    )
     return "\n    ".join(parts)
 
 
@@ -551,17 +610,33 @@ def _svg_decor_brush(t, w, h):
     parts = []
     p = t["palette"]
     op = t["decor"]["opacity"]
+    # 远景：大墨晕
+    parts.append(f'<circle cx="{w*0.80}" cy="{h*0.15}" r="45" fill="{p["gold"]}" opacity="{op*0.08}"/>')
+    parts.append(f'<circle cx="{w*0.14}" cy="{h*0.85}" r="35" fill="{p["accent"]}" opacity="{op*0.06}"/>')
+    # 中景：墨点
     for i in range(2):
         cx = w * (0.72 + i * 0.15)
         cy = h * (0.18 + (i % 2) * 0.50)
         r = 20 + i * 12
         parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{p["gold"]}" opacity="{op * 0.12}"/>')
+    # 中景：笔触曲线
     parts.append(
         f'<path d="M{w*0.6},{h*0.5} Q{w*0.75},{h*0.42} {w*0.9},{h*0.48}" '
         f'fill="none" stroke="{p["gold"]}" stroke-width="1.2" opacity="{op * 0.6}" stroke-linecap="round"/>'
     )
+    parts.append(
+        f'<path d="M{w*0.55},{h*0.70} Q{w*0.70},{h*0.65} {w*0.85},{h*0.68}" '
+        f'fill="none" stroke="{p["accent"]}" stroke-width="0.8" opacity="{op * 0.4}" stroke-linecap="round"/>'
+    )
+    # 中景：圆环
     parts.append(f'<circle cx="{w*0.85}" cy="{h*0.15}" r="18" fill="none" stroke="{p["accent"]}" stroke-width="0.8" opacity="{op * 0.5}"/>')
+    # 近景：小方块（印章感）
     parts.append(f'<rect x="{w*0.82}" y="{h*0.72}" width="14" height="14" fill="{p["accent"]}" opacity="{op * 0.3}" rx="2"/>')
+    # 近景：小点
+    for i in range(3):
+        dx = w * (0.70 + i * 0.08)
+        dy = h * (0.90 - i * 0.03)
+        parts.append(f'<circle cx="{dx}" cy="{dy}" r="2" fill="{p["gold"]}" opacity="{op*0.4}"/>')
     return "\n    ".join(parts)
 
 
@@ -570,6 +645,15 @@ def _svg_decor_neon(t, w, h):
     p = t["palette"]
     op = t["decor"]["opacity"]
     hex_r = 24
+    # 远景：大六边形低透明度
+    pts_far = []
+    for j in range(6):
+        angle = math.pi / 3 * j - math.pi / 6
+        px = w * 0.82 + 40 * math.cos(angle)
+        py = h * 0.12 + 40 * math.sin(angle)
+        pts_far.append(f"{px:.1f},{py:.1f}")
+    parts.append(f'<polygon points="{" ".join(pts_far)}" fill="{p["accent"]}" opacity="{op*0.06}"/>')
+    # 中景：六边形
     for i in range(2):
         cx = w * (0.72 + i * 0.16)
         cy = h * (0.15 + (i % 2) * 0.55)
@@ -581,11 +665,21 @@ def _svg_decor_neon(t, w, h):
             pts.append(f"{px:.1f},{py:.1f}")
         points_str = " ".join(pts)
         parts.append(f'<polygon points="{points_str}" fill="none" stroke="{p["accent"]}" stroke-width="0.7" opacity="{op * 0.6}"/>')
+    # 中景：折线
     parts.append(
         f'<path d="M{w*0.65},{h*0.85} L{w*0.75},{h*0.85} L{w*0.80},{h*0.78} L{w*0.92},{h*0.78}" '
         f'fill="none" stroke="{p["accent"]}" stroke-width="0.6" opacity="{op * 0.4}"/>'
     )
     parts.append(f'<circle cx="{w*0.88}" cy="{h*0.2}" r="14" fill="none" stroke="{p["gold"]}" stroke-width="0.7" opacity="{op * 0.5}"/>')
+    # 近景：小点
+    for i in range(4):
+        dx = w * (0.68 + i * 0.07)
+        dy = h * (0.92 - i * 0.03)
+        parts.append(f'<circle cx="{dx}" cy="{dy}" r="2" fill="{p["accent"]}" opacity="{op*0.45}"/>')
+    # 近景：小三角
+    tx, ty = w*0.15, h*0.40
+    ts = 8
+    parts.append(f'<polygon points="{tx},{ty-ts} {tx+ts},{ty+ts} {tx-ts},{ty+ts}" fill="none" stroke="{p["gold"]}" stroke-width="0.6" opacity="{op*0.35}"/>')
     return "\n    ".join(parts)
 
 
@@ -805,6 +899,7 @@ def render_svg_cover(title, subtitle="", author="", theme_name="dark", width=900
   <line x1="{accent_x}" y1="{height - 50}" x2="{width - 50}" y2="{height - 50}" stroke="{p["accent"]}" stroke-width="0.6" opacity="0.25"/>
   <text x="{accent_x}" y="{height - 28}" font-family="{f["body"]}" font-size="12" fill="{tx["secondary"]}" opacity="0.8">{display_sub}</text>
   <circle cx="{width - 55}" cy="{height - 30}" r="3" fill="{p["accent"]}" opacity="0.5"/>
+  <rect x="0" y="{height - 4}" width="{width}" height="4" fill="{p["accent"]}" opacity="0.15"/>
 </svg>'''
     return svg
 
@@ -836,12 +931,15 @@ def render_svg_card(title, items, theme_name="dark", width=800, height=600):
     items_joined = "\n  ".join(items_svg)
     card_shape = svg_card(card_x, card_y, card_w, card_h, theme_name)
     divider = svg_line(card_x + 30, card_y + 75, card_x + card_w - 30, card_y + 75, theme_name, color=p["accent"], element="divider")
+    # 底部装饰条
+    bottom_bar = f'<rect x="{card_x}" y="{card_y+card_h-4}" width="{card_w}" height="4" rx="2" fill="{p["accent"]}" opacity="0.2"/>'
     svg = f'''{header}
   {decor_svg}
   {card_shape}
   <text x="{width/2}" y="{card_y+55}" text-anchor="middle" font-family="{f["display"]}" font-size="26" font-weight="700" fill="{tx["primary"]}">{display_title}</text>
   {divider}
   {items_joined}
+  {bottom_bar}
 </svg>'''
     return svg
 
@@ -869,6 +967,7 @@ def render_svg_stat(value, label, sublabel="", theme_name="dark", width=800, hei
   <text x="{width/2}" y="{height*0.40}" text-anchor="middle" font-family="{f["display"]}" font-size="80" font-weight="800" fill="{p["accent"]}">{display_value}</text>
   <text x="{width/2}" y="{height*0.55}" text-anchor="middle" font-family="{f["body"]}" font-size="22" fill="{tx["primary"]}">{display_label}</text>
   {sublabel_svg}
+  <rect x="{width*0.3}" y="{height*0.82}" width="{width*0.4}" height="3" rx="1.5" fill="{p["accent"]}" opacity="0.2"/>
 </svg>'''
     return svg
 
@@ -895,6 +994,7 @@ def render_svg_quote(text, source="", theme_name="dark", width=800, height=600):
   <text x="{width*0.1}" y="{height*0.30}" font-family="{f["display"]}" font-size="60" fill="{p["accent"]}" opacity="0.3">"</text>
   <text x="{width/2}" y="{height*0.48}" text-anchor="middle" font-family="{f["display"]}" font-size="24" font-weight="700" fill="{tx["primary"]}">{display_text}</text>
   {source_svg}
+  <rect x="{width*0.3}" y="{height*0.85}" width="{width*0.4}" height="3" rx="1.5" fill="{p["accent"]}" opacity="0.15"/>
 </svg>'''
     return svg
 

@@ -66,6 +66,18 @@
 | **演示** | 🟡 骨架可用 | 元素层→Reveal.js HTML，Markdown解析为简易正则，复杂格式待增强 |
 | **PPT** | 🟡 骨架可用 | 元素层→.pptx，基础标题+内容+图片页，SVG→PNG转换和品牌色待集成 |
 
+### 效果预览
+
+**公众号排版主题**（3 套排版 × 7 套 SVG 配图）
+
+<img src="docs/theme-preview/readme_preview.png" alt="公众号排版主题预览" width="800">
+
+**SVG 配图主题**（7 主题 × 4 类型 = 28 张示例）
+
+<img src="docs/theme-preview/svg_themes_preview.png" alt="SVG配图主题预览" width="800">
+
+> 在线预览：打开 [docs/theme-preview/index.html](docs/theme-preview/index.html) 可查看完整交互式对比
+
 ### 统一CLI
 
 ```bash
