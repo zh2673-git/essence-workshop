@@ -8,11 +8,20 @@
   - 指定尺寸: svg_to_png input.svg -o output.png --width 1200
 
 依赖: playwright (pip install playwright && playwright install chromium)
+
+注意:
+  - 必须使用本脚本进行 SVG→PNG 转换，不要使用 cairosvg
+  - cairosvg 不支持系统字体，会导致中文字体回退为衬线体
+  - 本脚本通过 Playwright 浏览器渲染，确保字体和样式正确
+  - bg_color 默认自动从 SVG 中提取背景色（bg1），无需手动指定
+  - 深色主题 SVG 会自动使用深色背景色，不会出现白色底色问题
 """
 
 import argparse
 import os
+import re
 import sys
+import time
 
 
 def check_playwright_available():
@@ -23,14 +32,42 @@ def check_playwright_available():
         return False
 
 
-def svg_to_png(svg_path, output_path, width=None, height=None, dpi=2, bg_color="#ffffff"):
+def _extract_bg_color(svg_content):
+    """从SVG内容中自动提取背景色（bg1），用于Playwright页面背景色。
+
+    优先级:
+      1. linearGradient 中第一个 stop 的 stop-color（最常见于本质工坊SVG）
+      2. <rect> 全屏填充色
+      3. 回退到 #ffffff
+    """
+    # 方式1: 提取 linearGradient 第一个 stop-color
+    # 本质工坊SVG的背景渐变第一个stop就是bg1
+    stops = re.findall(r'stop-color="([^"]+)"', svg_content)
+    if stops:
+        return stops[0]
+
+    # 方式2: 提取全屏rect的fill
+    rect_fill = re.search(r'<rect[^>]+width="100%[^>]*fill="([^"]+)"', svg_content)
+    if not rect_fill:
+        rect_fill = re.search(r'<rect[^>]+fill="([^"]+)"[^>]+width="100%', svg_content)
+    if rect_fill:
+        return rect_fill.group(1)
+
+    # 方式3: 回退白色
+    return "#ffffff"
+
+
+def svg_to_png(svg_path, output_path, width=None, height=None, dpi=2, bg_color=None, max_retries=3):
     from playwright.sync_api import sync_playwright
 
     with open(svg_path, "r", encoding="utf-8") as f:
         svg_content = f.read()
 
+    # 自动提取背景色（如果未显式指定）
+    if bg_color is None:
+        bg_color = _extract_bg_color(svg_content)
+
     if not width or not height:
-        import re
         vb_match = re.search(r'viewBox="([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)"', svg_content)
         w_match = re.search(r'width="([\d.]+)', svg_content)
         h_match = re.search(r'height="([\d.]+)', svg_content)
@@ -46,9 +83,8 @@ def svg_to_png(svg_path, output_path, width=None, height=None, dpi=2, bg_color="
         height = height or int(svg_h * dpi)
 
     # Force SVG to fill container by overriding width/height to 100%
-    import re as _re
-    svg_content = _re.sub(r'width="[^"]*"', 'width="100%"', svg_content, count=1)
-    svg_content = _re.sub(r'height="[^"]*"', 'height="100%"', svg_content, count=1)
+    svg_content = re.sub(r'width="[^"]*"', 'width="100%"', svg_content, count=1)
+    svg_content = re.sub(r'height="[^"]*"', 'height="100%"', svg_content, count=1)
 
     html = f"""<!DOCTYPE html>
 <html><head><style>
@@ -64,13 +100,26 @@ body {{ background:{bg_color}; margin:0; padding:0; }}
 </div>
 </body></html>"""
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": width, "height": height}, device_scale_factor=dpi)
-        page.set_content(html)
-        container = page.query_selector("#svg-container")
-        container.screenshot(path=output_path)
-        browser.close()
+    last_error = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch()
+                page = browser.new_page(viewport={"width": width, "height": height}, device_scale_factor=dpi)
+                page.set_content(html)
+                container = page.query_selector("#svg-container")
+                container.screenshot(path=output_path)
+                browser.close()
+            return  # 成功，直接返回
+        except Exception as e:
+            last_error = e
+            if attempt < max_retries:
+                wait_s = attempt * 2
+                print(f"  RETRY {attempt}/{max_retries}: SVG→PNG failed ({e}), retrying in {wait_s}s...")
+                time.sleep(wait_s)
+
+    # 所有重试都失败
+    raise RuntimeError(f"SVG→PNG failed after {max_retries} retries: {last_error}")
 
 
 def batch_convert(input_dir, output_dir, dpi=2, bg_color="#ffffff"):

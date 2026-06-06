@@ -607,7 +607,7 @@ def publish(file_path, theme="claude-warm", cover="", title="", author="",
                             svg_to_png(local_path, png_path, dpi=2)
                             upload_path = png_path
                         except Exception as svg_err:
-                            print(f"  WARNING: SVG convert failed (Playwright): {img_src} ({svg_err})")
+                            print(f"  ERROR: SVG convert failed after retries: {img_src} ({svg_err})")
                             continue
 
                     try:

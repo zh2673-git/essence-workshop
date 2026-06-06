@@ -33,6 +33,11 @@ from scripts.elements.shape_primitives import (
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# 主题定义
+# card.fill 设计约束:
+#   - 深色主题（dark/nature/cyber/indigo）: fill >= 0.10, border >= 0.15
+#     低于此值在深色背景上几乎不可见（渲染函数还会叠加 opacity 0.4）
+#   - 浅色主题（warm/minimal/ink）: fill >= 0.75, 无可见性问题
 THEMES = {
     "dark": {
         "name": "dark",
@@ -60,8 +65,8 @@ THEMES = {
             "inverse": "#2B2D42",
         },
         "card": {
-            "fill": "rgba(255,255,255,0.06)",
-            "border": "rgba(255,255,255,0.1)",
+            "fill": "rgba(255,255,255,0.10)",
+            "border": "rgba(255,255,255,0.15)",
             "radius": 32,
             "shadow": "rgba(239,100,97,0.12)",
         },
@@ -242,8 +247,8 @@ THEMES = {
             "inverse": "#3A5A40",
         },
         "card": {
-            "fill": "rgba(255,255,255,0.06)",
-            "border": "rgba(212,168,67,0.12)",
+            "fill": "rgba(255,255,255,0.10)",
+            "border": "rgba(212,168,67,0.18)",
             "radius": 28,
             "shadow": "rgba(212,168,67,0.08)",
         },
@@ -361,8 +366,8 @@ THEMES = {
             "inverse": "#1A1A3E",
         },
         "card": {
-            "fill": "rgba(255,255,255,0.05)",
-            "border": "rgba(255,77,141,0.15)",
+            "fill": "rgba(255,255,255,0.10)",
+            "border": "rgba(255,77,141,0.20)",
             "radius": 24,
             "shadow": "rgba(255,77,141,0.10)",
         },
@@ -420,8 +425,8 @@ THEMES = {
             "inverse": "#0F0C2A",
         },
         "card": {
-            "fill": "rgba(255,255,255,0.06)",
-            "border": "rgba(255,255,255,0.1)",
+            "fill": "rgba(255,255,255,0.12)",
+            "border": "rgba(255,255,255,0.18)",
             "radius": 32,
             "shadow": "rgba(201,100,66,0.12)",
         },
@@ -465,9 +470,12 @@ def get_theme(name):
 
 
 def match_theme(text):
-    scores = {name: 0 for name in THEMES}
-    for name, theme in THEMES.items():
-        for keyword in theme["mood"]:
+    # 素白(minimal)和水墨(ink)色调过素，不参与自动匹配
+    # 如需使用需显式指定 theme_name="minimal" 或 "ink"
+    excluded = {"minimal", "ink"}
+    scores = {name: 0 for name in THEMES if name not in excluded}
+    for name in scores:
+        for keyword in THEMES[name]["mood"]:
             scores[name] += text.count(keyword)
     best = max(scores, key=scores.get)
     if scores[best] == 0:
