@@ -72,6 +72,29 @@
 - ⚠️ GIF 不可省略，文件大小 ≥100KB
 - ⚠️ 每个主要章节开头放一张配图
 - ⚠️ 连续无图文字 ≤1500字
+- ⚠️ 不要生成封面图（封面由微信后台单独上传，不在正文中插入）
+
+### 配图渲染函数选择
+
+根据文章内容选择合适的渲染函数，不要每种类型各生成一张，而是根据内容需要灵活组合：
+
+| 内容类型 | 渲染函数 | 参数格式 | 容量 |
+|---------|---------|---------|------|
+| 列举要点 | `render_svg_card` | title, items[] | 7条×30字 |
+| 关键数据 | `render_svg_stat` | value, label, sublabel | 大数字+标签 |
+| 金句引言 | `render_svg_quote` | text, source | 200字引言 |
+| A vs B | `render_svg_compare` | title, leftTitle, rightTitle, left[], right[] | 5条×25字 |
+| 时间线 | `render_svg_timeline` | title, events[{year,title,desc}] | 6事件 |
+| 步骤流程 | `render_svg_steps` | title, steps[{title,desc}] | 6步 |
+| 概念聚焦 | `render_svg_focus` | keyword, explanation | 12字+60字 |
+| 数据图表 | `render_svg_chart` | title, data[{label,value}] | 6条柱 |
+| 总结清单 | `render_svg_summary` | title, items[] | 7条×35字 |
+| 问答 | `render_svg_qa` | question, answer | 40字+80字 |
+| **概念详解** | `render_svg_feature` | title, features[{keyword,desc}] | 4组：10字关键词+40字说明 |
+| **多维网格** | `render_svg_grid` | title, cards[{title,desc}] | 2×2或2×3网格 |
+| **趋势对比** | `render_svg_line_chart` | title, labels[], datasets[{name,values[]}] | 多数据线对比，最多3条线 |
+
+> **规划原则**：每篇文章至少覆盖3种不同渲染函数，优先使用 feature/grid 组合布局提高信息密度。
 
 ## 图文同步规划
 

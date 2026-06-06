@@ -383,7 +383,7 @@ python -m scripts.pipelines.wechat.publish article.md --check-only --skip-image-
 | Canvas动画 | Canvas → GIF |
 | 交互元素 | 降级为静态截图（PNG） |
 
-**配图主题选择**：SVG 配图支持 7 套视觉主题（dark/warm/minimal/nature/ink/cyber/indigo），根据文章内容自动匹配。生成配图时调用 `render_svg_cover(..., theme_name="主题名")` 或 `render_svg_card(..., theme_name="主题名")` 等，`theme_name` 由 `match_theme(标题+副标题)` 自动确定，也可手动指定。
+**配图主题选择**：SVG 配图支持 7 套视觉主题（dark/warm/minimal/nature/ink/cyber/indigo），根据文章内容自动匹配。生成配图时调用渲染函数并传入 `theme_name`，由 `match_theme(标题+副标题)` 自动确定，也可手动指定。
 
 | 配图主题 | 情绪关键词 | 适用场景 |
 |---------|-----------|---------|
@@ -396,6 +396,25 @@ python -m scripts.pipelines.wechat.publish article.md --check-only --skip-image-
 | indigo（靛蓝） | 认知、思维、本质、深度 | 认知/思维类 |
 
 > 排版主题和配图主题独立选择。例如：essence 排版 + ink 配图（国风知识文章），或 claude-warm 排版 + nature 配图（中医养生文章）。
+
+**配图渲染函数选择**：根据文章内容选择合适的渲染函数，不要每种类型各生成一张，而是根据内容需要灵活组合。每篇文章至少覆盖3种不同渲染函数。
+
+| 内容类型 | 渲染函数 | 参数格式 |
+|---------|---------|---------|
+| 列举要点 | `render_svg_card` | title, items[] |
+| 关键数据 | `render_svg_stat` | value, label, sublabel |
+| 金句引言 | `render_svg_quote` | text, source |
+| A vs B | `render_svg_compare` | title, leftTitle, rightTitle, left[], right[] |
+| 时间线 | `render_svg_timeline` | title, events[{year,title,desc}] |
+| 步骤流程 | `render_svg_steps` | title, steps[{title,desc}] |
+| 概念聚焦 | `render_svg_focus` | keyword, explanation |
+| 数据图表 | `render_svg_chart` | title, data[{label,value}] |
+| 总结清单 | `render_svg_summary` | title, items[] |
+| 问答 | `render_svg_qa` | question, answer |
+| **概念详解** | `render_svg_feature` | title, features[{keyword,desc}] |
+| **多维网格** | `render_svg_grid` | title, cards[{title,desc}] |
+
+> **注意**：不要生成封面图（`render_svg_cover` 是视频号标题卡用的），公众号封面由微信后台单独上传。
 
 ### 步骤W5：图文间距检查 + 质量自检
 

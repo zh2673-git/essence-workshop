@@ -51,6 +51,18 @@ TEMPLATE_SCHEMA = {
         "required": ["title", "items"],
         "limits": {"title": 15, "items": 4, "item_len": 18},
     },
+    "feature": {
+        "required": ["title", "features"],
+        "limits": {"title": 15, "features": 4, "keyword_len": 10, "desc_len": 40},
+    },
+    "grid": {
+        "required": ["title", "cards"],
+        "limits": {"title": 15, "cards": 6, "card_title_len": 10, "card_desc_len": 30},
+    },
+    "line_chart": {
+        "required": ["title", "labels", "datasets"],
+        "limits": {"title": 15, "labels": 8, "datasets": 3, "name_len": 8},
+    },
 }
 
 VALID_TYPES = set(TEMPLATE_SCHEMA.keys())
@@ -439,6 +451,103 @@ def _parse_summary(section):
     }
 
 
+def _parse_feature(section):
+    heading = section["heading"]
+    limits = TEMPLATE_SCHEMA["feature"]["limits"]
+    features = []
+    for c in section["content"]:
+        if c[0] == "bullet":
+            parts = c[1].split("：", 1)
+            if len(parts) < 2:
+                parts = c[1].split(":", 1)
+            if len(parts) >= 2:
+                features.append({
+                    "keyword": truncate(parts[0].strip(), limits["keyword_len"]),
+                    "desc": truncate(parts[1].strip(), limits["desc_len"]),
+                })
+            else:
+                features.append({
+                    "keyword": truncate(c[1], limits["keyword_len"]),
+                    "desc": "",
+                })
+    if not features:
+        for i, c in enumerate(section["content"][:4]):
+            features.append({
+                "keyword": truncate(c[1], limits["keyword_len"]),
+                "desc": "",
+            })
+    return {
+        "type": "feature",
+        "title": truncate(heading or "概念详解", limits["title"]),
+        "features": features[: limits["features"]],
+        "duration": max(8, len(features) * 4),
+    }
+
+
+def _parse_grid(section):
+    heading = section["heading"]
+    limits = TEMPLATE_SCHEMA["grid"]["limits"]
+    cards = []
+    for c in section["content"]:
+        if c[0] == "bullet":
+            parts = c[1].split("：", 1)
+            if len(parts) < 2:
+                parts = c[1].split(":", 1)
+            if len(parts) >= 2:
+                cards.append({
+                    "title": truncate(parts[0].strip(), limits["card_title_len"]),
+                    "desc": truncate(parts[1].strip(), limits["card_desc_len"]),
+                })
+            else:
+                cards.append({
+                    "title": truncate(c[1], limits["card_title_len"]),
+                    "desc": "",
+                })
+    if not cards:
+        for i, c in enumerate(section["content"][:6]):
+            cards.append({
+                "title": truncate(c[1], limits["card_title_len"]),
+                "desc": "",
+            })
+    return {
+        "type": "grid",
+        "title": truncate(heading or "多维网格", limits["title"]),
+        "cards": cards[: limits["cards"]],
+        "duration": max(8, len(cards) * 3),
+    }
+
+
+def _parse_line_chart(section):
+    heading = section["heading"]
+    limits = TEMPLATE_SCHEMA["line_chart"]["limits"]
+    labels = []
+    datasets = []
+    for c in section["content"]:
+        if c[0] == "bullet":
+            parts = c[1].split("|")
+            if len(parts) >= 2:
+                label = truncate(parts[0].strip(), limits["name_len"])
+                labels.append(label)
+                values = [v.strip() for v in parts[1:]]
+                for vi, v in enumerate(values):
+                    while len(datasets) <= vi:
+                        datasets.append({"name": f"数据{vi+1}", "values": []})
+                    try:
+                        datasets[vi]["values"].append(float(v))
+                    except ValueError:
+                        datasets[vi]["values"].append(0)
+    if not labels:
+        labels = ["Q1", "Q2", "Q3", "Q4"]
+        datasets = [{"name": "数据1", "values": [10, 25, 30, 45]}]
+    return {
+        "type": "line_chart",
+        "title": truncate(heading or "趋势对比", limits["title"]),
+        "labels": labels[: limits["labels"]],
+        "datasets": datasets[: limits["datasets"]],
+        "duration": 8,
+    }
+
+
 _TEMPLATE_PARSERS = {
     "title": _parse_title,
     "stat": _parse_stat,
@@ -451,6 +560,9 @@ _TEMPLATE_PARSERS = {
     "qa": _parse_qa,
     "compare": _parse_compare,
     "summary": _parse_summary,
+    "feature": _parse_feature,
+    "grid": _parse_grid,
+    "line_chart": _parse_line_chart,
 }
 
 
@@ -527,4 +639,32 @@ def validate_slide(slide):
     elif stype == "quote":
         if len(slide.get("text", "")) > limits["text"]:
             return False, f"text too long"
+    elif stype == "feature":
+        features = slide.get("features", [])
+        if len(features) > limits["features"]:
+            return False, f"too many features: {len(features)} > {limits['features']}"
+        for i, f in enumerate(features):
+            if len(f.get("keyword", "")) > limits["keyword_len"]:
+                return False, f"feature[{i}].keyword too long"
+            if len(f.get("desc", "")) > limits["desc_len"]:
+                return False, f"feature[{i}].desc too long"
+    elif stype == "grid":
+        cards = slide.get("cards", [])
+        if len(cards) > limits["cards"]:
+            return False, f"too many cards: {len(cards)} > {limits['cards']}"
+        for i, c in enumerate(cards):
+            if len(c.get("title", "")) > limits["card_title_len"]:
+                return False, f"card[{i}].title too long"
+            if len(c.get("desc", "")) > limits["card_desc_len"]:
+                return False, f"card[{i}].desc too long"
+    elif stype == "line_chart":
+        labels = slide.get("labels", [])
+        datasets = slide.get("datasets", [])
+        if len(labels) > limits["labels"]:
+            return False, f"too many labels: {len(labels)} > {limits['labels']}"
+        if len(datasets) > limits["datasets"]:
+            return False, f"too many datasets: {len(datasets)} > {limits['datasets']}"
+        for i, ds in enumerate(datasets):
+            if len(ds.get("name", "")) > limits["name_len"]:
+                return False, f"dataset[{i}].name too long"
     return True, "ok"

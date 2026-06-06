@@ -25,6 +25,7 @@ from .converter import convert_markdown, inspect_article
 
 
 def generate_cover_svg(title, subtitle="", author="", theme="claude-warm", output_path="", svg_theme=""):
+    """生成微信封面图（900×383，用于微信后台封面显示，非文章正文配图）"""
     from scripts.elements.svg_themes import render_svg_cover, save_svg, match_theme
 
     # 优先使用显式指定的SVG主题，否则根据文章内容自动匹配
@@ -47,6 +48,7 @@ def generate_cover_svg(title, subtitle="", author="", theme="claude-warm", outpu
 
 
 def generate_cover_png(title, subtitle="", author="", theme="claude-warm", output_path="", svg_theme=""):
+    """生成微信封面PNG（900×383，用于微信后台封面显示，非文章正文配图）"""
     try:
         from PIL import Image, ImageDraw, ImageFont
     except ImportError:
