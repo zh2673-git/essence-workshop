@@ -903,18 +903,34 @@ def _limit_references(md_content, min_refs=3, max_refs=5):
         ref_body = after_header
         after_section = ""
 
+    # ── 解析参考文献列表，构建编号→简要描述的映射 ──
     ref_lines = ref_body.split('\n')
     kept = []
+    removed_refs = {}  # {编号: 简要描述}
     count = 0
     for line in ref_lines:
         stripped = line.strip()
         if not stripped:
             kept.append(line)
             continue
-        if re.match(r'^[\-\*\d]+[.\s]', stripped) or re.match(r'^\[\d+\]', stripped):
+        ref_match = re.match(r'^\[(\d+)\]\s*(.+)', stripped)
+        if ref_match:
             count += 1
             if count <= max_refs:
                 kept.append(line)
+            else:
+                # 超限参考文献：提取简要描述（作者+书名/文章名，截取前20字）
+                desc = ref_match.group(2).strip()
+                desc = re.sub(r'^\d+\.\s*', '', desc)
+                short_desc = desc[:20] + ('…' if len(desc) > 20 else '')
+                removed_refs[int(ref_match.group(1))] = short_desc
+        elif re.match(r'^[\-\*\d]+[.\s]', stripped):
+            count += 1
+            if count <= max_refs:
+                kept.append(line)
+            else:
+                short_desc = stripped[:20] + ('…' if len(stripped) > 20 else '')
+                removed_refs[count] = short_desc
         else:
             kept.append(line)
 
@@ -922,6 +938,20 @@ def _limit_references(md_content, min_refs=3, max_refs=5):
         return md_content
 
     new_ref_body = '\n'.join(kept)
+
+    # ── 处理正文中超限的引用标记 [N] ──
+    # 将 [6], [7] 等替换为行内备注，如（见亚里士多德《形而上学》…）
+    def replace_overflow_citation(m):
+        num = int(m.group(1))
+        if num in removed_refs:
+            return f"（见{removed_refs[num]}）"
+        elif num > max_refs:
+            # 编号不在参考文献列表中（可能被合并），直接删除标记
+            return ""
+        return m.group(0)  # 保留范围内的引用
+
+    before_section = re.sub(r'\[(\d+)\]', replace_overflow_citation, before_section)
+
     return before_section + section_header + '\n' + new_ref_body + '\n' + after_section
 
 
