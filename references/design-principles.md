@@ -99,45 +99,40 @@
 
 | 必须项 | 标准 | 实现方式 |
 |-------|------|---------|
-| 最小对比度 4.5:1 | WCAG AA标准 | 品牌色与背景色自动检测 |
-| 每页最多3种颜色 | 视觉克制 | brand-spec.json rules.max_colors_per_slide |
-| 卡片必须有边框 | 避免漂浮感 | brand-spec.json rules.card_must_have_border |
-| 背景必须有纹理 | 避免纯色平面 | 页型CSS装饰中的 ::before/::after |
-| 标题使用display字体 | 层级区分 | brand-spec.json fonts.display |
+| 最小对比度 4.5:1 | WCAG AA标准 | 深色背景+白色文字天然满足 |
+| 每页最多3种颜色 | 视觉克制 | 背景+文字+强调色，强调色从内容推导 |
+| 卡片必须有边框 | 避免漂浮感 | CSS border 或 SVG stroke |
+| 背景必须有纹理 | 避免纯色平面 | CSS ::before/::after 装饰或 SVG 图案 |
+| 标题使用字重区分 | 层级区分 | font-weight 对比，而非颜色区分 |
 
-### 4.3 品牌色驱动一致性
+### 4.3 原则驱动配色
 
-所有管线（HTML/公众号/视频/PPTX）的颜色由 `brand-spec.json` 统一驱动：
+配色不依赖预定义模板或硬编码色值，而是遵循**设计原则**由大模型自主决策：
 
 ```
-brand-spec.json (单一状态源)
-    ├── colors.primary    → 主色（标题、强调线、按钮）
-    ├── colors.accent     → 强调色（关键点、交互高亮）
-    ├── colors.bg/fg      → 背景与前景
-    ├── derived.primary-dim → 主色淡化（卡片背景、装饰）
-    └── derived.accent-dim → 强调色淡化（高亮背景）
+设计原则（单一状态源）
+    ├── 背景：深色固定（#0A0A0A ~ #1A1A2E）
+    ├── 文字：高对比固定（#FFFFFF）
+    ├── 强调色：从内容推导
+    │   ├── 技术类 → 青/蓝系（如 #00D2FF, #4ECDC4）
+    │   ├── 人文类 → 暖金/琥珀系（如 #FFD700, #F0C27F）
+    │   ├── 自然类 → 绿/棕系（如 #8FAA6B, #C9A84C）
+    │   ├── 认知类 → 靛蓝/紫罗兰系（如 #7C83FF, #A78BFA）
+    │   └── 无线索 → #FFD700（金色跨领域通用）
+    └── 辅助色：灰色系（#B0B0B0, #333333）
 ```
 
-**跨管线映射**：
-
-| brand-spec字段 | HTML管线 | 公众号管线 | 视频管线 | PPTX管线 |
-|---------------|---------|-----------|---------|---------|
-| colors.primary | --primary CSS变量 | h3/blockquote颜色 | C.accent | 标题RGBColor |
-| colors.accent | --accent CSS变量 | 链接颜色 | C.gold | 副标题色 |
-| colors.bg | --bg CSS变量 | section背景 | C.bg1/2/3 | 幻灯片背景 |
-| colors.fg | --fg CSS变量 | 正文颜色 | C.white | 正文RGBColor |
-| derived.primary-dim | --primary-dim | blockquote背景 | — | — |
-| fonts.display | --font-display | h1字体 | — | font_title |
+**跨管线一致性**：所有管线（HTML/公众号/视频/PPTX）遵循同一套设计原则，强调色由内容推导而非代码配置。
 
 ### 4.4 检验清单
 
 生成任何输出前，对照以下清单：
 
-- [ ] 主色不是紫色系
+- [ ] 主色不是紫色渐变
 - [ ] 没有使用Emoji作为图标
 - [ ] 标题没有渐变色
 - [ ] 背景有纹理/装饰（不是纯色）
 - [ ] 卡片有边框
 - [ ] 文字与背景对比度 ≥ 4.5:1
 - [ ] 每页颜色种类 ≤ 3
-- [ ] 品牌色在所有管线中一致
+- [ ] 强调色与内容主题匹配

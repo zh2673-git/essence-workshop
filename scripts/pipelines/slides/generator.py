@@ -138,7 +138,7 @@ def load_template():
     return REVEAL_TEMPLATE
 
 
-def generate_slides(elements_dir, output_dir, title="演示", theme="white"):
+def generate_slides(elements_dir, output_dir, title="演示", theme="black"):
     print("[Slides Pipeline] Starting...")
 
     template = load_template()
@@ -187,7 +187,7 @@ def main():
     parser.add_argument("--elements", required=True, help="元素层目录路径")
     parser.add_argument("--output", required=True, help="输出目录路径")
     parser.add_argument("--title", default="演示", help="演示标题")
-    parser.add_argument("--theme", default="white", choices=VALID_THEMES, help="Reveal.js 主题")
+    parser.add_argument("--theme", default="black", choices=VALID_THEMES, help="Reveal.js 主题")
     args = parser.parse_args()
 
     generate_slides(args.elements, args.output, args.title, args.theme)

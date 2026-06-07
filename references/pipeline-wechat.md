@@ -26,29 +26,25 @@
 
 ### 主题系统
 
-**排版主题**（控制文章样式）：
+**原则驱动配色**：浅色背景 + 深色文字 + 内容推导强调色
 
-| 主题 | 风格 | 适用场景 |
-|------|------|---------|
-| **essence**（默认） | 简洁重点突出：加粗带橙色底线高亮、引言装饰、正文留白充足 | 知识类文章 |
-| claude-warm | 暖色系全装饰：暖橙底线高亮、奶油背景、暖色代码块 | 情感/生活类 |
-| claude-clean | 极简白底：冷蓝灰底线高亮、最小装饰、冷灰代码块 | 技术/学术类 |
+| 角色 | 默认值 | 用途 | 推导规则 |
+|------|--------|------|---------|
+| 背景 | `#FFFFFF` | 白色底色 | 固定浅色 |
+| 辅助背景 | `#F7F7F7` | 引言块、代码块底色 | 固定 |
+| 主文字 | `#333333` | 标题、正文 | 固定深色 |
+| 强调色 | `#D97757` | 关键词、装饰线、高亮 | 从内容推导（见下） |
+| 辅助色 | `#666666` | 副文字、说明 | 固定 |
+| 边框 | `#E8E8E8` | 分割线、卡片边框 | 固定 |
 
-**配图主题**（控制 SVG 图片风格，独立于排版主题）：
+**强调色推导规则**：
+- 技术类 → 青/蓝系（如 `#2980B9`, `#4ECDC4`）
+- 人文类 → 暖金/陶土系（如 `#D97757`, `#D4A017`）
+- 自然类 → 绿/棕系（如 `#27AE60`, `#8FAA6B`）
+- 认知类 → 靛蓝/紫罗兰系（如 `#7C83FF`, `#8E44AD`）
+- 无明确线索时默认 `#D97757`（陶土色跨领域通用）
 
-| 主题 | 情绪关键词 | 适用场景 |
-|------|-----------|---------|
-| dark（深空，默认） | 技术、编程、AI、工程 | 技术类文章 |
-| warm（暖阳） | 温暖、生活、教育、成长 | 生活/情感类 |
-| minimal（极简） | 极简、设计、美学、禅 | 设计/哲学类 |
-| nature（自然） | 自然、生态、中医、养生 | 中医/自然类 |
-| ink（水墨） | 水墨、国风、传统、诗词 | 传统文化类 |
-| cyber（赛博） | 赛博、未来、黑客、Web3 | 科技前沿类 |
-| indigo（靛蓝） | 认知、思维、本质、深度 | 认知/思维类 |
-
-> **自动匹配**：`match_theme()` 根据文章标题+副标题的情绪关键词自动选择配图主题。也可通过 `svg_theme` 参数手动指定。排版主题和配图主题独立选择，不绑定。
-
-> **引言装饰**：文章前25%位置的blockquote（≤120字）自动装饰为引言样式——渐变背景+左上角大号引号图标+独立section区块。
+> **配图生成**：由大模型直接生成 SVG 代码，不依赖预定义模板类。配色遵循上述原则驱动规则。
 
 ### 排版约束
 
@@ -58,6 +54,7 @@
 - ⚠️ 正文不用 # H1
 - ⚠️ 优先原生 Markdown 语法
 - ⚠️ emoji + 加粗辅助视觉
+- ⚠️ **文章中不得提及蒸馏方法论或本质工坊的工作流程**（如"三阶蒸馏""话题蒸馏方法""本质工坊的方法论"等），文章应专注于内容本身，让读者直接获得认知价值，而非了解文章是如何产出的
 
 ### 字数约束
 
@@ -70,55 +67,34 @@
 
 - ⚠️ 每篇文章必须7张配图（6 PNG + 1 GIF）
 - ⚠️ GIF 不可省略，文件大小 ≥100KB
+- ⚠️ **GIF 必须与6张PNG在内容和主题上都不雷同**——不仅视觉形式不同，展示的主题也不能与任何PNG重复（如PNG已有"三个大时代"时间线图，GIF就不能再做时间线动画，应选完全不同的主题如阴阳五行生克、概念关系网络等）
 - ⚠️ 每个主要章节开头放一张配图
 - ⚠️ 连续无图文字 ≤1500字
-- ⚠️ 不要生成封面图（封面由微信后台单独上传，不在正文中插入）
+- ⚠️ **封面图必须与正文中的7张配图完全不同**——封面图是独立设计的品牌视觉，不重复使用正文配图
+- ⚠️ 不要在正文中插入封面图（封面由微信后台单独上传）
 
-### 配图渲染函数选择
+### 配图生成方式
 
-根据文章内容选择合适的渲染函数，不要每种类型各生成一张，而是根据内容需要灵活组合：
+由大模型直接生成 SVG 代码，配色遵循原则驱动规则（浅色背景+深色文字+内容推导强调色）。
 
-| 内容类型 | 渲染函数 | 参数格式 | 容量 |
-|---------|---------|---------|------|
-| 列举要点 | `render_svg_card` | title, items[] | 7条×30字 |
-| 关键数据 | `render_svg_stat` | value, label, sublabel, trend, tags[] | 大数字+标签+趋势+标签组 |
-| 金句引言 | `render_svg_quote` | text, source, context, tags[] | 200字引言+上下文+标签组 |
-| A vs B | `render_svg_compare` | title, leftTitle, rightTitle, left[], right[] | 5条×25字 |
-| 时间线 | `render_svg_timeline` | title, events[{year,title,desc}] | 6事件 |
-| 步骤流程 | `render_svg_steps` | title, steps[{title,desc}] | 6步 |
-| 概念聚焦 | `render_svg_focus` | keyword, explanation, tags[], sub_keywords[] | 12字关键词+60字说明+标签+子关键词 |
-| 数据图表 | `render_svg_chart` | title, data[{label,value}] | 6条柱 |
-| 总结清单 | `render_svg_summary` | title, items[] | 7条×35字 |
-| 问答 | `render_svg_qa` | question, answer, key_points[] | 40字+80字+3要点 |
-| **概念详解** | `render_svg_feature` | title, features[{keyword,desc}] | 4组：10字关键词+40字说明 |
-| **多维网格** | `render_svg_grid` | title, cards[{title,desc}] | 2×2或2×3网格 |
-| **趋势对比** | `render_svg_line_chart` | title, labels[], datasets[{name,values[]}] | 多数据线对比，最多3条线 |
-| **英雄封面** | `render_svg_hero` | title, subtitle, tags[] | 20字标题+40字副标题+5标签×8字 |
-| **双栏对比** | `render_svg_duo_card` | title, leftTitle, rightTitle, left[], right[] | 左右各5条×25字 |
-| **列表详情** | `render_svg_list_detail` | title, items[{keyword,desc}] | 6组：10字关键词+40字描述 |
-| **仪表盘** | `render_svg_dashboard` | title, metrics[{value,label,trend}], barData[{label,value}], listItems[{keyword,desc,value}] | 4指标+8柱+5列表项，信息密度极高 |
-| **竖向柱状图** | `render_svg_bar_chart` | title, data[{label,value}], showValues | 12柱大画幅，网格参考线+数值标注 |
-| **指标网格** | `render_svg_metric_grid` | title, metrics[{value,label,sub,mini}], cols | 3×3网格，每卡含迷你图(up/down/bar/dot) |
-| **混排信息卡** | `render_svg_composite` | title, sections[{type,content}] | 概念+图表+卡片混排，信息密度极高 |
-| **逻辑推导链** | `render_svg_logic_flow` | title, steps[{label,desc,type}] | 前提→推理→结论链，带类型标记 |
-| **循环/辩证** | `render_svg_cycle` | title, phases[{label,desc}] | 环形布局展示循环/辩证过程 |
-| **散点图** | `render_svg_scatter` | title, data[{label,x,y,group}] | 二维分布/象限分析 |
-| **热力图** | `render_svg_heatmap` | title, data[{row,col,value}] | 矩阵关系/交叉分析 |
-| **自由绘制** | `render_svg_custom` | title, svg_body | LLM根据内容自由绘制SVG，模板仅提供框架 |
+**4种视觉原语**，大模型根据内容自行组合和变体：
+
+| 原语 | 核心动作 | 大模型自由度 |
+|------|---------|-------------|
+| **列举** | 并列呈现多项信息 | 列表、网格、卡片、编号等布局由大模型决定 |
+| **对比** | 两/多事物对照 | 左右分栏、上下对照、表格等布局由大模型决定 |
+| **聚焦** | 突出一个核心概念 | 居中大字、关键词+解释、引言等布局由大模型决定 |
+| **数据** | 量化信息可视化 | 柱状图、大数字、趋势线等布局由大模型决定 |
+
+> 大模型根据内容自动选择原语及其变体，无需预定义"时间线""流程图""问答"等子类型。相邻两张图必须使用不同原语。
 
 > **规划原则**：
-> 1. **以 `render_svg_custom` 自由绘制为主，预设模板为保底**——每张图优先考虑用custom根据内容定制绘制，只有当内容恰好是标准信息结构时才用预设模板
-> 2. **每篇文章至少5张使用 `render_svg_custom`**，最多2张用预设模板
-> 3. **禁止连续使用相同类型的渲染函数**——相邻两张图必须是不同类型
-> 4. **密度优先**：低密度模板（stat/focus/quote/qa）不超过2张，且仅用于核心金句/关键概念等必须聚焦的场景
-> 5. 低密度模板传入辅助信息（如stat的trend/focus的tags/quote的context）以充实画面，避免大面积留白
-> 6. **hero 仅用于封面，不在正文中使用**（hero卡片信息密度低，留白过多）
-> 7. **grid 类型文字容易溢出**，优先用 card 或 list_detail 替代；如必须用 grid，每项文字不超过15字
-> 8. **GIF动画**：使用HTML+CSS动画录制，分辨率800×500@2x，帧数≥8，帧延迟120ms，最终GIF不超过2MB
+> 1. **密度优先**：每张图信息密度要高，避免大面积留白
+> 2. **GIF动画**：使用HTML+CSS动画录制，分辨率800×500@2x，帧数≥8，帧延迟120ms，最终GIF不超过2MB
 
 ### 画幅比例
 
-渲染函数支持通过 `width`/`height` 参数选择画幅比例：
+SVG 配图由大模型生成时，根据内容选择合适的画幅：
 
 | 比例名 | 尺寸 | 适用场景 |
 |--------|------|---------|
@@ -126,40 +102,19 @@
 | wide | 1240×770 (16:10) | 宽幅封面/英雄区卡片 |
 | cinematic | 1280×720 (16:9) | 视频号封面 |
 
-```python
-from scripts.elements.svg_themes import ASPECT_RATIOS
-w, h = ASPECT_RATIOS["wide"]  # (1240, 770)
-render_svg_hero(title="标题", width=w, height=h)
-```
-
-### 渐变与装饰密度
-
-7个主题通过声明式参数控制渐变和装饰密度：
-
-| 主题 | density | gradient_accents | 效果 |
-|------|---------|-----------------|------|
-| dark | rich | True | 渐变色条+渐变标题+密集装饰 |
-| warm | normal | True | 暖色渐变点缀+适度装饰 |
-| minimal | sparse | False | 无渐变+极简装饰+大量留白 |
-| nature | normal | True | 自然渐变+有机装饰 |
-| ink | normal | False | 无渐变+水墨笔触装饰 |
-| cyber | rich | True | 霓虹渐变+密集装饰 |
-| indigo | rich | True | 星云渐变+密集装饰 |
-
 ## 图文同步规划
 
 **⚠️ 核心原则：先规划图文布局，再写文章。**
 
 **配图规划模板**：
 
-| 章节 | 配图类型 | 配图内容 | 方案 |
+| 章节 | 视觉原语 | 配图内容 | 方案 |
 |------|---------|---------|------|
-| 引言 | 概念示意图 | 核心概念关系 | SVG→PNG |
-| 模型一 | 动态过程图 | 变化循环 | SVG动画→GIF |
-| 模型二~五 | 详解图 | 四宫格/多栏对比 | SVG→PNG |
-| 启发式 | 列表图 | 一览 | SVG→PNG |
-| 场景应用 | 对比图 | 三栏对比 | SVG→PNG |
-| 根因 | 因果图/时间线 | 因果链 | SVG→PNG |
+| 引言 | 聚焦 | 核心概念 | SVG→PNG |
+| 核心模型 | 列举/对比 | 模型要素 | SVG→PNG |
+| 动态过程 | 列举 | 变化循环 | SVG动画→GIF |
+| 场景应用 | 对比 | 多场景对照 | SVG→PNG |
+| 根因/边界 | 聚焦/对比 | 因果链/反模式 | SVG→PNG |
 
 ## 执行步骤
 
@@ -194,7 +149,7 @@ GIF 必须使用 `scripts/elements/record_gif.py` 脚本录制，步骤如下：
 - **禁用CSS transition/animation**：`stepFrame(f)` 中直接设置元素的最终样式（opacity、transform、width等），不使用CSS过渡动画。原因：录制时每帧只等~100ms，但transition通常设500ms，会截取到中间过渡帧，产生半透明混合色闪烁
 - **禁用渐变和半透明色**：所有颜色必须用纯色（`#RRGGBB`），禁止 `rgba()`、`linear-gradient`、`radial-gradient`。原因：GIF仅支持256色，渐变和半透明在量化后产生严重色彩抖动和闪烁
 - `stepFrame(f)` 中通过 JS 直接控制元素显隐和样式变化
-- 保持背景与 SVG 主题一致（深色背景 + 品牌色装饰）
+- 保持背景与 SVG 主题一致（浅色背景 + 品牌色装饰）
 - 文字使用系统字体（Microsoft YaHei / PingFang SC）
 
 **GIF录制脚本要点**：
@@ -213,7 +168,7 @@ python -m scripts.cli publish article.md --auto-cover --author "公众号名"
 python -m scripts.pipelines.wechat.publish article.md --auto-cover --author "公众号名"
 
 # 仅转换不推送
-python -m scripts.pipelines.wechat.converter article.md --theme essence
+python -m scripts.pipelines.wechat.converter article.md
 ```
 
 ## 质量自检

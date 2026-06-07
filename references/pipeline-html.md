@@ -33,7 +33,7 @@ HTML交互管线是**能力最完整的管线**：
 | SVG动画 | SMIL/CSS动画直接嵌入 | 自动播放 |
 | Canvas动画 | `<canvas>` + JS 直接嵌入 | 完整动画 |
 | 音频元素 | `<audio>` 标签嵌入 | 播放控制 |
-| 交互模块 | `modules/` 实例化嵌入 | 完整交互 |
+| 交互模块 | 大模型按需生成HTML/CSS/JS | 完整交互 |
 | 数据元素 | JSON 驱动交互状态 | — |
 
 ## 课程骨架模板
@@ -50,12 +50,16 @@ HTML交互管线是**能力最完整的管线**：
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>课程标题</title>
   <style>
-    /* CSS变量：品牌色 */
+    /* CSS变量：原则驱动配色（深色背景+高对比文字+内容推导强调色） */
     :root {
-      --primary: #2563eb;
-      --secondary: #7c3aed;
-      --bg: #ffffff;
-      --text: #1f2937;
+      --primary: #FFD700;           /* 强调色，从内容推导 */
+      --accent: #FFD700;
+      --bg: #0A0A0A;                /* 深色背景，固定 */
+      --bg-alt: #141414;
+      --text: #FFFFFF;              /* 高对比文字，固定 */
+      --text-muted: #B0B0B0;
+      --border: rgba(255,215,0,0.2);
+      --card-bg: rgba(255,255,255,0.06);
     }
     /* 响应式布局 */
     /* 打印样式 */
@@ -75,17 +79,14 @@ HTML交互管线是**能力最完整的管线**：
 </html>
 ```
 
-## 标准交互模块
+## 交互组件
 
-从 `modules/` 目录加载，按需实例化：
+交互组件由大模型按需生成，不再使用预制modules。大模型根据内容需求直接生成HTML/CSS/JS代码嵌入到页面中。
 
-| 模块 | 路径 | 适用场景 | 说明 |
-|------|------|---------|------|
-| slope-navigator | modules/slope-navigator/ | 长文导航 | 坡度理解渐进式导航 |
-| three-stage-progress | modules/three-stage-progress/ | 三阶内容 | 是什么→为什么→怎么做 |
-| knowledge-graph | modules/knowledge-graph/ | 知识体系 | 可交互图谱浏览器 |
-| card-flip | modules/card-flip/ | 对比/正反 | 点击翻转 |
-| comparison-table | modules/comparison-table/ | 多维对比 | 排序/筛选 |
+**设计原则**：
+- 交互必须服务于认知目标（如：翻转卡片帮助理解正反，知识图谱帮助理解关系）
+- 不为交互而交互——纯展示内容不需要交互
+- 每个交互组件必须可键盘操作，有 `alt`/`aria` 标签
 
 ## HTML六维信息容器
 

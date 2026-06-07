@@ -2,10 +2,12 @@
 本质工坊 · 品牌素材自动提取
 从公众号文章或Markdown文件中自动提取品牌素材信息，生成brand-spec.json
 
-三步协议：
-  1. 问 - 扫描文章/Markdown中的品牌信号（标题、配色、关键词）
-  2. 提取 - 从信号中提炼品牌要素（颜色、字体、图标偏好）
-  3. 固化 - 生成brand-spec.json，供视频模板和图片生成使用
+配色策略：原则驱动——从内容推导强调色，默认深色方案
+  - 技术类 → 青/蓝系
+  - 人文类 → 暖金/琥珀系
+  - 自然类 → 绿/棕系
+  - 认知类 → 靛蓝/紫罗兰系
+  - 无明确线索时默认 #FFD700
 
 用法:
   python brand_extractor.py --url https://mp.weixin.qq.com/s/xxx
@@ -22,60 +24,85 @@ import sys
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_BRAND_SPEC = os.path.join(SCRIPT_DIR, "..", "..", "templates", "brand-spec.json")
 
-COLOR_PATTERNS = {
-    "暖色系": ["#D4763A", "#C96442", "#8B5E3C", "#F0C27F", "#FAF7F2"],
-    "冷色系": ["#00D2FF", "#4ECDC4", "#16213E", "#0F0F23", "#7A7A9E"],
-    "深色系": ["#0F0F23", "#1A1A2E", "#16213E", "#3C2415", "#111111"],
-    "浅色系": ["#FAF7F2", "#FDF6EC", "#FFFFFF", "#FAFAFA", "#F5F5F5"],
-    "自然系": ["#0D1F0D", "#142814", "#C9A84C", "#8FAA6B", "#6BA3A0"],
+# ─── 内容→强调色映射 ────────────────────────────────────────
+# 从文章关键词推导强调色系，而非硬编码固定色值
+
+ACCENT_PALETTES = {
+    "tech": {
+        "primary": "#00D2FF",
+        "accent": "#4ECDC4",
+        "success": "#4ECDC4",
+        "warning": "#FFD700",
+    },
+    "humanities": {
+        "primary": "#FFD700",
+        "accent": "#F0C27F",
+        "success": "#8FAA6B",
+        "warning": "#D4763A",
+    },
+    "nature": {
+        "primary": "#8FAA6B",
+        "accent": "#C9A84C",
+        "success": "#8FAA6B",
+        "warning": "#C9A84C",
+    },
+    "cognition": {
+        "primary": "#7C83FF",
+        "accent": "#A78BFA",
+        "success": "#4ECDC4",
+        "warning": "#FFD700",
+    },
+    "default": {
+        "primary": "#FFD700",
+        "accent": "#FFD700",
+        "success": "#4ECDC4",
+        "warning": "#FFD700",
+    },
 }
 
-KEYWORD_THEME_MAP = {
-    "技术": "dark",
-    "编程": "dark",
-    "代码": "dark",
-    "AI": "dark",
-    "工程": "dark",
-    "算法": "dark",
-    "数据": "dark",
-    "温暖": "warm",
-    "生活": "warm",
-    "教育": "warm",
-    "成长": "warm",
-    "阅读": "warm",
-    "写作": "warm",
-    "极简": "minimal",
-    "设计": "minimal",
-    "美学": "minimal",
-    "哲学": "minimal",
-    "自然": "nature",
-    "生态": "nature",
-    "环保": "nature",
-    "中医": "nature",
-    "养生": "nature",
+KEYWORD_CATEGORY_MAP = {
+    # tech
+    "技术": "tech", "编程": "tech", "代码": "tech", "AI": "tech",
+    "工程": "tech", "算法": "tech", "数据": "tech", "架构": "tech",
+    "开发": "tech", "软件": "tech", "API": "tech", "框架": "tech",
+    # humanities
+    "温暖": "humanities", "生活": "humanities", "教育": "humanities",
+    "成长": "humanities", "阅读": "humanities", "写作": "humanities",
+    "人文": "humanities", "历史": "humanities", "文化": "humanities",
+    # nature
+    "自然": "nature", "生态": "nature", "环保": "nature",
+    "中医": "nature", "养生": "nature", "本草": "nature",
+    "植物": "nature", "动物": "nature",
+    # cognition
+    "认知": "cognition", "思维": "cognition", "本质": "cognition",
+    "哲学": "cognition", "深度": "cognition", "智慧": "cognition",
+    "决策": "cognition", "逻辑": "cognition",
 }
 
 
-def detect_theme_from_content(text):
-    scores = {"dark": 0, "warm": 0, "minimal": 0, "nature": 0}
-    for keyword, theme in KEYWORD_THEME_MAP.items():
+def detect_content_category(text):
+    """从内容关键词推导内容类别。"""
+    scores = {"tech": 0, "humanities": 0, "nature": 0, "cognition": 0}
+    for keyword, category in KEYWORD_CATEGORY_MAP.items():
         count = text.count(keyword)
-        scores[theme] += count
+        scores[category] += count
     best = max(scores, key=scores.get)
     if scores[best] == 0:
-        return "dark"
+        return "default"
     return best
 
 
 def extract_brand_from_markdown(markdown, title=""):
-    theme = detect_theme_from_content(markdown)
+    """提取品牌素材，从内容推导强调色系。"""
 
-    heading_count = len(re.findall(r'^#{1,4}\s+', markdown, re.MULTILINE))
-    bullet_count = len(re.findall(r'^[-*]\s+', markdown, re.MULTILINE))
-    quote_count = len(re.findall(r'^>\s+', markdown, re.MULTILINE))
-    code_count = len(re.findall(r'```', markdown))
+    # 从内容推导类别和强调色
+    category = detect_content_category(markdown)
+    palette = ACCENT_PALETTES.get(category, ACCENT_PALETTES["default"])
 
     icon_prefs = []
+    code_count = len(re.findall(r'```', markdown))
+    quote_count = len(re.findall(r'^>\s+', markdown, re.MULTILINE))
+    bullet_count = len(re.findall(r'^[-*]\s+', markdown, re.MULTILINE))
     if code_count > 2 or "代码" in markdown or "编程" in markdown:
         icon_prefs.extend(["layers", "zap", "hexagon"])
     if quote_count > 2:
@@ -103,15 +130,15 @@ def extract_brand_from_markdown(markdown, title=""):
             "description": f"Auto-extracted from article: {title}"
         },
         "colors": {
-            "primary": COLOR_PATTERNS.get(theme + "系", COLOR_PATTERNS["冷色系"])[0],
-            "secondary": COLOR_PATTERNS.get(theme + "系", COLOR_PATTERNS["暖色系"])[1],
-            "accent": COLOR_PATTERNS.get(theme + "系", COLOR_PATTERNS["冷色系"])[2],
-            "background_dark": COLOR_PATTERNS["深色系"][0],
-            "background_light": COLOR_PATTERNS["浅色系"][0],
-            "text_primary": "#F0F0F0" if theme in ("dark", "nature") else "#3C2415",
-            "text_secondary": "#7A7A9E" if theme in ("dark", "nature") else "#8B7355",
-            "success": "#4ECDC4" if theme == "dark" else "#5B8C5A",
-            "warning": "#FFE66D" if theme == "dark" else "#D4763A",
+            "primary": palette["primary"],
+            "secondary": "#FFFFFF",
+            "accent": palette["accent"],
+            "background_dark": "#0A0A0A",
+            "background_light": "#141414",
+            "text_primary": "#FFFFFF",
+            "text_secondary": "#B0B0B0",
+            "success": palette["success"],
+            "warning": palette["warning"],
         },
         "fonts": {
             "heading": "'PingFang SC', 'Microsoft YaHei', sans-serif",
@@ -143,7 +170,8 @@ def extract_brand_from_markdown(markdown, title=""):
             "card_must_have_border": True,
             "background_must_have_texture": True
         },
-        "detected_theme": theme
+        "detected_category": category,
+        "detected_theme": "dark"
     }
 
     return brand_spec
@@ -181,7 +209,7 @@ def main():
 
     print("\n[2/3] Extracting brand signals...")
     brand_spec = extract_brand_from_markdown(markdown, title)
-    print(f"  Detected theme: {brand_spec['detected_theme']}")
+    print(f"  Detected category: {brand_spec.get('detected_category', 'default')}")
     print(f"  Primary color: {brand_spec['colors']['primary']}")
     print(f"  Icon preferences: {brand_spec['icons']['preferred']}")
 

@@ -4,14 +4,7 @@
 核心原则：微信草稿箱会剥离 <style> 标签和 class 属性，
 因此所有样式必须 100% 内联，绝不使用 CSS 类或 <style> 块。
 
-功能：
-- Markdown → 微信兼容 HTML（纯内联样式）
-- 3 套主题（essence / claude-warm / claude-clean）
-- brand-spec.json 动态主题生成
-- Frontmatter 解析
-- 标题去重
-- HTML 压缩（控制在 20000 字符限制内，通过精简属性值而非提取 CSS 类）
-- 文章检查（inspect）
+配色策略：原则驱动，默认深色方案，支持通过 brand-spec.json 覆盖。
 """
 
 import json
@@ -22,163 +15,79 @@ from html.parser import HTMLParser
 from markdown_it import MarkdownIt
 
 
-# ─── 主题定义 ───────────────────────────────────────────────
+# ─── 默认配色方案 ───────────────────────────────────────────
+# 浅色背景 + 深色文字 + 内容推导强调色
+# 微信公众号在手机端阅读，浅色方案更符合阅读习惯
+# accent 默认为暖陶土色（Claude风格），大模型可根据内容推导品牌强调色
+# 推导规则：技术→青蓝、人文→暖金/朱红、自然→绿棕、认知→靛蓝紫
 
-THEMES = {
-    "claude-warm": {
+DEFAULT_COLORS = {
+    "bg": "#FFFFFF",
+    "bg_alt": "#F7F7F7",
+    "bg_code": "#F5F5F5",
+    "fg": "#333333",
+    "accent": "#D97757",
+    "muted": "#666666",
+    "border": "#E8E8E8",
+}
+
+
+def _build_theme(colors=None):
+    """根据配色字典构建内联样式主题。"""
+    c = {**DEFAULT_COLORS, **(colors or {})}
+    return {
         "_root": (
             "max-width:680px;margin:0 auto;padding:24px 16px;"
-            "background:#FAF7F2;"
+            f"background:{c['bg']};"
             "font-family:-apple-system,BlinkMacSystemFont,"
             '"PingFang SC","Noto Sans SC",sans-serif;'
-            "font-size:16px;line-height:1.8;color:#3D3A36;"
+            f"font-size:16px;line-height:1.8;color:{c['fg']};"
         ),
-        "h1": "font-family:'Noto Serif SC',Georgia,serif;font-size:22px;font-weight:700;color:#1F1D1A;margin:36px 0 16px;line-height:1.4;",
-        "h2": "font-size:19px;font-weight:600;color:#1F1D1A;margin:36px 0 16px;padding-bottom:8px;border-bottom:1px solid #E8E2DA;",
-        "h3": "font-size:17px;font-weight:600;color:#8B5E3C;margin:20px 0 12px;",
-        "h4": "font-size:16px;font-weight:600;color:#8B5E3C;margin:14px 0 8px;",
-        "p": "margin:0 0 28px;color:#3D3A36;line-height:1.8;",
-        "blockquote": "border-left:3px solid #C96442;background:#FEFCF9;margin:28px 0;padding:16px 20px;border-radius:0 10px 10px 0;",
-        "ul": "margin:16px 0;padding-left:24px;color:#3D3A36;",
-        "ol": "margin:16px 0;padding-left:24px;color:#3D3A36;",
+        "h1": f"font-size:22px;font-weight:700;color:{c['accent']};margin:36px 0 16px;line-height:1.4;",
+        "h2": f"font-size:19px;font-weight:600;color:{c['accent']};margin:36px 0 16px;padding-bottom:8px;border-bottom:1px solid {c['border']};",
+        "h3": f"font-size:17px;font-weight:600;color:{c['accent']};margin:20px 0 12px;",
+        "h4": f"font-size:16px;font-weight:600;color:{c['muted']};margin:14px 0 8px;",
+        "p": f"margin:0 0 28px;color:{c['fg']};line-height:1.8;",
+        "blockquote": f"border-left:3px solid {c['accent']};background:{c['bg_alt']};margin:28px 0;padding:16px 20px;border-radius:0 10px 10px 0;color:{c['muted']};",
+        "ul": f"margin:16px 0;padding-left:24px;color:{c['fg']};",
+        "ol": f"margin:16px 0;padding-left:24px;color:{c['fg']};",
         "li": "margin:8px 0;line-height:1.8;",
-        "strong": "font-weight:700;color:#1F1D1A;background:linear-gradient(to top,rgba(212,118,58,0.18) 40%,transparent 40%);padding:0 2px;",
-        "em": "font-style:italic;color:#8C8278;",
-        "a": "color:#C96442;text-decoration:none;",
-        "hr": "border:none;border-top:1px solid #E8E2DA;margin:36px 0;",
-        "code": "background:#F5E6DC;color:#8B5E3C;padding:2px 6px;border-radius:4px;font-size:0.9em;",
-        "pre": "background:#F5E6DC;color:#3D3A36;padding:16px 20px;border-radius:10px;overflow-x:auto;margin:28px 0;",
+        "strong": f"font-weight:700;background:linear-gradient(to bottom,{c['bg']} 45%,rgba(217,119,87,0.15) 45%);",
+        "em": f"font-style:italic;color:{c['muted']};",
+        "a": f"color:{c['accent']};text-decoration:none;",
+        "hr": f"border:none;border-top:1px solid {c['border']};margin:36px 0;",
+        "code": f"background:{c['bg_code']};color:{c['accent']};padding:2px 6px;border-radius:4px;font-size:0.9em;",
+        "pre": f"background:{c['bg_code']};color:{c['fg']};padding:16px 20px;border-radius:10px;overflow-x:auto;margin:28px 0;",
         "img": "max-width:100%;height:auto;border-radius:6px;margin:12px 0;",
         "table": "width:100%;border-collapse:collapse;margin:20px 0;",
-        "th": "background:#F5E6DC;font-weight:600;padding:10px 14px;border:1px solid #E8E2DA;text-align:left;",
-        "td": "padding:10px 14px;border:1px solid #E8E2DA;color:#3D3A36;",
-    },
-    "claude-clean": {
-        "_root": (
-            "max-width:680px;margin:0 auto;padding:24px 16px;"
-            "background:#FFFFFF;"
-            "font-family:-apple-system,BlinkMacSystemFont,"
-            '"PingFang SC","Noto Sans SC",sans-serif;'
-            "font-size:15px;line-height:1.8;color:#37352F;"
-        ),
-        "h1": "font-size:21px;font-weight:700;color:#1A1A1A;margin:32px 0 14px;line-height:1.4;",
-        "h2": "font-size:18px;font-weight:600;color:#1A1A1A;margin:32px 0 14px;line-height:1.45;padding-bottom:8px;border-bottom:1px solid #ECECEC;",
-        "h3": "font-size:16px;font-weight:600;color:#1A1A1A;margin:20px 0 10px;",
-        "h4": "font-size:15px;font-weight:600;color:#1A1A1A;margin:14px 0 8px;",
-        "p": "margin:0 0 28px;color:#37352F;line-height:1.8;",
-        "blockquote": "border-left:3px solid #C96442;background:#FEFEFE;margin:24px 0;padding:16px 20px;border-radius:0 8px 8px 0;color:#1A1A1A;",
-        "ul": "margin:14px 0;padding-left:24px;color:#37352F;",
-        "ol": "margin:14px 0;padding-left:24px;color:#37352F;",
-        "li": "margin:6px 0;line-height:1.8;",
-        "strong": "font-weight:700;color:#1A1A1A;background:linear-gradient(to top,rgba(120,140,200,0.12) 40%,transparent 40%);padding:0 2px;",
-        "em": "font-style:italic;color:#9B9B9B;",
-        "a": "color:#C96442;text-decoration:none;border-bottom:1px solid #FBF4EF;",
-        "hr": "border:none;border-top:1px solid #ECECEC;margin:32px 0;",
-        "code": "background:#F0F0F2;color:#5A5A6A;padding:2px 6px;border-radius:4px;font-size:0.9em;",
-        "pre": "background:#F0F0F2;color:#2A2A2E;padding:16px 20px;border-radius:8px;overflow-x:auto;margin:24px 0;",
-        "img": "max-width:100%;height:auto;border-radius:4px;margin:10px 0;",
-        "table": "width:100%;border-collapse:collapse;margin:18px 0;font-size:14px;",
-        "th": "background:#FBF4EF;color:#1A1A1A;font-weight:600;padding:8px 12px;border:1px solid #ECECEC;text-align:left;",
-        "td": "padding:8px 12px;border:1px solid #ECECEC;color:#37352F;",
-    },
-    "essence": {
-        "_root": (
-            "max-width:680px;margin:0 auto;padding:28px 16px;"
-            "background:#FAFAF8;"
-            "font-family:-apple-system,BlinkMacSystemFont,"
-            '"PingFang SC","Noto Sans SC",sans-serif;'
-            "font-size:15px;line-height:1.8;color:#2C2C2C;"
-        ),
-        "h1": "font-size:20px;font-weight:700;margin:32px 0 20px;",
-        "h2": "font-size:17px;font-weight:600;margin:28px 0 16px;padding-bottom:6px;border-bottom:1px solid #E8E5E0;",
-        "h3": "font-weight:600;margin:20px 0 10px;",
-        "h4": "font-weight:600;margin:14px 0 8px;",
-        "p": "margin-bottom:28px;",
-        "blockquote": "border-left:3px solid #C96442;background:#FFF8F3;padding:18px 22px;margin:24px 0;",
-        "ul": "padding-left:22px;",
-        "ol": "padding-left:22px;",
-        "li": "margin:6px 0;",
-        "strong": "background:linear-gradient(to top,rgba(201,100,66,0.15) 40%,transparent 40%);",
-        "em": "font-style:italic;",
-        "a": "color:#C96442;",
-        "hr": "border:none;border-top:1px solid #E8E5E0;margin:32px 0 28px;",
-        "code": "background:#F5F0EB;padding:1px 5px;font-size:0.88em;",
-        "pre": "background:#F5F0EB;padding:16px 20px;overflow-x:auto;margin:20px 0;font-size:14px;",
-        "img": "max-width:100%;height:auto;",
-        "table": "width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;",
-        "th": "background:#F5F0EB;padding:8px 12px;border:1px solid #E8E5E0;text-align:left;",
-        "td": "padding:8px 12px;border:1px solid #E8E5E0;",
-    },
-}
+        "th": f"background:{c['bg_code']};font-weight:600;padding:10px 14px;border:1px solid {c['border']};text-align:left;color:{c['accent']};",
+        "td": f"padding:10px 14px;border:1px solid {c['border']};color:{c['fg']};",
+    }
+
+
+def _load_colors_from_brand_spec(brand_spec_path):
+    """从 brand-spec.json 加载配色，返回颜色字典。"""
+    if not brand_spec_path or not os.path.isfile(brand_spec_path):
+        return None
+    try:
+        with open(brand_spec_path, "r", encoding="utf-8") as f:
+            brand = json.load(f)
+        colors = brand.get("colors", {})
+        mapping = {
+            "bg": colors.get("background", DEFAULT_COLORS["bg"]),
+            "bg_alt": colors.get("background_alt", DEFAULT_COLORS["bg_alt"]),
+            "bg_code": DEFAULT_COLORS["bg_code"],
+            "fg": colors.get("text_primary", DEFAULT_COLORS["fg"]),
+            "accent": colors.get("primary", DEFAULT_COLORS["accent"]),
+            "muted": colors.get("text_secondary", DEFAULT_COLORS["muted"]),
+            "border": DEFAULT_COLORS["border"],
+        }
+        return mapping
+    except (json.JSONDecodeError, KeyError):
+        return None
 
 _FM_PATTERN = re.compile(r'^---\s*\n(.*?)\n---\s*\n', re.DOTALL)
 _H2_PATTERN = re.compile(r'^##\s+(.+)\s*$', re.MULTILINE)
-
-
-# ─── 品牌主题生成 ──────────────────────────────────────────
-
-def _hex_to_rgb(hex_color):
-    hex_color = hex_color.lstrip('#')
-    if len(hex_color) != 6:
-        return "0,0,0"
-    r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
-    return f"{r},{g},{b}"
-
-
-def build_theme_from_brand_spec(brand_spec_path):
-    if not brand_spec_path or not os.path.isfile(brand_spec_path):
-        return None
-
-    with open(brand_spec_path, "r", encoding="utf-8") as f:
-        spec = json.load(f)
-
-    colors = spec.get("colors", {})
-    derived = spec.get("derived", {})
-    fonts = spec.get("fonts", {})
-
-    primary = colors.get("primary", "#0F766E")
-    accent = colors.get("accent", "#E94560")
-    bg = colors.get("bg", "#FAFAFA")
-    fg = colors.get("fg", "#1A1A1A")
-    muted = colors.get("muted", "#7A7A9E")
-    border = colors.get("border", "#E5E7EB")
-
-    primary_rgb = derived.get("primary-rgb", _hex_to_rgb(primary))
-    accent_rgb = derived.get("accent-rgb", _hex_to_rgb(accent))
-
-    font_body = fonts.get("body", "-apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans SC',sans-serif")
-    font_display = fonts.get("display", "'Noto Serif SC',Georgia,serif")
-
-    primary_dim = derived.get("primary-dim", f"rgba({primary_rgb},0.08)")
-    accent_dim = derived.get("accent-dim", f"rgba({accent_rgb},0.08)")
-
-    theme = {
-        "_root": (
-            f"max-width:680px;margin:0 auto;padding:24px 16px;"
-            f"background:{bg};"
-            f"font-family:{font_body};"
-            f"font-size:16px;line-height:1.8;color:{fg};"
-        ),
-        "h1": f"font-family:{font_display};font-size:22px;font-weight:700;color:{fg};margin:36px 0 16px;line-height:1.4;",
-        "h2": f"font-size:19px;font-weight:600;color:{fg};margin:36px 0 16px;padding-bottom:8px;border-bottom:1px solid {border};",
-        "h3": f"font-size:17px;font-weight:600;color:{primary};margin:20px 0 12px;",
-        "p": f"margin:0 0 28px;color:{fg};line-height:1.8;",
-        "blockquote": f"border-left:3px solid {primary};background:{primary_dim};margin:28px 0;padding:16px 20px;border-radius:0 10px 10px 0;color:{fg};",
-        "ul": f"margin:16px 0;padding-left:24px;color:{fg};",
-        "ol": f"margin:16px 0;padding-left:24px;color:{fg};",
-        "li": "margin:8px 0;line-height:1.8;",
-        "strong": f"font-weight:600;color:{fg};",
-        "em": f"font-style:italic;color:{muted};",
-        "a": f"color:{primary};text-decoration:none;",
-        "hr": f"border:none;border-top:1px solid {border};margin:36px 0;",
-        "code": f"background:#2D2A26;color:#E8E2DA;padding:2px 6px;border-radius:4px;font-size:0.9em;",
-        "pre": "background:#2D2A26;color:#E8E2DA;padding:16px 20px;border-radius:10px;overflow-x:auto;margin:28px 0;",
-        "img": "max-width:100%;height:auto;border-radius:6px;margin:12px 0;",
-        "table": f"width:100%;border-collapse:collapse;margin:20px 0;",
-        "th": f"background:{primary_dim};font-weight:600;padding:10px 14px;border:1px solid {border};text-align:left;",
-        "td": f"padding:10px 14px;border:1px solid {border};color:{fg};",
-    }
-    return theme
 
 
 # ─── Frontmatter 解析 ──────────────────────────────────────
@@ -406,41 +315,22 @@ class _StyleInjector(HTMLParser):
         return ''.join(self.output)
 
 
-def _get_blockquote_p_style(theme):
-    styles = {
-        "claude-warm": "margin:0 0 8px;line-height:1.8;",
-        "claude-clean": "margin:0 0 8px;line-height:1.8;",
-        "essence": "margin:0 0 6px;line-height:1.8;",
+def _get_blockquote_p_style(theme=None):
+    return "margin:0 0 8px;line-height:1.8;"
+
+
+def _get_intro_config(theme=None):
+    """返回引言装饰配置。"""
+    return {
+        "wrapper": "margin:0 0 28px;padding:20px 24px;border-left:3px solid #D97757;background:#F7F7F7;",
+        "text": "margin:0;line-height:1.8;color:#666666;",
     }
-    return styles.get(theme, styles["essence"])
 
 
-def _get_intro_config(theme):
-    """返回引言装饰配置，如果不需要引言装饰则返回 None。"""
-    configs = {
-        "essence": {
-            "wrapper": "margin:0 0 28px;padding:20px 24px;border-left:3px solid #C96442;background:#FFF8F3;",
-            "text": "margin:0;line-height:1.8;",
-        },
-        "claude-warm": {
-            "wrapper": "margin:0 0 28px;padding:20px 24px;border-left:3px solid #C96442;background:#FEFCF9;",
-            "text": "margin:0;line-height:1.8;",
-        },
-        "claude-clean": {
-            "wrapper": "margin:0 0 28px;padding:20px 24px;border-left:3px solid #C96442;background:#FEFEFE;",
-            "text": "margin:0;line-height:1.8;",
-        },
-    }
-    return configs.get(theme, configs["essence"])
-
-
-def apply_inline_styles(html, theme="essence", brand_spec_path=None):
+def apply_inline_styles(html, theme=None, brand_spec_path=None):
     """将主题样式注入 HTML，100% 内联，不使用 <style> 或 class。"""
-    if brand_spec_path:
-        custom_theme = build_theme_from_brand_spec(brand_spec_path)
-        styles = custom_theme if custom_theme else THEMES.get(theme, THEMES["essence"])
-    else:
-        styles = THEMES.get(theme, THEMES["essence"])
+    colors = _load_colors_from_brand_spec(brand_spec_path)
+    styles = _build_theme(colors)
 
     # 清理已有的 <style> 和 class（来自 markdown_it 或其他来源）
     html = re.sub(r"<style[^>]*>[\s\S]*?</style>", "", html, flags=re.IGNORECASE)
@@ -448,9 +338,9 @@ def apply_inline_styles(html, theme="essence", brand_spec_path=None):
     # 构建不含 _root 的样式映射
     tag_styles = {k: v for k, v in styles.items() if not k.startswith("_")}
 
-    bq_p_style = _get_blockquote_p_style(theme)
+    bq_p_style = _get_blockquote_p_style()
     pre_code_style = "background:none;padding:0;color:inherit;font-size:inherit;"
-    intro_config = _get_intro_config(theme)
+    intro_config = _get_intro_config()
 
     injector = _StyleInjector(tag_styles, bq_p_style, pre_code_style, intro_config)
     injector.feed(html)
@@ -463,36 +353,17 @@ def apply_inline_styles(html, theme="essence", brand_spec_path=None):
 
 # 从外层 section 继承的属性，子元素无需重复声明
 _INHERITED_PROPS_CLEAN = [
-    'color:#37352F', 'color:#2C2C2C', 'color:#3D3A36', 'color:#1A1A1A',
-    'color:#1F1D1A', 'color:#444', 'color:#555',
+    'color:#333333', 'color:#666666',
     'line-height:1.8',
 ]
 
-# strong 半高亮：gradient 简化映射（微信不支持 box-shadow，必须保留 gradient）
-# 策略：缩短 gradient 参数（0.15→.15, transparent→transparent 等）
+# strong 高亮：半高淡橙色 gradient，参数简化映射
 _GRADIENT_SHORTEN = [
-    # essence: rgba(201,100,66,0.15) → rgba(201,100,66,.15)
-    (
-        'background:linear-gradient(to top,rgba(201,100,66,0.15) 40%,transparent 40%)',
-        'background:linear-gradient(to top,rgba(201,100,66,.15) 40%,transparent 40%)',
-    ),
-    # claude-warm
-    (
-        'background:linear-gradient(to top,rgba(212,118,58,0.18) 40%,transparent 40%)',
-        'background:linear-gradient(to top,rgba(212,118,58,.18) 40%,transparent 40%)',
-    ),
-    # claude-clean
-    (
-        'background:linear-gradient(to top,rgba(120,140,200,0.12) 40%,transparent 40%)',
-        'background:linear-gradient(to top,rgba(120,140,200,.12) 40%,transparent 40%)',
-    ),
+    ('0.15)', '.15)'),
 ]
 
-# 引言 section 渐变背景 → 纯色（微信渲染差异极小）
-# 注意：essence 主题已直接使用纯色，此处仅保留 warm 的映射
-_INTRO_GRADIENT_TO_SOLID = [
-    ('background:linear-gradient(135deg,#FEFCF9 0%,#FAF7F2 100%)', 'background:#FEFCF9'),
-]
+# 引言 section：浅色主题已使用纯色，无需渐变映射
+_INTRO_GRADIENT_TO_SOLID = []
 
 
 def _compress_html(html, char_limit=20000):
@@ -665,11 +536,11 @@ def _apply_compact_mode(html):
             style_val = re.sub(r'padding-bottom:[^;]+;?', '', style_val)
             style_val = re.sub(r'border-bottom:[^;]+;?', '', style_val)
             style_val = re.sub(r'line-height:[^;]+;?', '', style_val)
-            style_val = re.sub(r'color:#1A1A1A;?', '', style_val)
+            style_val = re.sub(r'color:#FFFFFF;?', '', style_val)
 
         # h3：移除 color（与根色接近）
         elif re.search(r'<h3\s*$', prefix, re.IGNORECASE):
-            style_val = re.sub(r'color:#444;?', '', style_val)
+            style_val = re.sub(r'color:#FFD700;?', '', style_val)
 
         # li：移除 line-height（从 ul/ol 继承）
         elif re.search(r'<li\s*$', prefix, re.IGNORECASE):
@@ -986,7 +857,7 @@ def _limit_images(md_content, max_png=6, max_gif=1):
 
 # ─── 主转换函数 ─────────────────────────────────────────────
 
-def convert_markdown(file_path="", markdown="", theme="essence",
+def convert_markdown(file_path="", markdown="", theme=None,
                      title="", author="", digest="", brand_spec_path=None):
     if file_path:
         with open(file_path, encoding="utf-8") as f:
@@ -1011,14 +882,11 @@ def convert_markdown(file_path="", markdown="", theme="essence",
     styled_html = apply_inline_styles(body_html, theme, brand_spec_path)
 
     # 获取背景色
-    theme_styles = THEMES.get(theme, THEMES["essence"])
-    if brand_spec_path:
-        custom_theme = build_theme_from_brand_spec(brand_spec_path)
-        if custom_theme:
-            theme_styles = custom_theme
+    colors = _load_colors_from_brand_spec(brand_spec_path) or DEFAULT_COLORS
+    theme_styles = _build_theme(colors)
     root_style = theme_styles.get("_root", "")
     bg_match = re.search(r'background:([^;]+)', root_style)
-    bg_color = bg_match.group(1).strip() if bg_match else "#FAFAFA"
+    bg_color = bg_match.group(1).strip() if bg_match else colors.get("bg", "#0A0A0A")
 
     # 外层容器 + 压缩（绝不使用 <style> 或 class）
     # 先加外层容器，再整体压缩——紧凑模式会在超限时自动移除它

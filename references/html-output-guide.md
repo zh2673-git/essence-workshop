@@ -47,21 +47,32 @@ HTML是唯一能同时承载六个信息维度的格式：
 
 ## CSS变量规范
 
+配色遵循**原则驱动**：深色背景 + 高对比文字 + 内容推导强调色。以下为默认值，强调色根据内容主题可调整：
+
 ```css
 :root {
-  --primary: #2563eb;
-  --primary-light: #60a5fa;
-  --secondary: #7c3aed;
-  --bg: #ffffff;
-  --bg-alt: #f3f4f6;
-  --text: #1f2937;
-  --text-light: #6b7280;
-  --border: #e5e7eb;
+  --primary: #FFD700;           /* 强调色，从内容推导：技术→青蓝，人文→暖金，自然→绿棕，默认→金色 */
+  --primary-dim: rgba(255,215,0,0.15);
+  --accent: #FFD700;            /* 同 primary */
+  --accent-dim: rgba(255,215,0,0.06);
+  --bg: #0A0A0A;                /* 深色背景，固定 */
+  --bg-alt: #141414;            /* 渐变辅色 */
+  --text: #FFFFFF;              /* 高对比文字，固定 */
+  --text-muted: #B0B0B0;        /* 辅助文字 */
+  --border: rgba(255,215,0,0.2);/* 边框色跟随强调色 */
+  --card-bg: rgba(255,255,255,0.06);
   --radius: 8px;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "SF Mono", "Fira Code", monospace;
+  --font-sans: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 ```
+
+**强调色推导规则**：
+- 技术类 → 青/蓝系（如 `#00D2FF`, `#4ECDC4`）
+- 人文类 → 暖金/琥珀系（如 `#FFD700`, `#F0C27F`）
+- 自然类 → 绿/棕系（如 `#8FAA6B`, `#C9A84C`）
+- 认知类 → 靛蓝/紫罗兰系（如 `#7C83FF`, `#A78BFA`）
+- 无明确线索时默认 `#FFD700`
 
 ## 交互模块接入规范
 

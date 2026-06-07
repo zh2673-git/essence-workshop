@@ -22,7 +22,7 @@ import time
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_TEMPLATE = os.path.join(SCRIPT_DIR, "template.html")
 
-VALID_STYLES = ["dark", "warm", "minimal", "nature"]
+VALID_STYLES = ["dark"]
 VALID_FORMATS = ["mp4", "mp4_60fps", "gif"]
 VALID_VISUAL_STYLES = ["tech", "edu", "compare", "philosophy"]
 

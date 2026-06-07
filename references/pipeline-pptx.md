@@ -89,7 +89,7 @@ slide.addText('标题', { x: 1, y: 1, fontSize: 32 });
 
 ```bash
 # 套用企业 .potx 模板
-python scripts/pptx_generator.py --elements output/elements/ --output output/pptx/ --template corporate.potx
+python -m scripts.cli pptx --elements output/elements/ --output output/pptx/ --template corporate.potx
 ```
 
 ## 执行步骤
@@ -113,9 +113,6 @@ python -m scripts.pipelines.pptx.generator --elements output/elements/ --output 
 
 # 套用企业模板
 python -m scripts.cli pptx --elements output/elements/ --output output/pptx/ --template corporate.potx
-
-# 指定品牌色
-python -m scripts.cli pptx --elements output/elements/ --output output/pptx/ --brand-spec brand-spec.json
 ```
 
 ## 输出

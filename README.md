@@ -68,15 +68,7 @@
 
 ### 效果预览
 
-**公众号排版主题**（3 套排版 × 7 套 SVG 配图）
-
-<img src="docs/theme-preview/readme_preview.png" alt="公众号排版主题预览" width="800">
-
-**SVG 配图主题**（7 主题 × 4 类型 = 28 张示例）
-
-<img src="docs/theme-preview/svg_themes_preview.png" alt="SVG配图主题预览" width="800">
-
-> 在线预览：打开 [docs/theme-preview/index.html](docs/theme-preview/index.html) 可查看完整交互式对比
+**原则驱动配色**：深色背景 + 高对比文字 + 内容推导强调色（默认黑底白字+金色强调）
 
 ### 统一CLI
 
@@ -85,7 +77,7 @@
 python -m scripts.cli publish article.md --auto-cover --author "公众号名"
 
 # 视频号（生产可用）
-python -m scripts.cli video output/slides.json --output output/video/ --style warm
+python -m scripts.cli video output/slides.json --output output/video/
 
 # HTML交互（骨架可用）
 python -m scripts.cli html --elements output/elements/ --output output/html/
@@ -116,7 +108,6 @@ essence-workshop/
 │   ├── skill-template.md                 # 认知操作系统Skill模板
 │   ├── writing-style-guide.md            # 写作风格规范
 │   ├── wechat-formatting.md              # 微信排版规范
-│   ├── image-generation.md               # 配图方案
 │   ├── pipeline-wechat.md                # 公众号管线规范
 │   ├── pipeline-video.md                 # 视频号管线规范
 │   ├── pipeline-html.md                  # HTML交互管线规范
@@ -124,16 +115,10 @@ essence-workshop/
 │   ├── pipeline-pptx.md                  # PPT管线规范
 │   ├── fact-checking.md                  # 材料验证与引用溯源
 │   └── code-reading-guide.md             # 代码阅读辅助指南
-├── modules/                              # 标准交互模块（HTML交互管线使用）
-│   ├── slope-navigator/                  # 坡度导航器（三阶渐进展开）
-│   ├── three-stage-progress/             # 三阶进度条
-│   ├── knowledge-graph/                  # 知识图谱浏览器
-│   ├── card-flip/                        # 卡片翻转
-│   └── comparison-table/                 # 对比表格
 ├── scripts/                              # 可执行脚本（三层架构）
 │   ├── cli.py                            # 统一CLI入口
 │   ├── elements/                         # 元素层工具
-│   │   ├── brand_extractor.py            # 品牌素材提取→brand-spec.json
+│   │   ├── brand_extractor.py            # 内容分析→强调色推导
 │   │   ├── record_gif.py                 # SVG动画→GIF录制
 │   │   └── svg_to_png.py                 # SVG→PNG渲染器（Playwright）
 │   ├── pipelines/                        # 管线层
@@ -199,13 +184,6 @@ essence-workshop/
 | [essence-programming](https://github.com/zh2673-git/essence-programming) | 认知与设计引擎 | 三阶方法论、设计原则、知识探索、项目开发、项目解析 |
 | [essence-distillation-skill](https://github.com/zh2673-git/essence-distillation-skill) | 认知蒸馏引擎 | 7Agent调研、根因追溯、人物蒸馏、8个实例 |
 | [md2wechat-py](https://github.com/zh2673-git/md2wechat-py) | 内容输出引擎 | 写作风格、微信排版、配图方案、公众号推送（已内化为自包含模块） |
-
-V2新增管线参考了以下项目的设计思路（未直接移植代码，按本项目架构做了适配实现）：
-
-| 参考项目 | 参考内容 | 适配说明 |
-|---------|---------|---------|
-| [TeachAny](https://github.com/weponusa/teachany) | 互动课件模块化概念 | 用原生HTML/CSS/JS实现5个轻量交互模块，非React组件 |
-| [huashu-design](https://github.com/alchaincyf/huashu-design) | HTML→PPTX降级转换思路 | 用python-pptx简化实现，未移植Node.js管线和html2pptx.js |
 
 ---
 

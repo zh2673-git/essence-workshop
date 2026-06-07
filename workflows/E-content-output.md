@@ -274,15 +274,13 @@ data/
 
 **配图规划模板**：
 
-| 章节 | 配图类型 | 配图内容 | 元素格式 |
+| 章节 | 视觉原语 | 配图内容 | 元素格式 |
 |------|---------|---------|---------|
-| 引言 | 概念示意图 | 核心概念关系 | SVG→PNG |
-| 模型一 | 动态过程图 | 变异→选择→保留循环 | SVG动画→GIF |
-| 模型二~五 | 详解图 | 四宫格/多栏对比 | SVG→PNG |
-| 启发式 | 列表图 | 七条启发式一览 | SVG→PNG |
-| 场景应用 | 对比图 | 三栏对比 | SVG→PNG |
-| 根因 | 因果图/时间线 | 经历→模型因果链 | SVG→PNG |
-| 边界 | 警示图 | 反模式+边界 | SVG→PNG |
+| 引言 | 聚焦 | 核心概念 | SVG→PNG |
+| 核心模型 | 列举/对比 | 模型要素 | SVG→PNG |
+| 动态过程 | 列举 | 变化循环 | SVG动画→GIF |
+| 场景应用 | 对比 | 多场景对照 | SVG→PNG |
+| 根因/边界 | 聚焦/对比 | 因果链/反模式 | SVG→PNG |
 
 ---
 
@@ -383,38 +381,39 @@ python -m scripts.pipelines.wechat.publish article.md --check-only --skip-image-
 | Canvas动画 | Canvas → GIF |
 | 交互元素 | 降级为静态截图（PNG） |
 
-**配图主题选择**：SVG 配图支持 7 套视觉主题（dark/warm/minimal/nature/ink/cyber/indigo），根据文章内容自动匹配。生成配图时调用渲染函数并传入 `theme_name`，由 `match_theme(标题+副标题)` 自动确定，也可手动指定。
+**配图生成**：由大模型直接生成 SVG 代码，配色遵循原则驱动规则（深色背景+高对比文字+内容推导强调色）。
 
-| 配图主题 | 情绪关键词 | 适用场景 |
-|---------|-----------|---------|
-| dark（深空） | 技术、编程、AI、工程 | 技术类 |
-| warm（暖阳） | 温暖、生活、教育、成长 | 生活/情感类 |
-| minimal（极简） | 极简、设计、美学、禅 | 设计/哲学类 |
-| nature（自然） | 自然、生态、中医、养生 | 中医/自然类 |
-| ink（水墨） | 水墨、国风、传统、诗词 | 传统文化类 |
-| cyber（赛博） | 赛博、未来、黑客、Web3 | 科技前沿类 |
-| indigo（靛蓝） | 认知、思维、本质、深度 | 认知/思维类 |
+**4种视觉原语**，大模型根据内容自行组合和变体：
 
-> 排版主题和配图主题独立选择。例如：essence 排版 + ink 配图（国风知识文章），或 claude-warm 排版 + nature 配图（中医养生文章）。
+| 原语 | 核心动作 | 大模型自由度 |
+|------|---------|-------------|
+| **列举** | 并列呈现多项信息 | 列表、网格、卡片、编号等布局由大模型决定 |
+| **对比** | 两/多事物对照 | 左右分栏、上下对照、表格等布局由大模型决定 |
+| **聚焦** | 突出一个核心概念 | 居中大字、关键词+解释、引言等布局由大模型决定 |
+| **数据** | 量化信息可视化 | 柱状图、大数字、趋势线等布局由大模型决定 |
 
-**配图渲染函数选择**：根据文章内容选择合适的渲染函数，不要每种类型各生成一张，而是根据内容需要灵活组合。每篇文章至少覆盖3种不同渲染函数。
+> 相邻两张图必须使用不同原语。每篇文章至少覆盖3种原语。
 
-| 内容类型 | 渲染函数 | 参数格式 |
-|---------|---------|---------|
-| 列举要点 | `render_svg_card` | title, items[] |
-| 关键数据 | `render_svg_stat` | value, label, sublabel |
-| 金句引言 | `render_svg_quote` | text, source |
-| A vs B | `render_svg_compare` | title, leftTitle, rightTitle, left[], right[] |
-| 时间线 | `render_svg_timeline` | title, events[{year,title,desc}] |
-| 步骤流程 | `render_svg_steps` | title, steps[{title,desc}] |
-| 概念聚焦 | `render_svg_focus` | keyword, explanation |
-| 数据图表 | `render_svg_chart` | title, data[{label,value}] |
-| 总结清单 | `render_svg_summary` | title, items[] |
-| 问答 | `render_svg_qa` | question, answer |
-| **概念详解** | `render_svg_feature` | title, features[{keyword,desc}] |
-| **多维网格** | `render_svg_grid` | title, cards[{title,desc}] |
+**封面图生成（与正文配图同时生成）**：
 
-> **注意**：不要生成封面图（`render_svg_cover` 是视频号标题卡用的），公众号封面由微信后台单独上传。
+封面图是公众号文章的"门面"，在文章列表中展示，必须与正文配图**视觉风格一致但内容不同**：
+
+| 维度 | 正文配图 | 封面图 |
+|------|---------|--------|
+| 尺寸 | 800×600 | 900×383（微信推荐 2.35:1） |
+| 内容 | 详细信息、多要素 | 标题+核心关键词+极简视觉 |
+| 信息密度 | 高（表格、多层级） | 低（大字、留白、聚焦） |
+| 原语 | 列举/对比/聚焦/数据 | **聚焦**（仅用聚焦原语） |
+| 文字量 | 多 | 极少（标题+3-5个关键词） |
+| 插入正文 | 是 | 否（单独上传为封面） |
+
+**封面图设计规则**：
+1. 使用与正文相同的配色方案（深色背景+强调色）
+2. 顶部放置文章标题（大字、加粗），底部放置3-5个核心关键词
+3. 中间区域使用极简视觉元素（线条、色块、图标），不复制正文任何一张图的内容
+4. 保存为 `cover.svg`，与正文配图同目录，在步骤W7中转为PNG并上传
+
+> **注意**：封面图不在正文中插入（`![封面]` 不出现在 article.md 中），由推送管线单独上传。
 
 ### 步骤W5：图文间距检查 + 质量自检
 
@@ -441,9 +440,17 @@ python -m scripts.pipelines.wechat.publish article.md --check-only --skip-image-
 
 ### 步骤W7：生成封面
 
+封面SVG已在步骤W4中与正文配图同时生成（保存为 `cover.svg`），此处只需转为PNG并上传：
+
 ```bash
-python scripts/wechat_publish.py article.md --auto-cover
+# SVG → PNG
+python -m scripts.elements.svg_to_png output/wechat/images/cover.svg -o output/wechat/images/cover.png --dpi 2
+
+# 推送时指定封面
+python -m scripts.pipelines.wechat.publish article.md --cover output/wechat/images/cover.png
 ```
+
+> 如果步骤W4中未生成封面SVG，则需在此步骤手动生成。
 
 ### 步骤W8：推送前检查
 
@@ -457,7 +464,7 @@ python scripts/wechat_publish.py article.md --auto-cover
 ### 步骤W9：转换+推送
 
 ```bash
-python scripts/wechat_publish.py article.md --auto-cover --author "公众号名"
+python -m scripts.cli publish article.md --auto-cover --author "公众号名"
 ```
 
 ---
@@ -473,21 +480,17 @@ python scripts/wechat_publish.py article.md --auto-cover --author "公众号名"
 #### 拆分规则
 
 1. 按 ## H2 章节拆分，每个章节1-3个镜头
-2. 每个镜头分配类型：标题卡 / 要点卡 / 对比卡 / 流程卡 / 金句卡 / 总结卡
+2. 每个镜头分配类型：**标题** / **内容** / **总结**（3种原语，大模型自行决定内容镜头的视觉形式）
 3. 每个镜头撰写口语化旁白（短句、每句不超过20字）
 4. 旁白总字数控制在500-1000字
 
-#### 镜头类型选择决策
+#### 镜头类型
 
-```
-内容是什么？
-├── 章节标题 → 标题卡
-├── 列举要点（3-5条）→ 要点卡
-├── A vs B 对比 → 对比卡
-├── 步骤/流程 → 流程卡
-├── 一句话核心观点 → 金句卡
-└── 章节末尾/全文结尾 → 总结卡
-```
+| 原语 | 触发条件 | 大模型自由度 |
+|------|---------|-------------|
+| **标题** | 章节开头 | 排版方式由大模型决定 |
+| **内容** | 论点/要点/对比/流程/金句/数据等 | 布局、分栏、装饰全部由大模型决定 |
+| **总结** | 章节末尾/全文结尾 | 回顾方式由大模型决定 |
 
 #### 输出格式
 
@@ -496,7 +499,7 @@ python scripts/wechat_publish.py article.md --auto-cover --author "公众号名"
 ### 步骤V2：TTS旁白生成
 
 ```bash
-python scripts/video_pipeline.py slides.json --output output/video/ --voice zh-CN-YunxiNeural
+python -m scripts.cli video slides.json --output output/video/ --voice zh-CN-YunxiNeural
 ```
 
 **语音选择**：
@@ -532,20 +535,14 @@ python scripts/video_pipeline.py slides.json --output output/video/ --voice zh-C
 ### 完整命令
 
 ```bash
-# 纯模板（默认，最简单）
-python scripts/video_pipeline.py output/slides.json --output output/video/ --style warm
-
-# 模板+品牌微调
-python scripts/video_pipeline.py output/slides.json --output output/video/ --style warm --brand-spec output/brand-spec.json
-
-# 纯品牌
-python scripts/video_pipeline.py output/slides.json --output output/video/ --brand-spec output/brand-spec.json
+# 默认风格
+python -m scripts.cli video output/slides.json --output output/video/
 
 # 指定语音和压缩
-python scripts/video_pipeline.py output/slides.json --output output/video/ --voice zh-CN-YunxiNeural --compress
+python -m scripts.cli video output/slides.json --output output/video/ --voice zh-CN-YunxiNeural --compress
 
 # 横屏模式
-python scripts/video_pipeline.py output/slides.json --output output/video/ --width 1920 --height 1080
+python -m scripts.cli video output/slides.json --output output/video/ --width 1920 --height 1080
 ```
 
 ---
@@ -576,20 +573,15 @@ HTML交互管线是**能力最完整的管线**——SVG直接嵌入、交互模
 | SVG图形 | `<svg>` 标签直接嵌入，保留交互 |
 | SVG动画 | SMIL/CSS动画直接嵌入 |
 | Canvas动画 | `<canvas>` + JS 直接嵌入 |
-| 交互模块 | `modules/` 中的标准模块实例化嵌入 |
+| 交互模块 | 大模型按需生成HTML/CSS/JS嵌入 |
 | 音频元素 | `<audio>` 标签嵌入 |
 
-### 步骤H3：交互模块接入
+### 步骤H3：交互组件生成
 
-根据内容需要，从 `modules/` 中选择标准交互模块：
-
-| 模块 | 适用场景 | 说明 |
-|------|---------|------|
-| slope-navigator | 长文导航 | 坡度理解渐进式导航 |
-| three-stage-progress | 三阶内容 | 是什么→为什么→怎么做进度条 |
-| knowledge-graph | 知识体系 | 可交互的知识图谱浏览器 |
-| card-flip | 对比/正反 | 点击翻转查看正反面 |
-| comparison-table | 多维对比 | 可排序/筛选的对比表格 |
+交互组件由大模型按需生成。**设计原则**：
+- 交互必须服务于认知目标（如：翻转卡片帮助理解正反，知识图谱帮助理解关系）
+- 不为交互而交互——纯展示内容不需要交互
+- 每个交互组件必须可键盘操作，有 `alt`/`aria` 标签
 
 ### 步骤H4：样式与响应式
 
@@ -691,7 +683,7 @@ PPT不支持SVG和JS交互，需要降级：
 使用 `scripts/pptx_generator.py` 生成 .pptx 文件：
 
 ```bash
-python scripts/pptx_generator.py --elements output/elements/ --output output/pptx/ --template brand-spec.json
+python -m scripts.cli pptx --elements output/elements/ --output output/pptx/
 ```
 
 **可选**：套用企业 .potx 模板。
@@ -720,20 +712,20 @@ python scripts/pptx_generator.py --elements output/elements/ --output output/ppt
 #### 方式一：文章URL抓取（默认推荐）
 
 ```bash
-python scripts/article_fetcher.py --url "https://mp.weixin.qq.com/s/xxxxx" --save output/article.md
+python -m scripts.cli fetch --url "https://mp.weixin.qq.com/s/xxxxx" --save output/article.md
 ```
 
 #### 方式二：本地Markdown文件
 
 ```bash
-python scripts/article_to_video.py --article output/article.md
+python -m scripts.shared.article_to_video --article output/article.md
 ```
 
 #### 方式三：公众号API（受权限制约）
 
 ```bash
-python scripts/article_fetcher.py --list --count 10
-python scripts/article_fetcher.py --media-id XXXXX --save output/article.md
+python -m scripts.cli fetch --list --count 10
+python -m scripts.cli fetch --media-id XXXXX --save output/article.md
 ```
 
 **⚠️ API权限制约说明**：
@@ -754,7 +746,7 @@ python scripts/article_fetcher.py --media-id XXXXX --save output/article.md
 
 ### 步骤F2：文章拆镜头
 
-`article_to_video.py` 自动完成：
+`article_to_video` 自动完成：
 1. 读取文章Markdown
 2. 按 H2/H3 章节拆分
 3. 自动分类镜头类型
@@ -772,19 +764,19 @@ python scripts/article_fetcher.py --media-id XXXXX --save output/article.md
 
 ### 步骤F3：视频生成
 
-自动调用 `video_pipeline.py`。
+自动调用视频管线。
 
 ### 一键命令
 
 ```bash
 # 从URL一键生成视频
-python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxx" --output output/video/
+python -m scripts.shared.article_to_video --url "https://mp.weixin.qq.com/s/xxx" --output output/video/
 
 # 从本地文章一键生成视频
-python scripts/article_to_video.py --article output/article.md --output output/video/
+python -m scripts.shared.article_to_video --article output/article.md --output output/video/
 
 # 自动从文章提取品牌素材并应用
-python scripts/article_to_video.py --url "https://mp.weixin.qq.com/s/xxx" --auto-brand
+python -m scripts.shared.article_to_video --url "https://mp.weixin.qq.com/s/xxx"
 ```
 
 ---

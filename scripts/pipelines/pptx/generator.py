@@ -24,12 +24,12 @@ SLIDE_WIDTH_INCHES = 13.333
 SLIDE_HEIGHT_INCHES = 7.5
 
 DEFAULT_BRAND = {
-    "primary": "#0F766E",
-    "accent": "#E94560",
-    "fg": "#1A1A1A",
-    "bg": "#FAFAFA",
-    "muted": "#7A7A9E",
-    "border": "#E5E7EB",
+    "primary": "#FFD700",
+    "accent": "#FFD700",
+    "fg": "#FFFFFF",
+    "bg": "#0A0A0A",
+    "muted": "#B0B0B0",
+    "border": "#333333",
     "font_title": "Microsoft YaHei",
     "font_body": "Microsoft YaHei",
 }

@@ -40,41 +40,31 @@
 - ⚠️ 每个镜头必须有旁白（narration字段）
 - ⚠️ 镜头类型多样性 ≥3种
 
-### 视觉语言系统
+### 视觉风格
 
-7种视觉语言，根据文章内容自动匹配（`detect_visual_style`），也可手动指定：
+统一黑金配色，由大模型根据内容生成视觉元素：
 
-| 视觉语言 | 背景风格 | 过渡偏好 | 摄像机偏好 | 适用内容 | 关键词 |
-|---------|---------|---------|-----------|---------|--------|
-| **tech** | 网格+连线 | morph | zoomIn | AI/编程/算法 | AI、编程、代码、算法 |
-| **edu** | 点阵 | crossfade | zoomIn | 教育/学习/成长 | 教育、学习、习惯 |
-| **compare** | 网格 | morph | none | 对比/分析 | 对比、vs、优劣 |
-| **philosophy** | 呼吸圆环 | crossfade | breathe | 哲学/思考 | 哲学、本质、意义 |
-| **space** | 星点粒子+轨道环 | morph | breathe | 宇宙/太空/量子 | 宇宙、太空、黑洞 |
-| **ink** | 水墨晕染+留白 | crossfade | zoomIn | 书法/禅意/古典 | 水墨、禅、国风 |
-| **nature** | 摇曳枝条+光晕 | slideAndFade | panDown | 自然/生态/环境 | 自然、生态、森林 |
+| 角色 | 色值 | 用途 |
+|------|------|------|
+| 背景 | `#0A0A0A` | 深黑底色 |
+| 主文字 | `#FFFFFF` | 标题、正文 |
+| 强调色 | `#FFD700` | 关键词、装饰线、高亮 |
+| 辅助色 | `#B0B0B0` | 副文字、说明 |
+| 边框 | `#333333` | 分割线、卡片边框 |
 
-> **场景模板系统**：每种视觉语言有独立的场景模板配置（`VISUAL_LANG_TEMPLATES`），控制不同slide类型的背景/摄像机/过渡效果。例如space语言下bullet用circles背景+morph过渡，而默认用grid+slideAndFade。
-
-### 装饰元素
-
-| 函数 | 效果 | 使用场景 |
-|------|------|---------|
-| `drawCornerDecor` | 四角L型装饰线 | space/ink |
-| `drawFloatingParticles` | 漂浮粒子场 | space |
-| `drawOrbitRing` | 轨道环+运动点 | space |
-| `drawInkWash` | 水墨晕染效果 | ink |
+> **装饰元素**：由大模型根据内容生成，不使用预定义装饰函数。常见装饰包括：几何线条、圆环、网格点阵、粒子场等，使用黄色(#FFD700)和灰色(#333333)。
 
 ### 镜头类型
 
-| 类型 | 适用内容 | 视觉样式 |
-|------|---------|---------|
-| 标题卡 | 章节标题 | 大字居中 |
-| 要点卡 | 列举要点（3-5条） | 编号列表 |
-| 对比卡 | A vs B | 左右分栏 |
-| 流程卡 | 步骤/流程 | 步骤编号+箭头 |
-| 金句卡 | 一句话核心观点 | 大字引用 |
-| 总结卡 | 章节末尾/全文结尾 | 要点回顾 |
+3种镜头原语，大模型根据内容自行决定视觉形式：
+
+| 原语 | 触发条件 | 大模型自由度 |
+|------|---------|-------------|
+| **标题** | 章节开头 | 标题+副标题的排版方式由大模型决定 |
+| **内容** | 论点/要点/对比/流程/金句/数据等 | 布局、分栏、装饰、字号层级全部由大模型决定 |
+| **总结** | 章节末尾/全文结尾 | 回顾方式（列表/关键词/一句话）由大模型决定 |
+
+> 大模型根据内容自动选择最合适的视觉呈现，无需预定义"要点卡""对比卡""金句卡"等子类型。
 
 ## 镜头JSON格式
 
@@ -88,20 +78,27 @@
       "narration": "口语化旁白文本"
     },
     {
-      "type": "points",
-      "title": "要点标题",
-      "items": ["要点1", "要点2", "要点3"],
+      "type": "content",
+      "title": "内容标题",
+      "body": "大模型根据内容自由组织的视觉内容描述",
+      "narration": "口语化旁白文本"
+    },
+    {
+      "type": "summary",
+      "title": "总结",
+      "body": "回顾要点",
       "narration": "口语化旁白文本"
     }
   ],
   "config": {
     "width": 1080,
     "height": 1920,
-    "voice": "zh-CN-YunxiNeural",
-    "style": "warm"
+    "voice": "zh-CN-YunxiNeural"
   }
 }
 ```
+
+> `type` 只有3种：`title` / `content` / `summary`。`body` 字段由大模型自由组织，不限制子类型。
 
 ## TTS语音选择
 
@@ -125,10 +122,10 @@
 
 ```bash
 # 完整管线（统一CLI）
-python -m scripts.cli video output/slides.json --output output/video/ --style warm
+python -m scripts.cli video output/slides.json --output output/video/
 
 # 或直接调用
-python -m scripts.pipelines.video.pipeline output/slides.json --output output/video/ --style warm
+python -m scripts.pipelines.video.pipeline output/slides.json --output output/video/
 
 # 指定语音
 python -m scripts.cli video output/slides.json --output output/video/ --voice zh-CN-YunxiNeural
@@ -140,16 +137,6 @@ python -m scripts.cli video output/slides.json --output output/video/ --width 19
 python -m scripts.cli fetch --url "https://mp.weixin.qq.com/s/xxx" --save-article output/article.md
 python -m scripts.shared.article_to_video --url "https://mp.weixin.qq.com/s/xxx" --output output/video/
 ```
-
-## 品牌素材路由
-
-| 模式 | 命令 | 适用场景 |
-|------|------|---------|
-| 纯模板 | `--style tech` | 快速出片 |
-| 模板+品牌 | `--style tech --brand-spec xxx.json` | 有品牌素材 |
-| 纯品牌 | `--brand-spec xxx.json` | 完全由品牌决定 |
-
-> 可选style值：tech / edu / compare / philosophy / space / ink / nature
 
 ## 质量自检
 

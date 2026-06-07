@@ -16,7 +16,7 @@ HTML交互管线是能力最完整的管线：
   python -m scripts.pipelines.html.generator --elements output/elements/ --output output/html/
   python -m scripts.pipelines.html.generator --elements output/elements/ --output output/html/ --mode paged
   python -m scripts.pipelines.html.generator --elements output/elements/ --output output/html/ --brand-spec brand-spec.json
-  python -m scripts.pipelines.html.generator --elements output/elements/ --output output/html/ --modules slope-navigator,three-stage-progress
+  python -m scripts.pipelines.html.generator --elements output/elements/ --output output/html/
 """
 
 import argparse
@@ -30,18 +30,8 @@ PROJECT_ROOT = os.path.join(SCRIPT_DIR, "..", "..", "..")
 TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "templates", "course-skeleton.html")
 TEMPLATE_V2_PATH = os.path.join(PROJECT_ROOT, "templates", "course-skeleton-v2.html")
 
-AVAILABLE_MODULES = [
-    "slope-navigator",
-    "three-stage-progress",
-    "knowledge-graph",
-    "card-flip",
-    "comparison-table",
-    "ai-companion",
-    "tts-narrator",
-    "section-hints",
-    "mentor-card",
-    "quiz-widget",
-]
+# 交互组件由大模型按需生成，不再使用预制modules
+# 如需交互组件，大模型直接生成HTML/CSS/JS嵌入到页面中
 
 COURSE_SKELETON_TEMPLATE = """<!DOCTYPE html>
 <html lang="zh-CN">
@@ -162,25 +152,8 @@ def render_svg_elements(graphic_files):
 
 
 def render_modules(modules, modules_dir):
-    html_parts = []
-    for mod_name in modules:
-        mod_dir = os.path.join(modules_dir, mod_name)
-        if not os.path.isdir(mod_dir):
-            print(f"  WARNING: Module not found: {mod_name}")
-            continue
-        mod_html = os.path.join(mod_dir, "index.html")
-        mod_js = os.path.join(mod_dir, "script.js")
-        mod_css = os.path.join(mod_dir, "style.css")
-        if os.path.isfile(mod_css):
-            with open(mod_css, "r", encoding="utf-8") as f:
-                html_parts.append(f'<style>\n{f.read()}\n</style>')
-        if os.path.isfile(mod_html):
-            with open(mod_html, "r", encoding="utf-8") as f:
-                html_parts.append(f.read())
-        if os.path.isfile(mod_js):
-            with open(mod_js, "r", encoding="utf-8") as f:
-                html_parts.append(f'<script>\n{f.read()}\n</script>')
-    return "\n\n".join(html_parts)
+    """已弃用：交互组件由大模型按需生成，不再使用预制modules。"""
+    return ""
 
 
 def load_template():
@@ -273,7 +246,7 @@ def md_to_html(text):
     return "\n".join(html_lines)
 
 
-def build_paged_slides(sections, elements, brand, modules, modules_dir):
+def build_paged_slides(sections, elements, brand):
     total = len(sections)
     if total == 0:
         return ""
@@ -360,20 +333,10 @@ def build_paged_slides(sections, elements, brand, modules, modules_dir):
   </div>
 </section>''')
 
-    if modules:
-        mod_html = render_modules(modules, modules_dir)
-        if mod_html:
-            idx = len(slide_parts)
-            slide_parts.append(f'''<section class="slide-page" data-page-index="{idx}" data-page-type="interactive">
-  <div class="slide-content">
-    {mod_html}
-  </div>
-</section>''')
-
     return "\n\n".join(slide_parts)
 
 
-def generate_html(elements_dir, output_dir, brand_spec_path=None, modules=None, title="课程", mode="scroll"):
+def generate_html(elements_dir, output_dir, brand_spec_path=None, title="课程", mode="scroll"):
     print(f"[HTML Pipeline] Starting... (mode={mode})")
 
     if mode == "paged":
@@ -394,26 +357,24 @@ def generate_html(elements_dir, output_dir, brand_spec_path=None, modules=None, 
         print(f"  Brand spec loaded: {brand_spec_path}")
 
     colors = brand.get("colors", {})
-    derived = brand.get("derived", {})
-    fonts = brand.get("fonts", {})
 
-    primary_color = colors.get("primary", "#0F766E")
-    accent_color = colors.get("accent", "#E94560")
-    bg_color = colors.get("bg", "#FAFAFA")
-    fg_color = colors.get("fg", "#1A1A1A")
-    muted_color = colors.get("muted", "#7A7A9E")
-    border_color = colors.get("border", "#E5E7EB")
+    primary_color = colors.get("primary", "#FFD700")
+    accent_color = colors.get("accent", "#FFD700")
+    bg_color = colors.get("bg", "#0A0A0A")
+    fg_color = colors.get("fg", "#FFFFFF")
+    muted_color = colors.get("muted", "#B0B0B0")
+    border_color = colors.get("border", "#333333")
 
-    primary_dim = derived.get("primary-dim", "rgba(15,118,110,0.08)")
-    accent_dim = derived.get("accent-dim", "rgba(233,69,96,0.08)")
-    card_bg = derived.get("card-bg", "rgba(255,255,255,0.7)")
-    card_border = derived.get("card-border", "rgba(0,0,0,0.06)")
-    primary_rgb = derived.get("primary-rgb", "15,118,110")
-    accent_rgb = derived.get("accent-rgb", "233,69,96")
+    primary_dim = derived.get("primary-dim", "rgba(255,215,0,0.08)") if (derived := brand.get("derived", {})) else "rgba(255,215,0,0.08)"
+    accent_dim = derived.get("accent-dim", "rgba(255,215,0,0.08)") if derived else "rgba(255,215,0,0.08)"
+    card_bg = derived.get("card-bg", "rgba(255,255,255,0.04)") if derived else "rgba(255,255,255,0.04)"
+    card_border = derived.get("card-border", "rgba(255,255,255,0.08)") if derived else "rgba(255,255,255,0.08)"
+    primary_rgb = derived.get("primary-rgb", "255,215,0") if derived else "255,215,0"
+    accent_rgb = derived.get("accent-rgb", "255,215,0") if derived else "255,215,0"
 
-    font_display = fonts.get("display", "'Noto Serif SC', Georgia, serif")
-    font_body = fonts.get("body", "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', sans-serif")
-    font_mono = fonts.get("mono", "'JetBrains Mono', 'Fira Code', monospace")
+    font_display = fonts.get("display", "'Noto Serif SC', Georgia, serif") if (fonts := brand.get("fonts", {})) else "'Noto Serif SC', Georgia, serif"
+    font_body = fonts.get("body", "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', sans-serif") if fonts else "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', sans-serif"
+    font_mono = fonts.get("mono", "'JetBrains Mono', 'Fira Code', monospace") if fonts else "'JetBrains Mono', 'Fira Code', monospace"
 
     if mode == "paged":
         md_content = ""
@@ -426,8 +387,7 @@ def generate_html(elements_dir, output_dir, brand_spec_path=None, modules=None, 
             md_content = f"# {title}\n\n## 概述\n\n这是一个由本质工坊生成的分页课件示例。\n\n## 核心概念\n\n本课件展示了分页交互课件的完整效果。\n\n## 总结\n\n感谢阅读。"
 
         sections = parse_markdown_to_sections(md_content)
-        modules_dir = os.path.join(PROJECT_ROOT, "modules")
-        content = build_paged_slides(sections, elements, brand, modules, modules_dir)
+        content = build_paged_slides(sections, elements, brand)
         scripts = ""
     else:
         content_parts = []
@@ -445,11 +405,6 @@ def generate_html(elements_dir, output_dir, brand_spec_path=None, modules=None, 
                         content_parts.append(f'<style>\n{f.read()}\n</style>')
 
         scripts_parts = []
-        if modules:
-            modules_dir = os.path.join(PROJECT_ROOT, "modules")
-            mod_html = render_modules(modules, modules_dir)
-            if mod_html:
-                content_parts.append(mod_html)
 
         content = "\n\n".join(content_parts)
         scripts = "\n".join(scripts_parts)
@@ -500,20 +455,11 @@ def main():
     parser.add_argument("--elements", required=True, help="元素层目录路径")
     parser.add_argument("--output", required=True, help="输出目录路径")
     parser.add_argument("--brand-spec", default=None, help="品牌规格文件路径")
-    parser.add_argument("--modules", default=None, help="交互模块列表（逗号分隔）")
     parser.add_argument("--title", default="课程", help="课程标题")
     parser.add_argument("--mode", default="scroll", choices=["scroll", "paged"], help="输出模式：scroll=连续滚动, paged=分页课件")
     args = parser.parse_args()
 
-    modules = None
-    if args.modules:
-        modules = [m.strip() for m in args.modules.split(",")]
-        invalid = [m for m in modules if m not in AVAILABLE_MODULES]
-        if invalid:
-            print(f"WARNING: Unknown modules: {invalid}")
-            print(f"  Available: {AVAILABLE_MODULES}")
-
-    generate_html(args.elements, args.output, args.brand_spec, modules, args.title, args.mode)
+    generate_html(args.elements, args.output, args.brand_spec, args.title, args.mode)
 
 
 if __name__ == "__main__":

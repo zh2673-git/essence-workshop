@@ -61,8 +61,8 @@ def _extract_bg_color(svg_content):
     if rect_fill:
         return rect_fill.group(1)
 
-    # 方式3: 回退白色
-    return "#ffffff"
+    # 方式3: 回退黑底
+    return "#0A0A0A"
 
 
 def svg_to_png(svg_path, output_path, width=None, height=None, dpi=2, bg_color=None, max_retries=3):
@@ -130,7 +130,7 @@ body {{ background:{bg_color}; margin:0; padding:0; }}
     raise RuntimeError(f"SVG→PNG failed after {max_retries} retries: {last_error}")
 
 
-def batch_convert(input_dir, output_dir, dpi=2, bg_color="#ffffff"):
+def batch_convert(input_dir, output_dir, dpi=2, bg_color="#0A0A0A"):
     os.makedirs(output_dir, exist_ok=True)
     converted = 0
     for f in sorted(os.listdir(input_dir)):
@@ -155,7 +155,7 @@ def main():
     parser.add_argument("--dpi", type=float, default=2, help="渲染倍率（默认2x）")
     parser.add_argument("--width", type=int, default=None, help="输出宽度（像素）")
     parser.add_argument("--height", type=int, default=None, help="输出高度（像素）")
-    parser.add_argument("--bg", default="#ffffff", help="背景色（默认#ffffff）")
+    parser.add_argument("--bg", default="#0A0A0A", help="背景色（默认#0A0A0A）")
     args = parser.parse_args()
 
     if not check_playwright_available():

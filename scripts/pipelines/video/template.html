@@ -18,47 +18,18 @@ const W = 2160, H = 3840, S = 2;
 
 const THEMES = {
   dark: {
-    bg1:'#0F0F23',bg2:'#1A1A2E',bg3:'#16213E',
-    accent:'#E94560',accentGlow:'rgba(233,69,96,0.15)',
-    gold:'#F0C27F',goldDim:'rgba(240,194,127,0.3)',
-    cyan:'#00D2FF',cyanDim:'rgba(0,210,255,0.15)',
-    white:'#F0F0F0',whiteDim:'rgba(240,240,240,0.6)',
-    muted:'#7A7A9E',
+    bg1:'#0A0A0A',bg2:'#0F0F0F',bg3:'#141414',
+    accent:'#FFD700',accentGlow:'rgba(255,215,0,0.15)',
+    gold:'#FFD700',goldDim:'rgba(255,215,0,0.3)',
+    cyan:'#FFD700',cyanDim:'rgba(255,215,0,0.15)',
+    white:'#FFFFFF',whiteDim:'rgba(255,255,255,0.6)',
+    muted:'#B0B0B0',
     cardBg:'rgba(255,255,255,0.04)',cardBorder:'rgba(255,255,255,0.08)',
-    success:'#4ECDC4',warn:'#FFE66D',
-  },
-  warm: {
-    bg1:'#FDF6EC',bg2:'#FAF0E1',bg3:'#F5E6D0',
-    accent:'#D4763A',accentGlow:'rgba(212,118,58,0.12)',
-    gold:'#8B5E3C',goldDim:'rgba(139,94,60,0.25)',
-    cyan:'#5B8C5A',cyanDim:'rgba(91,140,90,0.12)',
-    white:'#3C2415',whiteDim:'rgba(60,36,21,0.6)',
-    muted:'#8B7355',
-    cardBg:'rgba(255,255,255,0.7)',cardBorder:'rgba(139,94,60,0.12)',
-    success:'#5B8C5A',warn:'#D4763A',
-  },
-  minimal: {
-    bg1:'#FFFFFF',bg2:'#FAFAFA',bg3:'#F5F5F5',
-    accent:'#333333',accentGlow:'rgba(51,51,51,0.08)',
-    gold:'#666666',goldDim:'rgba(102,102,102,0.2)',
-    cyan:'#888888',cyanDim:'rgba(136,136,136,0.1)',
-    white:'#111111',whiteDim:'rgba(17,17,17,0.6)',
-    muted:'#999999',
-    cardBg:'rgba(0,0,0,0.02)',cardBorder:'rgba(0,0,0,0.06)',
-    success:'#2D8C3C',warn:'#CC8800',
-  },
-  nature: {
-    bg1:'#0D1F0D',bg2:'#142814',bg3:'#1A331A',
-    accent:'#C9A84C',accentGlow:'rgba(201,168,76,0.12)',
-    gold:'#8FAA6B',goldDim:'rgba(143,170,107,0.25)',
-    cyan:'#6BA3A0',cyanDim:'rgba(107,163,160,0.12)',
-    white:'#E8E4D8',whiteDim:'rgba(232,228,216,0.6)',
-    muted:'#7A8B6A',
-    cardBg:'rgba(255,255,255,0.04)',cardBorder:'rgba(201,168,76,0.1)',
-    success:'#8FAA6B',warn:'#C9A84C',
+    success:'#4ECDC4',warn:'#FFD700',
   },
 };
-let C = THEMES.dark;
+// 默认配色：深色背景+高对比文字+金色强调（原则驱动，可被brand-spec覆盖）
+let C = {...THEMES.dark};
 
 const F = {
   hero:`800 ${100*S}px 'PingFang SC','Microsoft YaHei',sans-serif`,
@@ -1190,8 +1161,8 @@ function sceneOpacity(scene, globalT) {
 }
 
 function startPresentation() {
-  const themeName = window.themeName || 'dark';
-  C = THEMES[themeName] || THEMES.dark;
+  // 原则驱动：默认深色方案，brand-spec可覆盖强调色
+  C = {...THEMES.dark};
   if (window.brandSpec) {
     const bc = window.brandSpec.colors || {};
     const bd = window.brandSpec.derived || {};
@@ -1205,6 +1176,12 @@ function startPresentation() {
     if (bc.success) C.success = bc.success;
     if (bc.warning) C.warn = bc.warning;
     if (bc.bg) { C.bg1 = bc.bg; C.bg2 = bc.bg; C.bg3 = bc.bg; }
+    // 原则驱动：从内容类别推导强调色
+    const cat = window.brandSpec.detected_category;
+    if (cat && !bc.primary) {
+      const catColors = { tech:'#00D2FF', humanities:'#FFD700', nature:'#8FAA6B', cognition:'#7C83FF' };
+      if (catColors[cat]) { C.accent = catColors[cat]; C.accentGlow = alpha(catColors[cat], 0.12); }
+    }
   }
   currentSlide = 0; slideStart = performance.now(); running = true;
   currentVisualLang = window.visualStyle || 'tech';

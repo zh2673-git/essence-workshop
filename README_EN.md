@@ -63,19 +63,36 @@ essence-workshop/
 │   ├── skill-template.md                 # Cognitive OS Skill template
 │   ├── writing-style-guide.md            # Writing style guide
 │   ├── wechat-formatting.md              # WeChat formatting rules
-│   ├── image-generation.md               # Image generation guide
-│   ├── video-generation.md               # Video generation guide
+│   ├── pipeline-wechat.md                # WeChat pipeline spec
+│   ├── pipeline-video.md                 # Video pipeline spec
+│   ├── pipeline-html.md                  # HTML pipeline spec
+│   ├── pipeline-slides.md                # Slides pipeline spec
+│   ├── pipeline-pptx.md                  # PPT pipeline spec
 │   ├── fact-checking.md                  # Fact checking & citation
 │   └── code-reading-guide.md             # Code reading guide
 ├── scripts/                              # Executable scripts
-│   ├── wechat_client.py                  # WeChat API client (token/upload/draft/articles)
-│   ├── wechat_converter.py               # Markdown→WeChat HTML converter (3 themes + inline styles)
-│   ├── wechat_publish.py                 # Publishing pipeline (convert + cover + push draft)
-│   ├── article_fetcher.py                # Article fetcher (WeChat API + URL scraping)
-│   ├── video-template.html               # Canvas card-flip HTML template
-│   ├── video_pipeline.py                 # Video pipeline (recording + TTS + FFmpeg)
-│   ├── article_to_video.py               # Article-to-video (fetch → split slides → video)
-│   └── example-slides.json               # Example slides JSON
+│   ├── cli.py                            # Unified CLI entry
+│   ├── elements/                         # Element layer tools
+│   │   ├── brand_extractor.py            # Content analysis → accent color derivation
+│   │   ├── record_gif.py                 # SVG animation → GIF recording
+│   │   └── svg_to_png.py                 # SVG → PNG renderer (Playwright)
+│   ├── pipelines/                        # Pipeline layer
+│   │   ├── wechat/                       # ✅ WeChat pipeline (production)
+│   │   │   ├── client.py                 # WeChat API client
+│   │   │   ├── converter.py              # Markdown → WeChat HTML converter
+│   │   │   └── publish.py                # Publishing pipeline
+│   │   ├── video/                        # ✅ Video pipeline (production)
+│   │   │   ├── pipeline.py               # Video generation pipeline
+│   │   │   └── template.html             # Canvas card-flip template
+│   │   ├── html/                         # 🟡 HTML pipeline (skeleton)
+│   │   │   └── generator.py              # Element → interactive HTML
+│   │   ├── slides/                       # 🟡 Slides pipeline (skeleton)
+│   │   │   └── generator.py              # Element → Reveal.js HTML
+│   │   └── pptx/                         # 🟡 PPT pipeline (skeleton)
+│   │       └── generator.py              # Element → .pptx file
+│   └── shared/                           # Cross-pipeline shared
+│       ├── article_fetcher.py            # WeChat article fetcher
+│       └── article_to_video.py           # Article to video
 ├── workflows/                            # 5 scenario workflows
 │   ├── A-knowledge-exploration.md
 │   ├── B-person-distillation.md
@@ -120,14 +137,11 @@ Self-contained modules — no external `wechat-pub` dependency:
 
 ```bash
 # One-click publish: Markdown → HTML + Cover + Push draft
-python scripts/wechat_publish.py article.md --auto-cover --author "Your Name"
-
-# With specific theme (essence/claude-warm/claude-clean)
-python scripts/wechat_publish.py article.md --theme essence --auto-cover
+python -m scripts.cli publish article.md --auto-cover --author "Your Name"
 
 # Fetch articles from your account
-python scripts/article_fetcher.py --list --count 10
-python scripts/article_fetcher.py --media-id XXXXX --save output/article.md
+python -m scripts.cli fetch --list --count 10
+python -m scripts.cli fetch --media-id XXXXX --save output/article.md
 ```
 
 ### WeChat Video Account (Short Video)
@@ -136,7 +150,7 @@ Canvas card-flip style + Playwright recording + Edge TTS narration + FFmpeg merg
 
 ```bash
 # Article to video
-python scripts/article_to_video.py article.md
+python -m scripts.shared.article_to_video --url "https://mp.weixin.qq.com/s/xxx" --output output/video/
 ```
 
 ---
@@ -151,7 +165,7 @@ This repo integrates core capabilities from three source repos and is now fully 
 | [essence-distillation-skill](https://github.com/zh2673-git/essence-distillation-skill) | Cognitive distillation engine | 7-Agent research, root cause tracing, person distillation, 8 instances |
 | [md2wechat-py](https://github.com/zh2673-git/md2wechat-py) | Content output engine | Writing style, WeChat formatting, image generation, publishing (internalized as self-contained modules) |
 
-WeChat-related features have been internalized as three self-contained modules under `scripts/` (`wechat_client.py` / `wechat_converter.py` / `wechat_publish.py`). No need to install `wechat-pub` or `md2wechat-py`.
+WeChat-related features have been internalized as self-contained modules under `scripts/pipelines/wechat/` (`client.py` / `converter.py` / `publish.py`). No need to install `wechat-pub` or `md2wechat-py`.
 
 ---
 

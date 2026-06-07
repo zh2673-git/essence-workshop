@@ -30,11 +30,48 @@ import time
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-from scripts.elements.content_templates import (
-    parse_template_sections,
-    parse_section,
-    validate_slide,
-)
+def parse_template_sections(markdown):
+    """将Markdown拆分为section列表（替代已删除的content_templates模块）。"""
+    sections = []
+    lines = markdown.split("\n")
+    current = {"heading": "", "content": []}
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        h_match = re.match(r'^(#{1,4})\s+(.+)', stripped)
+        if h_match:
+            if current["heading"] or current["content"]:
+                sections.append(current)
+            current = {"heading": h_match.group(2).strip(), "content": []}
+        elif stripped.startswith("> "):
+            current["content"].append(("quote", stripped[2:].strip()))
+        elif stripped.startswith("- ") or stripped.startswith("* "):
+            current["content"].append(("bullet", stripped[2:].strip()))
+        elif re.match(r'^\d+[.、)]\s*', stripped):
+            text = re.sub(r'^\d+[.、)]\s*', '', stripped)
+            current["content"].append(("step", text.strip()))
+        elif stripped == "---":
+            if current["heading"] or current["content"]:
+                sections.append(current)
+            current = {"heading": "", "content": []}
+        else:
+            current["content"].append(("text", stripped))
+    if current["heading"] or current["content"]:
+        sections.append(current)
+    return sections
+
+
+def parse_section(section):
+    """尝试从section解析为模板slide（简化版，返回None则走通用分类）。"""
+    return None
+
+
+def validate_slide(slide):
+    """简单校验slide结构。"""
+    if not slide.get("type"):
+        return False, "missing type"
+    return True, ""
 
 
 def _build_narration(slide):
@@ -75,41 +112,7 @@ def split_into_slides(markdown, title=""):
     sections = parse_template_sections(markdown)
     if not sections:
         return []
-    has_type_hints = any(s.get("type_hint") for s in sections)
-    if has_type_hints:
-        return sections
-    slides = []
-    lines = markdown.split("\n")
-    current_section = {"heading": "", "content": []}
-
-    for line in lines:
-        stripped = line.strip()
-        if not stripped:
-            continue
-
-        h_match = re.match(r'^(#{1,4})\s+(.+)', stripped)
-        if h_match:
-            if current_section["heading"] or current_section["content"]:
-                slides.append(current_section)
-            current_section = {"heading": h_match.group(2).strip(), "content": []}
-        elif stripped.startswith("> "):
-            current_section["content"].append(("quote", stripped[2:].strip()))
-        elif stripped.startswith("- ") or stripped.startswith("* "):
-            current_section["content"].append(("bullet", stripped[2:].strip()))
-        elif re.match(r'^\d+[.、)]\s*', stripped):
-            text = re.sub(r'^\d+[.、)]\s*', '', stripped)
-            current_section["content"].append(("step", text.strip()))
-        elif stripped == "---":
-            if current_section["heading"] or current_section["content"]:
-                slides.append(current_section)
-            current_section = {"heading": "", "content": []}
-        else:
-            current_section["content"].append(("text", stripped))
-
-    if current_section["heading"] or current_section["content"]:
-        slides.append(current_section)
-
-    return slides
+    return sections
 
 
 def classify_slide_type(section, slide_index=0, total_sections=1):
@@ -624,8 +627,8 @@ def main():
     parser.add_argument("--save-article", type=str, default="", help="同时保存文章为Markdown")
     parser.add_argument("--save-slides", action="store_true", help="保存slides.json到输出目录")
     parser.add_argument("--template", "-t", default=None, help="自定义HTML模板路径")
-    parser.add_argument("--style", default=None,
-                        help="视觉风格: dark/warm/minimal/nature，不指定则自动从brand-spec检测")
+    parser.add_argument("--style", default="dark",
+                        help="视觉风格: dark（固定黑金配色）")
     parser.add_argument("--visual-style", default="auto", choices=["auto", "tech", "edu", "compare", "philosophy"],
                         dest="visual_style",
                         help="Cinematic视觉语言: auto(自动推断), tech, edu, compare, philosophy")
