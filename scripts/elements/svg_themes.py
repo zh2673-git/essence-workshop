@@ -44,6 +44,7 @@ THEMES = {
         "label": "深空",
         "bg": {
             "bg1": "#2B2D42", "bg2": "#3D3F5C", "bg3": "#1E2035",
+            "gif_bg": "#2B2D42",  # GIF等效背景=bg1（solidColor修复后PNG背景色即为bg1）
             "layout": "side-panel",
             "panel_color": "#3A3C58",
             "panel_x": 0.62,
@@ -106,6 +107,7 @@ THEMES = {
         "label": "暖阳",
         "bg": {
             "bg1": "#DCC8A8", "bg2": "#D0BC98", "bg3": "#C4B088",
+            "gif_bg": "#DCC8A8",  # GIF等效背景=bg1
             "layout": "soft-glow",
             "glow_color": "#F5EDE0",
             "glow_cx": 0.78,
@@ -170,6 +172,7 @@ THEMES = {
         "label": "极简",
         "bg": {
             "bg1": "#F5F5F0", "bg2": "#EDEDE8", "bg3": "#E4E4DF",
+            "gif_bg": "#F5F5F0",  # GIF等效背景=bg1
             "layout": "accent-edge",
             "edge_color": "#1A1A2E",
             "edge_width": 4,
@@ -230,7 +233,7 @@ THEMES = {
         "label": "自然",
         "bg": {
             "bg1": "#3A5A40", "bg2": "#4A6B4F", "bg3": "#2D4A34",
-            "layout": "curved-horizon",
+            "gif_bg": "#3A5A40",  # GIF等效背景=bg1
             "sky_color": "#C8D8C0",
             "sky_alpha": 0.2,
             "horizon_y": 0.55,
@@ -293,7 +296,7 @@ THEMES = {
         "label": "水墨",
         "bg": {
             "bg1": "#F2EDE4", "bg2": "#EAE4D8", "bg3": "#E0DACE",
-            "layout": "ink-wash",
+            "gif_bg": "#F2EDE4",  # GIF等效背景=bg1
             "ink_color": "#2E2820",
             "ink_x": 0.65,
             "ink_opacity": 0.06,
@@ -354,7 +357,7 @@ THEMES = {
         "label": "赛博",
         "bg": {
             "bg1": "#1A1A3E", "bg2": "#252550", "bg3": "#12122E",
-            "layout": "diagonal-beam",
+            "gif_bg": "#1A1A3E",  # GIF等效背景=bg1
             "beam_color": "#FF4D8D",
             "beam_opacity": 0.06,
             "beam_angle": 25,
@@ -416,7 +419,7 @@ THEMES = {
         "label": "靛蓝",
         "bg": {
             "bg1": "#0F0C2A", "bg2": "#1E1A4A", "bg3": "#302B62",
-            "layout": "side-panel",
+            "gif_bg": "#0F0C2A",  # GIF等效背景=bg1
             "panel_color": "#252050",
             "panel_x": 0.65,
         },
@@ -512,6 +515,7 @@ def theme_to_video_js(theme_name):
     c = t["card"]
     return {
         "bg1": bg["bg1"], "bg2": bg["bg2"], "bg3": bg["bg3"],
+        "gifBg": bg.get("gif_bg", bg["bg1"]),  # GIF等效背景色（无渐变时的纯色替代）
         "accent": p["accent"], "accentGlow": p["accentGlow"],
         "gold": p["gold"], "goldDim": p["goldDim"],
         "cyan": p["cyan"], "cyanDim": p["cyanDim"],
@@ -1082,8 +1086,67 @@ def _svg_title_underline(width, theme):
     return f'<rect x="{width*0.3}" y="72" width="{width*0.4}" height="2" rx="1" fill="{color}" opacity="0.3"/>'
 
 
+def _text_width(text, font_size):
+    """估算文本像素宽度（中文≈font_size, 英文≈font_size*0.55, 数字≈font_size*0.6）
+
+    基于典型sans-serif字体的字符宽度比例。不依赖外部库，纯计算。
+    """
+    w = 0
+    for ch in text:
+        if '\u4e00' <= ch <= '\u9fff' or '\u3000' <= ch <= '\u303f':
+            w += font_size  # CJK字符
+        elif ch.isdigit():
+            w += font_size * 0.6
+        elif ch.isalpha():
+            w += font_size * 0.55
+        elif ch in '，。、；：！？""''（）【】':
+            w += font_size  # 中文标点
+        else:
+            w += font_size * 0.5  # 其他符号
+    return w
+
+
+def _fit_text(text, max_width, font_size, mode="truncate"):
+    """根据像素宽度智能截断或换行文本
+
+    Args:
+        text: 原始文本
+        max_width: 可用像素宽度
+        font_size: 字体大小
+        mode: "truncate" 截断加省略号 | "wrap" 自动换行返回行列表
+
+    Returns:
+        mode="truncate": 截断后的字符串
+        mode="wrap": 行列表
+    """
+    if mode == "truncate":
+        if _text_width(text, font_size) <= max_width:
+            return text
+        result = ""
+        for ch in text:
+            test = result + ch + "..."
+            if _text_width(test, font_size) > max_width:
+                return result + "..." if result else ch
+            result += ch
+        return result
+    else:  # wrap
+        lines = []
+        remaining = text
+        while remaining:
+            line = ""
+            for ch in remaining:
+                if _text_width(line + ch, font_size) > max_width:
+                    break
+                line += ch
+            if not line:  # 单字符超宽
+                line = remaining[0]
+            lines.append(line)
+            remaining = remaining[len(line):]
+        return lines
+
+
 def _wrap_text(text, max_chars_per_line):
-    """将长文本按指定字数自动换行，返回行列表"""
+    """将长文本按指定字数自动换行，返回行列表（已弃用，建议使用_fit_text wrap模式）"""
     lines = []
     remaining = text
     while remaining:
@@ -1115,9 +1178,12 @@ def render_svg_atmosphere_defs(theme_name, width, height):
     bg = t["bg"]
     parts = []
 
-    # 纯色背景（bg1），不再使用渐变，确保文字对比度稳定
+    # 纯色背景（bg1）—— 注意：Chromium不支持<solidColor>，必须用<linearGradient>模拟纯色
     parts.append(
-        f'<solidColor id="bg-grad" color="{bg["bg1"]}"/>'
+        f'<linearGradient id="bg-grad" x1="0" y1="0" x2="0" y2="1">\n'
+        f'  <stop offset="0%" stop-color="{bg["bg1"]}"/>\n'
+        f'  <stop offset="100%" stop-color="{bg["bg1"]}"/>\n'
+        f'</linearGradient>'
     )
 
     for i, glow in enumerate(atm.get("glow", [])):
@@ -1162,7 +1228,7 @@ def render_svg_atmosphere_body(theme_name, width, height):
     grain = atm.get("grain", 0)
     if grain > 0:
         parts.append(
-            f'<rect width="{width}" height="{height}" filter="url(#grain)" opacity="0.5"/>'
+            f'<rect width="{width}" height="{height}" filter="url(#grain)" opacity="0.05"/>'
         )
 
     return "\n  ".join(parts)
@@ -1275,9 +1341,9 @@ def render_svg_cover(title, subtitle="", author="", theme_name="dark", width=900
     tx = t["text"]
     f = t["font"]
 
-    display_title = title[:28] + ("..." if len(title) > 28 else "")
-    display_author = author[:20] + ("..." if len(author) > 20 else "")
-    display_sub = subtitle[:50] + ("..." if len(subtitle) > 50 else "")
+    display_title = _fit_text(title, width - 200, 32)
+    display_author = _fit_text(author, width - 200, 15)
+    display_sub = _fit_text(subtitle, width - 200, 12)
 
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
@@ -1314,7 +1380,7 @@ def render_svg_card(title, items, theme_name="dark", width=800, height=600, cols
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
 
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
@@ -1347,11 +1413,11 @@ def render_svg_card(title, items, theme_name="dark", width=800, height=600, cols
     for i, (ix, iy, iw, ih) in enumerate(positions):
         num_color = _item_accent(t, i)
         item = items[i]
-        item_text = (item[:22] + ("..." if len(item) > 22 else "")) if isinstance(item, str) else str(item)[:22]
+        item_text = _fit_text(item, iw - 50, 15) if isinstance(item, str) else _fit_text(str(item), iw - 50, 15)
         desc = ""
         if isinstance(item, dict):
-            item_text = item.get("title", item.get("text", ""))[:22]
-            desc = item.get("desc", "")[:35]
+            item_text = _fit_text(item.get("title", item.get("text", "")), iw - 50, 15)
+            desc = _fit_text(item.get("desc", ""), iw - 50, 11)
 
         # 卡片内部文字自适应垂直居中
         el_defs = [
@@ -1445,9 +1511,9 @@ def render_svg_stat(value, label, sublabel="", trend="", tags=None, theme_name="
     c = t["card"]
     f = t["font"]
 
-    display_value = value[:14] + ("..." if len(value) > 14 else "")
-    display_label = label[:30] + ("..." if len(label) > 30 else "")
-    display_sub = sublabel[:40] + ("..." if len(sublabel) > 40 else "")
+    display_value = _fit_text(value, width - 100, 72)
+    display_label = _fit_text(label, width - 100, 18)
+    display_sub = _fit_text(sublabel, width - 100, 14)
     tags = tags or []
 
     decor_svg = render_svg_decor(theme_name, width, height)
@@ -1512,9 +1578,9 @@ def render_svg_quote(text, source="", context="", tags=None, theme_name="dark", 
     c = t["card"]
     f = t["font"]
 
-    display_text = text[:200] + ("..." if len(text) > 200 else "")
-    display_source = source[:30] + ("..." if len(source) > 30 else "")
-    display_context = context[:60] + ("..." if len(context) > 60 else "")
+    display_text = _fit_text(text, width - 120, 16)
+    display_source = _fit_text(source, width - 120, 14)
+    display_context = _fit_text(context, width - 120, 13)
     tags = tags or []
 
     decor_svg = render_svg_decor(theme_name, width, height)
@@ -1584,7 +1650,7 @@ def render_svg_compare(title, left_title, right_title, left_items, right_items, 
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
     left_accent = _s(t, "item_accent_a")
     right_accent = _s(t, "item_accent_b")
 
@@ -1641,7 +1707,7 @@ def render_svg_compare(title, left_title, right_title, left_items, right_items, 
 
     left_items_svg = []
     for i, (ix, iy, iw, ih) in enumerate(left_positions):
-        txt = left_items[i][:18] + ("..." if len(left_items[i]) > 18 else "")
+        txt = _fit_text(left_items[i], col_w - 60, 13)
         # 卡片内部文字自适应垂直居中
         el_defs = [
             {"type": "text", "h": 20},
@@ -1677,7 +1743,7 @@ def render_svg_compare(title, left_title, right_title, left_items, right_items, 
 
     right_items_svg = []
     for i, (ix, iy, iw, ih) in enumerate(right_positions):
-        txt = right_items[i][:18] + ("..." if len(right_items[i]) > 18 else "")
+        txt = _fit_text(right_items[i], col_w - 60, 13)
         el_defs = [
             {"type": "text", "h": 20},
             {"type": "spacer", "h": max(4, ih // 6)},
@@ -1759,7 +1825,7 @@ def render_svg_timeline(title, events, theme_name="dark", width=800, height=600)
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
 
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
@@ -1914,7 +1980,7 @@ def render_svg_steps(title, steps, theme_name="dark", width=800, height=600):
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
 
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
@@ -1959,8 +2025,8 @@ def render_svg_qa(question, answer, key_points=None, theme_name="dark", width=80
     c = t["card"]
     f = t["font"]
 
-    display_q = question[:40] + ("..." if len(question) > 40 else "")
-    display_a = answer[:80] + ("..." if len(answer) > 80 else "")
+    display_q = _fit_text(question, width - 120, 16)
+    display_a = _fit_text(answer, width - 120, 14)
     key_points = key_points or []
 
     decor_svg = render_svg_decor(theme_name, width, height)
@@ -2020,8 +2086,8 @@ def render_svg_focus(keyword, explanation, tags=None, sub_keywords=None, theme_n
     c = t["card"]
     f = t["font"]
 
-    display_keyword = keyword[:12] + ("..." if len(keyword) > 12 else "")
-    display_exp = explanation[:80] + ("..." if len(explanation) > 80 else "")
+    display_keyword = _fit_text(keyword, width - 100, 38)
+    display_exp = _fit_text(explanation, width - 120, 14)
     tags = tags or []
     sub_keywords = sub_keywords or []
 
@@ -2103,7 +2169,7 @@ def render_svg_chart(title, data, theme_name="dark", width=800, height=600, dire
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
 
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
@@ -2249,7 +2315,7 @@ def render_svg_line_chart(title, labels, datasets, theme_name="dark", width=800,
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
 
@@ -2288,7 +2354,7 @@ def render_svg_line_chart(title, labels, datasets, theme_name="dark", width=800,
     x_labels_svg = []
     for i, label in enumerate(labels[:8]):
         lx = chart_x + (i / max(n - 1, 1)) * chart_w
-        short_label = label[:6] + ("..." if len(label) > 6 else "")
+        short_label = _fit_text(label, 60, 12)
         x_labels_svg.append(
             f'<text x="{lx}" y="{chart_y + chart_h + 25}" text-anchor="middle" '
             f'font-family="{f["body"]}" font-size="12" fill="{tx["secondary"]}">{short_label}</text>'
@@ -2386,14 +2452,14 @@ def render_svg_feature(title, features, theme_name="dark", width=800, height=600
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
 
     features_svg = []
     for i, feat in enumerate(features[:4]):
-        keyword = feat.get("keyword", "")[:10] + ("..." if len(feat.get("keyword", "")) > 10 else "")
-        desc = feat.get("desc", "")[:40] + ("..." if len(feat.get("desc", "")) > 40 else "")
+        keyword = _fit_text(feat.get("keyword", ""), 160, 14)
+        desc = _fit_text(feat.get("desc", ""), width - 260, 12)
         y = 140 + i * 110
         kw_color = _item_accent(t, i)
         # 左侧关键词卡片（带色条+图标圆点）
@@ -2454,7 +2520,7 @@ def render_svg_grid(title, cards, theme_name="dark", width=800, height=600, mode
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
 
@@ -2481,9 +2547,9 @@ def render_svg_grid(title, cards, theme_name="dark", width=800, height=600, mode
         cards_svg = []
         for i, (cx, cy, cw, ch) in enumerate(positions):
             card = cards[i]
-            value = str(card.get("value", card.get("title", "")))[:10]
-            label = card.get("label", card.get("title", ""))[:14]
-            sub = card.get("sub", "")[:20]
+            value = _fit_text(str(card.get("value", card.get("title", ""))), cw - 28, 28)
+            label = _fit_text(card.get("label", card.get("title", "")), cw - 28, 13)
+            sub = _fit_text(card.get("sub", ""), cw - 28, 11)
             accent_color = _item_accent(t, i)
 
             # 卡片内部文字自适应垂直居中
@@ -2542,12 +2608,15 @@ def render_svg_grid(title, cards, theme_name="dark", width=800, height=600, mode
         cards_svg = []
         for i, (cx, cy, cw, ch) in enumerate(positions):
             card = cards[i]
-            card_title = card.get("title", "")[:12] + ("..." if len(card.get("title", "")) > 12 else "")
-            card_desc = card.get("desc", "")[:30] + ("..." if len(card.get("desc", "")) > 30 else "")
+            pad = 14
+            # 像素宽度自适应截断：标题在badge右侧可用宽度 = 卡片宽-padding-badge宽度
+            title_max_w = cw - pad - 38 - 10
+            desc_max_w = cw - pad * 2 - 8
+            card_title = _fit_text(card.get("title", ""), title_max_w, 16)
+            card_desc = _fit_text(card.get("desc", ""), desc_max_w, 13)
             accent_color = _item_accent(t, i)
 
             # 卡片内部文字自适应垂直居中
-            pad = 14
             el_defs = [
                 {"type": "badge_title", "h": 28},
                 {"type": "divider", "h": 12},
@@ -2630,8 +2699,8 @@ def render_svg_hero(title, subtitle="", tags=None, theme_name="dark",
     f = t["font"]
     tags = tags or []
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
-    display_sub = subtitle[:40] + ("..." if len(subtitle) > 40 else "")
+    display_title = _fit_text(title, width - 100, 22)
+    display_sub = _fit_text(subtitle, width - 200, 16)
 
     card_x, card_y = 50, 50
     card_w, card_h = width - 100, height - 100
@@ -2746,7 +2815,7 @@ def render_svg_list_detail(title, items, theme_name="dark",
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
 
     card_x, card_y = 50, 50
     card_w, card_h = width - 100, height - 100
@@ -2773,7 +2842,7 @@ def render_svg_list_detail(title, items, theme_name="dark",
     row_h = (card_h - 130) / max(len(items), 1)
     for i, item in enumerate(items[:6]):
         kw = item.get("keyword", "")[:10]
-        desc = item.get("desc", "")[:40] + ("..." if len(item.get("desc", "")) > 40 else "")
+        desc = _fit_text(item.get("desc", ""), card_w - 80, 12)
         y = start_y + i * row_h
         num_color = _item_accent(t, i)
 
@@ -2836,7 +2905,7 @@ def render_svg_dashboard(title, metrics=None, bar_data=None, list_items=None,
     bar_data = bar_data or []
     list_items = list_items or []
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
 
@@ -3054,7 +3123,7 @@ def render_svg_logic_flow(title, steps, theme_name="dark", width=800, height=600
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
 
@@ -3178,7 +3247,7 @@ def render_svg_cycle(title, phases, theme_name="dark", width=800, height=600):
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
 
@@ -3205,9 +3274,7 @@ def render_svg_cycle(title, phases, theme_name="dark", width=800, height=600):
         angle = -math.pi / 2 + 2 * math.pi * i / n
         px = cx_center + radius_x * math.cos(angle)
         py = cy_center + radius_y * math.sin(angle)
-        phase = phases[i]
-        label = phase.get("label", f"阶段{i+1}")[:10]
-        desc = phase.get("desc", "")[:16]
+        phase = phases[i] if i < len(phases) else {"label": f"阶段{i+1}", "desc": ""}
         accent = _item_accent(t, i)
 
         # 节点卡片
@@ -3215,6 +3282,9 @@ def render_svg_cycle(title, phases, theme_name="dark", width=800, height=600):
         node_h = 56
         nx = px - node_w / 2
         ny = py - node_h / 2
+
+        label = _fit_text(phase.get("label", f"阶段{i+1}"), node_w - 16, 13)
+        desc = _fit_text(phase.get("desc", ""), node_w - 16, 10)
 
         phase_svg.append(
             f'<rect x="{nx}" y="{ny}" width="{node_w}" height="{node_h}" rx="{c["radius"]}" fill="{c["fill"]}" stroke="{accent}" stroke-width="1.5" opacity="0.8"/>'
@@ -3296,7 +3366,7 @@ def render_svg_scatter(title, data, theme_name="dark", width=800, height=600):
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
 
@@ -3517,7 +3587,7 @@ def render_svg_heatmap(title, data, theme_name="dark", width=800, height=600):
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
 
@@ -3648,7 +3718,7 @@ def render_svg_composite(title, sections, theme_name="dark", width=800, height=6
     c = t["card"]
     f = t["font"]
 
-    display_title = title[:20] + ("..." if len(title) > 20 else "")
+    display_title = _fit_text(title, width - 100, 22)
     decor_svg = render_svg_decor(theme_name, width, height)
     header = _svg_header(theme_name, width, height)
 
@@ -3924,3 +3994,68 @@ def save_svg(svg_content, output_path):
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(svg_content)
     return output_path
+
+
+def render_svg_custom(title, svg_body, theme_name="dark", width=800, height=600):
+    """自由绘制SVG：LLM根据内容自由绘制SVG图形，模板仅提供背景/标题/装饰
+
+    这是解决模板单调性的核心函数。当预设模板无法满足内容表达需求时，
+    LLM可以根据文章内容自由绘制SVG图形（如概念关系图、思维导图、
+    哲学流派演化图、人物关系网络等），模板仅提供统一的视觉框架。
+
+    使用策略：
+    - 内容能用预设模板清晰表达 → 使用预设模板（保底策略）
+    - 内容需要定制化可视化 → 使用 render_svg_custom（自由绘制）
+    - 每篇文章建议至少1张使用 custom，其余用预设模板
+
+    Args:
+        title: 标题，最多20字
+        svg_body: 自由绘制的SVG内容（<svg>内部的元素，不含<svg>标签本身）
+                  必须遵循以下规则：
+                  - 使用主题色板：通过 _s(get_theme(theme_name), key) 取色
+                  - 文字使用系统字体：font-family="PingFang SC, Microsoft YaHei, sans-serif"
+                  - 所有坐标在 (0,0)-(width,height) 范围内
+                  - 标题区占 y=0~80，底部栏占 y=height-30~height
+                  - 内容区可用范围：x=35~width-35, y=85~height-40
+                  - 禁止使用 <foreignObject>
+                  - 禁止使用外部图片/字体
+        theme_name: 主题名称
+        width: 画布宽度
+        height: 画布高度
+
+    Returns:
+        完整的SVG字符串
+    """
+    t = get_theme(theme_name)
+    tx = t["text"]
+    f = t["font"]
+
+    display_title = _fit_text(title, width - 100, 22)
+    decor_svg = render_svg_decor(theme_name, width, height)
+    header = _svg_header(theme_name, width, height)
+
+    # 标题区
+    title_area = (
+        f'<text x="{width/2}" y="42" text-anchor="middle" font-family="{f["display"]}" font-size="22" font-weight="700" fill="{tx["primary"]}">{display_title}</text>\n'
+        f'  <rect x="{width*0.35}" y="52" width="{width*0.3}" height="2" rx="1" fill="{_s(t, "divider_accent")}" opacity="0.3"/>'
+    )
+
+    # 内容区裁剪（防止溢出）
+    content_clip = (
+        f'<clipPath id="content-clip">\n'
+        f'  <rect x="0" y="80" width="{width}" height="{height - 110}"/>\n'
+        f'</clipPath>'
+    )
+
+    svg = f'''{header}
+  <defs>
+    {content_clip}
+  </defs>
+  {decor_svg}
+  {title_area}
+  <g clip-path="url(#content-clip)">
+    {svg_body}
+  </g>
+  {_svg_bottom_bar(width, height, t)}
+</svg>'''
+    return svg

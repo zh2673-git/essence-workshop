@@ -20,8 +20,12 @@ import sys
 import tempfile
 from pathlib import Path
 
-from .client import WeChatClient
-from .converter import convert_markdown, inspect_article
+try:
+    from .client import WeChatClient
+    from .converter import convert_markdown, inspect_article
+except ImportError:
+    from client import WeChatClient
+    from converter import convert_markdown, inspect_article
 
 
 def generate_cover_svg(title, subtitle="", author="", theme="claude-warm", output_path="", svg_theme=""):

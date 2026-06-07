@@ -99,12 +99,22 @@
 | **仪表盘** | `render_svg_dashboard` | title, metrics[{value,label,trend}], barData[{label,value}], listItems[{keyword,desc,value}] | 4指标+8柱+5列表项，信息密度极高 |
 | **竖向柱状图** | `render_svg_bar_chart` | title, data[{label,value}], showValues | 12柱大画幅，网格参考线+数值标注 |
 | **指标网格** | `render_svg_metric_grid` | title, metrics[{value,label,sub,mini}], cols | 3×3网格，每卡含迷你图(up/down/bar/dot) |
+| **混排信息卡** | `render_svg_composite` | title, sections[{type,content}] | 概念+图表+卡片混排，信息密度极高 |
+| **逻辑推导链** | `render_svg_logic_flow` | title, steps[{label,desc,type}] | 前提→推理→结论链，带类型标记 |
+| **循环/辩证** | `render_svg_cycle` | title, phases[{label,desc}] | 环形布局展示循环/辩证过程 |
+| **散点图** | `render_svg_scatter` | title, data[{label,x,y,group}] | 二维分布/象限分析 |
+| **热力图** | `render_svg_heatmap` | title, data[{row,col,value}] | 矩阵关系/交叉分析 |
+| **自由绘制** | `render_svg_custom` | title, svg_body | LLM根据内容自由绘制SVG，模板仅提供框架 |
 
 > **规划原则**：
-> 1. 每篇文章至少覆盖3种不同渲染函数
-> 2. **密度优先**：7张配图中至少3张使用高密度模板（dashboard/bar_chart/metric_grid/feature/grid/duo_card/list_detail），低密度模板（stat/focus/quote/qa）不超过2张，且仅用于核心金句/关键概念等必须聚焦的场景
-> 3. 低密度模板传入辅助信息（如stat的trend/focus的tags/quote的context）以充实画面，避免大面积留白
-> 4. 优先使用 feature/grid/hero 组合布局提高信息密度
+> 1. **以 `render_svg_custom` 自由绘制为主，预设模板为保底**——每张图优先考虑用custom根据内容定制绘制，只有当内容恰好是标准信息结构时才用预设模板
+> 2. **每篇文章至少5张使用 `render_svg_custom`**，最多2张用预设模板
+> 3. **禁止连续使用相同类型的渲染函数**——相邻两张图必须是不同类型
+> 4. **密度优先**：低密度模板（stat/focus/quote/qa）不超过2张，且仅用于核心金句/关键概念等必须聚焦的场景
+> 5. 低密度模板传入辅助信息（如stat的trend/focus的tags/quote的context）以充实画面，避免大面积留白
+> 6. **hero 仅用于封面，不在正文中使用**（hero卡片信息密度低，留白过多）
+> 7. **grid 类型文字容易溢出**，优先用 card 或 list_detail 替代；如必须用 grid，每项文字不超过15字
+> 8. **GIF动画**：使用HTML+CSS动画录制，分辨率800×500@2x，帧数≥8，帧延迟120ms，最终GIF不超过2MB
 
 ### 画幅比例
 
@@ -155,7 +165,7 @@ render_svg_hero(title="标题", width=w, height=h)
 
 1. 从 `output/elements/` 读取元素
 2. SVG → PNG（Playwright渲染，device_scale_factor=2）
-3. SVG动画 → GIF（Playwright录制）
+3. SVG动画 → GIF（见下方GIF生成流程）
 4. Markdown → 微信HTML（wechat_converter.py）
 5. 配图插入对应位置
 6. 图文间距检查
@@ -163,6 +173,35 @@ render_svg_hero(title="标题", width=w, height=h)
 8. 生成封面
 9. 推送前检查
 10. 推送草稿箱
+
+### GIF 生成流程
+
+GIF 必须使用 `scripts/elements/record_gif.py` 脚本录制，步骤如下：
+
+1. **创建 HTML 动画文件**：在 `output/wechat/images/` 下创建 `xxx_anim.html`，实现以下接口：
+   - `window.getTotalFrames()` — 返回总帧数（推荐 10-15 帧）
+   - `window.stepFrame(f)` — 渲染第 f 帧（f 从 0 到 getTotalFrames()-1）
+2. **执行录制**：
+   ```bash
+   python -m scripts.elements.record_gif "path/to/xxx_anim.html" "path/to/output.gif" --delay 200 --pause 8
+   ```
+3. **文件大小检查**：GIF 必须 ≥100KB 且 ≤3MB。若超过 3MB：
+   - 减少 `getTotalFrames()` 返回值（减少帧数）
+   - 在 HTML 中设置较小的 viewport（如 `width: 400px; height: 250px`）
+   - 使用自定义 Playwright 脚本设置 `device_scale_factor=1`（默认为 2）
+
+**HTML 动画模板要点**：
+- **禁用CSS transition/animation**：`stepFrame(f)` 中直接设置元素的最终样式（opacity、transform、width等），不使用CSS过渡动画。原因：录制时每帧只等~100ms，但transition通常设500ms，会截取到中间过渡帧，产生半透明混合色闪烁
+- **禁用渐变和半透明色**：所有颜色必须用纯色（`#RRGGBB`），禁止 `rgba()`、`linear-gradient`、`radial-gradient`。原因：GIF仅支持256色，渐变和半透明在量化后产生严重色彩抖动和闪烁
+- `stepFrame(f)` 中通过 JS 直接控制元素显隐和样式变化
+- 保持背景与 SVG 主题一致（深色背景 + 品牌色装饰）
+- 文字使用系统字体（Microsoft YaHei / PingFang SC）
+
+**GIF录制脚本要点**：
+- 使用统一全局调色板：从所有帧采样生成一个全局调色板，所有帧共用（避免帧间调色板突变闪烁）
+- `optimize=False`：不使用PIL的optimize（它会为每帧生成独立局部调色板，导致帧间闪烁）
+- `disposal=1`：保留上一帧，只存差异部分（减少体积）
+- `device_scale_factor=1.5`：800x500@1.5x=1200x750，清晰度和体积的平衡点
 
 ## 命令
 
