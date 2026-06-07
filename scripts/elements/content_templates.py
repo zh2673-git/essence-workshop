@@ -6,20 +6,20 @@ TEMPLATE_SCHEMA = {
         "limits": {"title": 15, "subtitle": 30},
     },
     "stat": {
-        "required": ["value", "label"],
-        "limits": {"value": 10, "label": 20, "sublabel": 30},
+        "required": ["value", "label", "trend", "tags"],
+        "limits": {"value": 10, "label": 20, "sublabel": 30, "trend": 10, "tags": 4, "tag_len": 8},
     },
     "bullet": {
         "required": ["title", "items"],
-        "limits": {"title": 15, "items": 5, "item_len": 20},
+        "limits": {"title": 15, "items": 5, "item_len": 20, "desc_len": 40, "tags": 3, "tag_len": 6},
     },
     "chart": {
         "required": ["title", "data"],
         "limits": {"title": 15, "data": 6, "label_len": 6},
     },
     "quote": {
-        "required": ["text"],
-        "limits": {"text": 120, "source": 20},
+        "required": ["text", "context", "tags"],
+        "limits": {"text": 120, "source": 20, "context": 40, "tags": 4, "tag_len": 8},
     },
     "timeline": {
         "required": ["title", "events"],
@@ -29,27 +29,28 @@ TEMPLATE_SCHEMA = {
             "year_len": 6,
             "ev_title_len": 15,
             "ev_desc_len": 30,
+            "ev_tag_len": 6,
         },
     },
     "focus": {
-        "required": ["keyword"],
-        "limits": {"keyword": 8, "explanation": 60, "callout": 20},
+        "required": ["keyword", "explanation", "tags", "sub_keywords"],
+        "limits": {"keyword": 8, "explanation": 60, "callout": 20, "tags": 4, "tag_len": 8, "sub_keywords": 4, "sub_kw_len": 8},
     },
     "steps": {
         "required": ["title", "steps"],
         "limits": {"title": 15, "steps": 5, "step_title_len": 15, "step_desc_len": 30},
     },
     "qa": {
-        "required": ["question", "answer"],
-        "limits": {"question": 40, "answer": 50},
+        "required": ["question", "answer", "key_points"],
+        "limits": {"question": 40, "answer": 50, "key_points": 3, "point_len": 20},
     },
     "compare": {
         "required": ["title", "left", "right"],
-        "limits": {"title": 15, "items_per_col": 4, "item_len": 10, "label_len": 6},
+        "limits": {"title": 15, "items_per_col": 4, "item_len": 10, "desc_len": 25, "label_len": 6, "verdict_len": 20},
     },
     "summary": {
         "required": ["title", "items"],
-        "limits": {"title": 15, "items": 4, "item_len": 18},
+        "limits": {"title": 15, "items": 5, "item_len": 18, "desc_len": 35, "highlight_len": 15},
     },
     "feature": {
         "required": ["title", "features"],
@@ -62,6 +63,50 @@ TEMPLATE_SCHEMA = {
     "line_chart": {
         "required": ["title", "labels", "datasets"],
         "limits": {"title": 15, "labels": 8, "datasets": 3, "name_len": 8},
+    },
+    "hero": {
+        "required": ["title"],
+        "limits": {"title": 20, "subtitle": 40, "tags": 5, "tag_len": 8},
+    },
+    "duo_card": {
+        "required": ["title", "left", "right"],
+        "limits": {"title": 20, "items_per_col": 5, "item_len": 25, "desc_len": 40, "label_len": 12, "verdict_len": 20},
+    },
+    "list_detail": {
+        "required": ["title", "items"],
+        "limits": {"title": 20, "items": 6, "keyword_len": 10, "desc_len": 40},
+    },
+    "dashboard": {
+        "required": ["title"],
+        "limits": {"title": 20, "metrics": 4, "bar_data": 8, "list_items": 5},
+    },
+    "bar_chart": {
+        "required": ["title", "data"],
+        "limits": {"title": 20, "data": 12, "label_len": 5},
+    },
+    "metric_grid": {
+        "required": ["title", "metrics"],
+        "limits": {"title": 20, "metrics": 9, "value_len": 10, "label_len": 10, "sub_len": 12, "insight_len": 25},
+    },
+    "logic_flow": {
+        "required": ["title", "steps"],
+        "limits": {"title": 15, "steps": 6, "label_len": 14, "desc_len": 30},
+    },
+    "cycle": {
+        "required": ["title", "phases"],
+        "limits": {"title": 15, "phases": 6, "label_len": 10, "desc_len": 16},
+    },
+    "scatter": {
+        "required": ["title", "data"],
+        "limits": {"title": 15, "data": 30, "label_len": 6},
+    },
+    "heatmap": {
+        "required": ["title", "data"],
+        "limits": {"title": 15, "rows": 8, "cols": 8, "label_len": 6},
+    },
+    "composite": {
+        "required": ["title", "sections"],
+        "limits": {"title": 15, "sections": 4, "section_title_len": 14},
     },
 }
 
@@ -548,6 +593,204 @@ def _parse_line_chart(section):
     }
 
 
+def _parse_logic_flow(section):
+    heading = section["heading"]
+    limits = TEMPLATE_SCHEMA["logic_flow"]["limits"]
+    steps = []
+    for c in section["content"]:
+        if c[0] == "step":
+            parts = c[1].split("：", 1)
+            if len(parts) < 2:
+                parts = c[1].split(":", 1)
+            label = truncate(parts[0].strip(), limits["label_len"])
+            desc = truncate(parts[1].strip(), limits["desc_len"]) if len(parts) >= 2 else ""
+            # 自动推断类型
+            stype = "inference"
+            if len(steps) == 0:
+                stype = "premise"
+            elif c == section["content"][-1]:
+                stype = "conclusion"
+            steps.append({"label": label, "desc": desc, "type": stype})
+        elif c[0] == "bullet":
+            parts = c[1].split("：", 1)
+            if len(parts) < 2:
+                parts = c[1].split(":", 1)
+            label = truncate(parts[0].strip(), limits["label_len"])
+            desc = truncate(parts[1].strip(), limits["desc_len"]) if len(parts) >= 2 else ""
+            stype = "inference"
+            if len(steps) == 0:
+                stype = "premise"
+            steps.append({"label": label, "desc": desc, "type": stype})
+    if not steps:
+        for i, c in enumerate(section["content"][:6]):
+            steps.append({"label": truncate(c[1], limits["label_len"]), "desc": "", "type": "inference"})
+    if steps:
+        steps[0]["type"] = "premise"
+        steps[-1]["type"] = "conclusion"
+    return {
+        "type": "logic_flow",
+        "title": truncate(heading or "逻辑推导", limits["title"]),
+        "steps": steps[: limits["steps"]],
+        "duration": max(8, len(steps) * 4),
+    }
+
+
+def _parse_cycle(section):
+    heading = section["heading"]
+    limits = TEMPLATE_SCHEMA["cycle"]["limits"]
+    phases = []
+    for c in section["content"]:
+        if c[0] in ("bullet", "step"):
+            parts = c[1].split("：", 1)
+            if len(parts) < 2:
+                parts = c[1].split(":", 1)
+            label = truncate(parts[0].strip(), limits["label_len"])
+            desc = truncate(parts[1].strip(), limits["desc_len"]) if len(parts) >= 2 else ""
+            phases.append({"label": label, "desc": desc})
+    if not phases:
+        for i, c in enumerate(section["content"][:6]):
+            phases.append({"label": truncate(c[1], limits["label_len"]), "desc": ""})
+    return {
+        "type": "cycle",
+        "title": truncate(heading or "循环流程", limits["title"]),
+        "phases": phases[: limits["phases"]],
+        "duration": max(8, len(phases) * 3),
+    }
+
+
+def _parse_scatter(section):
+    heading = section["heading"]
+    limits = TEMPLATE_SCHEMA["scatter"]["limits"]
+    data = []
+    for c in section["content"]:
+        if c[0] == "bullet":
+            # 格式: label:x,y 或 label:x,y:size
+            parts = c[1].split(":")
+            if len(parts) >= 2:
+                label = truncate(parts[0].strip(), limits["label_len"])
+                coords = parts[1].strip().split(",")
+                try:
+                    x = float(coords[0].strip())
+                    y = float(coords[1].strip()) if len(coords) > 1 else 0.5
+                    size = float(coords[2].strip()) if len(coords) > 2 else 1.0
+                except (ValueError, IndexError):
+                    x, y, size = len(data) * 0.15 % 1, len(data) * 0.2 % 1, 1.0
+                data.append({"label": label, "x": x, "y": y, "size": size})
+            else:
+                num_match = re.search(r"(\d+)", c[1])
+                if num_match:
+                    data.append({"label": truncate(c[1], limits["label_len"]), "x": len(data) * 0.15 % 1, "y": int(num_match.group(1)) / 100, "size": 1.0})
+    if not data:
+        for i in range(8):
+            data.append({"label": f"P{i+1}", "x": (i * 0.12 + 0.05) % 1, "y": (i * 0.17 + 0.1) % 1, "size": 1.0})
+    return {
+        "type": "scatter",
+        "title": truncate(heading or "数据分布", limits["title"]),
+        "data": data[: limits["data"]],
+        "duration": 8,
+    }
+
+
+def _parse_heatmap(section):
+    heading = section["heading"]
+    limits = TEMPLATE_SCHEMA["heatmap"]["limits"]
+    rows = []
+    cols = []
+    values = []
+    for c in section["content"]:
+        if c[0] == "text":
+            text = c[1].strip()
+            if text.startswith("rows:"):
+                rows = [truncate(r.strip(), limits["label_len"]) for r in text[5:].split(",") if r.strip()][:limits["rows"]]
+            elif text.startswith("cols:"):
+                cols = [truncate(c_.strip(), limits["label_len"]) for c_ in text[5:].split(",") if c_.strip()][:limits["cols"]]
+        elif c[0] == "bullet":
+            # 每行数据：行名: 0.8, 0.3, 0.6
+            parts = c[1].split(":", 1)
+            if len(parts) >= 2:
+                row_name = truncate(parts[0].strip(), limits["label_len"])
+                if row_name not in rows:
+                    rows.append(row_name)
+                try:
+                    row_vals = [max(0, min(1, float(v.strip()))) for v in parts[1].split(",") if v.strip()]
+                except ValueError:
+                    row_vals = [0.5] * max(len(cols), 3)
+                values.append(row_vals[:limits["cols"]])
+    if not rows:
+        rows = ["R1", "R2", "R3"]
+    if not cols:
+        cols = [f"C{i+1}" for i in range(max(len(v) for v in values) if values else 3)]
+    if not values:
+        values = [[0.5] * len(cols) for _ in rows]
+    # 补齐行列
+    while len(values) < len(rows):
+        values.append([0.5] * len(cols))
+    for ri in range(len(values)):
+        while len(values[ri]) < len(cols):
+            values[ri].append(0.5)
+    return {
+        "type": "heatmap",
+        "title": truncate(heading or "热力图", limits["title"]),
+        "data": {"rows": rows[:limits["rows"]], "cols": cols[:limits["cols"]], "values": values[:limits["rows"]]},
+        "duration": 8,
+    }
+
+
+def _parse_composite(section):
+    heading = section["heading"]
+    limits = TEMPLATE_SCHEMA["composite"]["limits"]
+    sections = []
+    current_sec = None
+    for c in section["content"]:
+        if c[0] == "heading3":
+            if current_sec:
+                sections.append(current_sec)
+            current_sec = {"type": "concept", "title": truncate(c[1].strip(), limits["section_title_len"]), "content": ""}
+        elif c[0] == "bullet" and current_sec:
+            text = c[1]
+            if current_sec["type"] == "concept":
+                current_sec["content"] = (current_sec["content"] + " " + text).strip()
+            elif current_sec["type"] == "card":
+                parts = text.split("：", 1)
+                if len(parts) < 2:
+                    parts = text.split(":", 1)
+                items = current_sec.get("content", [])
+                items.append({"title": parts[0].strip()[:12], "desc": parts[1].strip()[:20] if len(parts) >= 2 else ""})
+                current_sec["content"] = items
+            elif current_sec["type"] == "chart":
+                parts = text.split(":")
+                if len(parts) >= 2:
+                    chart_data = current_sec.get("content", [])
+                    try:
+                        chart_data.append({"label": parts[0].strip()[:3], "value": int(parts[1].strip())})
+                    except ValueError:
+                        chart_data.append({"label": parts[0].strip()[:3], "value": len(chart_data) * 10 + 10})
+                    current_sec["content"] = chart_data
+        elif c[0] == "text" and current_sec:
+            text = c[1].strip()
+            if text.startswith("[chart]"):
+                current_sec["type"] = "chart"
+                current_sec["content"] = []
+            elif text.startswith("[card]"):
+                current_sec["type"] = "card"
+                current_sec["content"] = []
+            else:
+                current_sec["content"] = (str(current_sec.get("content", "")) + " " + text).strip()
+    if current_sec:
+        sections.append(current_sec)
+    if not sections:
+        sections = [
+            {"type": "concept", "title": "核心概念", "content": heading or "概述"},
+            {"type": "chart", "title": "数据概览", "content": [{"label": "A", "value": 60}, {"label": "B", "value": 40}]},
+        ]
+    return {
+        "type": "composite",
+        "title": truncate(heading or "综合分析", limits["title"]),
+        "sections": sections[: limits["sections"]],
+        "duration": 10,
+    }
+
+
 _TEMPLATE_PARSERS = {
     "title": _parse_title,
     "stat": _parse_stat,
@@ -563,6 +806,11 @@ _TEMPLATE_PARSERS = {
     "feature": _parse_feature,
     "grid": _parse_grid,
     "line_chart": _parse_line_chart,
+    "logic_flow": _parse_logic_flow,
+    "cycle": _parse_cycle,
+    "scatter": _parse_scatter,
+    "heatmap": _parse_heatmap,
+    "composite": _parse_composite,
 }
 
 

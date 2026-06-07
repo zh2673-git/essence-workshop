@@ -692,3 +692,118 @@ def shape_style_to_video_js(theme_name):
         result[element] = params
     result["iconSet"] = ICON_SETS.get(theme_name, ICON_SETS["dark"])
     return result
+
+
+# ── 渐变原语 ──────────────────────────────────────────────
+# 渐变是能力，不是风格。每个主题通过 color_keys 和 opacity 控制表现程度。
+# minimal/ink 可用低透明度单色渐变，cyber/dark 可用高饱和双色渐变。
+
+_grad_counter = 0
+
+
+def _next_grad_id():
+    global _grad_counter
+    _grad_counter += 1
+    return f"grad-{_grad_counter}"
+
+
+def svg_gradient_rect(x, y, w, h, theme_name, direction="horizontal",
+                      color_keys=("accent", "gold"), opacity=0.15,
+                      radius=None, id_suffix=""):
+    """渐变矩形：支持水平/垂直/对角线渐变
+
+    Args:
+        direction: "horizontal" | "vertical" | "diagonal"
+        color_keys: 主题 palette 中的两个色键，如 ("accent", "gold")
+        opacity: 整体透明度
+        radius: 圆角，None 时取主题 card.radius
+        id_suffix: 渐变 ID 后缀，同一 SVG 内多次调用时需不同
+    """
+    from scripts.elements.svg_themes import get_theme
+    t = get_theme(theme_name)
+    p = t["palette"]
+    c1 = p.get(color_keys[0], p["accent"])
+    c2 = p.get(color_keys[1], p["gold"])
+    r = radius if radius is not None else t["card"]["radius"]
+
+    gid = f"grad-rect-{id_suffix}" if id_suffix else _next_grad_id()
+
+    if direction == "horizontal":
+        g_attrs = f'x1="{x}" y1="{y}" x2="{x+w}" y2="{y}"'
+    elif direction == "vertical":
+        g_attrs = f'x1="{x}" y1="{y}" x2="{x}" y2="{y+h}"'
+    else:  # diagonal
+        g_attrs = f'x1="{x}" y1="{y}" x2="{x+w}" y2="{y+h}"'
+
+    defs = (
+        f'<linearGradient id="{gid}" {g_attrs} gradientUnits="userSpaceOnUse">\n'
+        f'  <stop offset="0%" stop-color="{c1}" stop-opacity="1"/>\n'
+        f'  <stop offset="100%" stop-color="{c2}" stop-opacity="1"/>\n'
+        f'</linearGradient>'
+    )
+    rect = (
+        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{r}" '
+        f'fill="url(#{gid})" opacity="{opacity}"/>'
+    )
+    return defs, rect
+
+
+def svg_gradient_text(text, x, y, theme_name, font_family="", font_size=24,
+                      font_weight="700", text_anchor="start",
+                      color_keys=("accent", "gold"), id_suffix=""):
+    """渐变色文字
+
+    Returns:
+        (defs, text_svg) 元组，defs 需放入 <defs> 中
+    """
+    from scripts.elements.svg_themes import get_theme
+    t = get_theme(theme_name)
+    p = t["palette"]
+    c1 = p.get(color_keys[0], p["accent"])
+    c2 = p.get(color_keys[1], p["gold"])
+    ff = font_family or t["font"]["display"]
+
+    gid = f"grad-text-{id_suffix}" if id_suffix else _next_grad_id()
+
+    defs = (
+        f'<linearGradient id="{gid}" x1="0%" y1="0%" x2="100%" y2="0%">\n'
+        f'  <stop offset="0%" stop-color="{c1}"/>\n'
+        f'  <stop offset="100%" stop-color="{c2}"/>\n'
+        f'</linearGradient>'
+    )
+    text_svg = (
+        f'<text x="{x}" y="{y}" text-anchor="{text_anchor}" '
+        f'font-family="{ff}" font-size="{font_size}" font-weight="{font_weight}" '
+        f'fill="url(#{gid})">{text}</text>'
+    )
+    return defs, text_svg
+
+
+def svg_gradient_line(x1, y1, x2, y2, theme_name, stroke_width=2,
+                      color_keys=("accent", "gold"), opacity=0.6,
+                      id_suffix=""):
+    """渐变线条
+
+    Returns:
+        (defs, line_svg) 元组
+    """
+    from scripts.elements.svg_themes import get_theme
+    t = get_theme(theme_name)
+    p = t["palette"]
+    c1 = p.get(color_keys[0], p["accent"])
+    c2 = p.get(color_keys[1], p["gold"])
+
+    gid = f"grad-line-{id_suffix}" if id_suffix else _next_grad_id()
+
+    defs = (
+        f'<linearGradient id="{gid}" x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" gradientUnits="userSpaceOnUse">\n'
+        f'  <stop offset="0%" stop-color="{c1}"/>\n'
+        f'  <stop offset="100%" stop-color="{c2}"/>\n'
+        f'</linearGradient>'
+    )
+    line_svg = (
+        f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" '
+        f'stroke="url(#{gid})" stroke-width="{stroke_width}" '
+        f'stroke-linecap="round" opacity="{opacity}"/>'
+    )
+    return defs, line_svg

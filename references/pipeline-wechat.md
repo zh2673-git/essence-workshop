@@ -81,20 +81,60 @@
 | 内容类型 | 渲染函数 | 参数格式 | 容量 |
 |---------|---------|---------|------|
 | 列举要点 | `render_svg_card` | title, items[] | 7条×30字 |
-| 关键数据 | `render_svg_stat` | value, label, sublabel | 大数字+标签 |
-| 金句引言 | `render_svg_quote` | text, source | 200字引言 |
+| 关键数据 | `render_svg_stat` | value, label, sublabel, trend, tags[] | 大数字+标签+趋势+标签组 |
+| 金句引言 | `render_svg_quote` | text, source, context, tags[] | 200字引言+上下文+标签组 |
 | A vs B | `render_svg_compare` | title, leftTitle, rightTitle, left[], right[] | 5条×25字 |
 | 时间线 | `render_svg_timeline` | title, events[{year,title,desc}] | 6事件 |
 | 步骤流程 | `render_svg_steps` | title, steps[{title,desc}] | 6步 |
-| 概念聚焦 | `render_svg_focus` | keyword, explanation | 12字+60字 |
+| 概念聚焦 | `render_svg_focus` | keyword, explanation, tags[], sub_keywords[] | 12字关键词+60字说明+标签+子关键词 |
 | 数据图表 | `render_svg_chart` | title, data[{label,value}] | 6条柱 |
 | 总结清单 | `render_svg_summary` | title, items[] | 7条×35字 |
-| 问答 | `render_svg_qa` | question, answer | 40字+80字 |
+| 问答 | `render_svg_qa` | question, answer, key_points[] | 40字+80字+3要点 |
 | **概念详解** | `render_svg_feature` | title, features[{keyword,desc}] | 4组：10字关键词+40字说明 |
 | **多维网格** | `render_svg_grid` | title, cards[{title,desc}] | 2×2或2×3网格 |
 | **趋势对比** | `render_svg_line_chart` | title, labels[], datasets[{name,values[]}] | 多数据线对比，最多3条线 |
+| **英雄封面** | `render_svg_hero` | title, subtitle, tags[] | 20字标题+40字副标题+5标签×8字 |
+| **双栏对比** | `render_svg_duo_card` | title, leftTitle, rightTitle, left[], right[] | 左右各5条×25字 |
+| **列表详情** | `render_svg_list_detail` | title, items[{keyword,desc}] | 6组：10字关键词+40字描述 |
+| **仪表盘** | `render_svg_dashboard` | title, metrics[{value,label,trend}], barData[{label,value}], listItems[{keyword,desc,value}] | 4指标+8柱+5列表项，信息密度极高 |
+| **竖向柱状图** | `render_svg_bar_chart` | title, data[{label,value}], showValues | 12柱大画幅，网格参考线+数值标注 |
+| **指标网格** | `render_svg_metric_grid` | title, metrics[{value,label,sub,mini}], cols | 3×3网格，每卡含迷你图(up/down/bar/dot) |
 
-> **规划原则**：每篇文章至少覆盖3种不同渲染函数，优先使用 feature/grid 组合布局提高信息密度。
+> **规划原则**：
+> 1. 每篇文章至少覆盖3种不同渲染函数
+> 2. **密度优先**：7张配图中至少3张使用高密度模板（dashboard/bar_chart/metric_grid/feature/grid/duo_card/list_detail），低密度模板（stat/focus/quote/qa）不超过2张，且仅用于核心金句/关键概念等必须聚焦的场景
+> 3. 低密度模板传入辅助信息（如stat的trend/focus的tags/quote的context）以充实画面，避免大面积留白
+> 4. 优先使用 feature/grid/hero 组合布局提高信息密度
+
+### 画幅比例
+
+渲染函数支持通过 `width`/`height` 参数选择画幅比例：
+
+| 比例名 | 尺寸 | 适用场景 |
+|--------|------|---------|
+| standard | 800×600 (4:3) | 公众号标准配图（默认） |
+| wide | 1240×770 (16:10) | 宽幅封面/英雄区卡片 |
+| cinematic | 1280×720 (16:9) | 视频号封面 |
+
+```python
+from scripts.elements.svg_themes import ASPECT_RATIOS
+w, h = ASPECT_RATIOS["wide"]  # (1240, 770)
+render_svg_hero(title="标题", width=w, height=h)
+```
+
+### 渐变与装饰密度
+
+7个主题通过声明式参数控制渐变和装饰密度：
+
+| 主题 | density | gradient_accents | 效果 |
+|------|---------|-----------------|------|
+| dark | rich | True | 渐变色条+渐变标题+密集装饰 |
+| warm | normal | True | 暖色渐变点缀+适度装饰 |
+| minimal | sparse | False | 无渐变+极简装饰+大量留白 |
+| nature | normal | True | 自然渐变+有机装饰 |
+| ink | normal | False | 无渐变+水墨笔触装饰 |
+| cyber | rich | True | 霓虹渐变+密集装饰 |
+| indigo | rich | True | 星云渐变+密集装饰 |
 
 ## 图文同步规划
 

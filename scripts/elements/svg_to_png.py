@@ -36,12 +36,20 @@ def _extract_bg_color(svg_content):
     """从SVG内容中自动提取背景色（bg1），用于Playwright页面背景色。
 
     优先级:
-      1. linearGradient 中第一个 stop 的 stop-color（最常见于本质工坊SVG）
-      2. <rect> 全屏填充色
-      3. 回退到 #ffffff
+      1. <solidColor id="bg-grad" color="..."/> （本质工坊SVG的标准背景定义）
+      2. linearGradient 中第一个 stop 的 stop-color
+      3. <rect> 全屏填充色
+      4. 回退到 #ffffff
     """
+    # 方式0: 提取 <solidColor id="bg-grad" color="..."/>
+    # 本质工坊SVG使用 solidColor 定义背景，这是最准确的背景色来源
+    solid_color = re.search(r'<solidColor[^>]+id="bg-grad"[^>]*color="([^"]+)"', svg_content)
+    if not solid_color:
+        solid_color = re.search(r'<solidColor[^>]*color="([^"]+)"[^>]*id="bg-grad"', svg_content)
+    if solid_color:
+        return solid_color.group(1)
+
     # 方式1: 提取 linearGradient 第一个 stop-color
-    # 本质工坊SVG的背景渐变第一个stop就是bg1
     stops = re.findall(r'stop-color="([^"]+)"', svg_content)
     if stops:
         return stops[0]
