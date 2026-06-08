@@ -70,8 +70,30 @@
 - ⚠️ **GIF 必须与6张PNG在内容和主题上都不雷同**——不仅视觉形式不同，展示的主题也不能与任何PNG重复（如PNG已有"三个大时代"时间线图，GIF就不能再做时间线动画，应选完全不同的主题如阴阳五行生克、概念关系网络等）
 - ⚠️ 每个主要章节开头放一张配图
 - ⚠️ 连续无图文字 ≤1500字
+### 封面图约束（重要）
+
+- ⚠️ **封面图是必选项，不可省略**——微信草稿箱API要求 `thumb_media_id`，无封面图会报 `[40007] invalid media_id`
 - ⚠️ **封面图必须与正文中的7张配图完全不同**——封面图是独立设计的品牌视觉，不重复使用正文配图
-- ⚠️ 不要在正文中插入封面图（封面由微信后台单独上传）
+- ⚠️ **不要在正文中插入封面图**（封面由微信后台单独上传）
+- ⚠️ **封面图必须在配图生成阶段一并创建**，不能依赖 `--auto-cover`（该参数仅查找已有 `output/elements/cover.svg`，找不到则跳过）
+
+**封面图生成规范**：
+
+| 项目 | 要求 |
+|------|------|
+| 文件路径 | `output/wechat/images/cover.png` |
+| 画幅比例 | wide（1240×770，16:10） |
+| 生成方式 | 大模型生成 SVG → `svg_to_png` 转 PNG |
+| 内容要求 | 文章标题 + 副标题/核心概念 + 品牌装饰，视觉风格与正文配图一致但内容不重复 |
+| 配色 | 遵循原则驱动规则，与正文配图同色系 |
+| 推送参数 | `--cover output/wechat/images/cover.png` |
+
+**封面图SVG模板要点**：
+- 居中大字标题（文章标题，2-3行）
+- 副标题或核心概念短语
+- 品牌色装饰线/几何元素
+- 浅色背景 + 深色文字 + 强调色点缀
+- 画幅 1240×770
 
 ### 配图生成方式
 
@@ -110,6 +132,7 @@ SVG 配图由大模型生成时，根据内容选择合适的画幅：
 
 | 章节 | 视觉原语 | 配图内容 | 方案 |
 |------|---------|---------|------|
+| **封面** | **聚焦** | **文章标题+核心概念+品牌装饰** | **SVG→PNG（wide画幅1240×770）** |
 | 引言 | 聚焦 | 核心概念 | SVG→PNG |
 | 核心模型 | 列举/对比 | 模型要素 | SVG→PNG |
 | 动态过程 | 列举 | 变化循环 | SVG动画→GIF |
@@ -121,13 +144,13 @@ SVG 配图由大模型生成时，根据内容选择合适的画幅：
 1. 从 `output/elements/` 读取元素
 2. SVG → PNG（Playwright渲染，device_scale_factor=2）
 3. SVG动画 → GIF（见下方GIF生成流程）
-4. Markdown → 微信HTML（wechat_converter.py）
-5. 配图插入对应位置
-6. 图文间距检查
-7. 字数检查
-8. 生成封面
+4. **生成封面图**：大模型生成封面SVG（1240×770，wide画幅）→ `svg_to_png` 转 PNG → 保存至 `output/wechat/images/cover.png`
+5. Markdown → 微信HTML（wechat_converter.py）
+6. 配图插入对应位置
+7. 图文间距检查
+8. 字数检查
 9. 推送前检查
-10. 推送草稿箱
+10. 推送草稿箱（必须带 `--cover output/wechat/images/cover.png`）
 
 ### GIF 生成流程
 
@@ -161,14 +184,16 @@ GIF 必须使用 `scripts/elements/record_gif.py` 脚本录制，步骤如下：
 ## 命令
 
 ```bash
-# 完整管线（统一CLI）
-python -m scripts.cli publish article.md --auto-cover --author "公众号名"
+# 完整管线（必须指定封面图）
+python -m scripts.pipelines.wechat.publish article.md --cover output/wechat/images/cover.png --author "公众号名"
 
 # 或直接调用
-python -m scripts.pipelines.wechat.publish article.md --auto-cover --author "公众号名"
+python -m scripts.cli publish article.md --cover output/wechat/images/cover.png --author "公众号名"
 
 # 仅转换不推送
-python -m scripts.pipelines.wechat.converter article.md
+python -m scripts.pipelines.wechat.publish article.md --check-only
+
+# ⚠️ 不要使用 --auto-cover（仅查找已有cover.svg，找不到则跳过，导致推送失败）
 ```
 
 ## 质量自检
