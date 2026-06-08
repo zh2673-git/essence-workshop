@@ -81,7 +81,7 @@ def record_gif(html_path, output_path, frame_delay_ms=200, pause_frames=8):
 
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
 
-    # 保存GIF：optimize=False避免帧间调色板突变，disposal=1保留上一帧减少体积
+    # 保存GIF：optimize=False避免帧间调色板突变，disposal=2清除上一帧确保动画可见
     frames_p[0].save(
         output_path,
         format="GIF",
@@ -90,7 +90,7 @@ def record_gif(html_path, output_path, frame_delay_ms=200, pause_frames=8):
         duration=frame_delay_ms,
         loop=0,
         optimize=False,  # 关键：不用optimize，避免帧间调色板变化闪烁
-        disposal=1,  # 保留上一帧，减少体积
+        disposal=2,  # 清除上一帧，确保每帧独立渲染
     )
 
     file_size_kb = os.path.getsize(output_path) / 1024
