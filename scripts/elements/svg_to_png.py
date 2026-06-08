@@ -38,8 +38,9 @@ def _extract_bg_color(svg_content):
     优先级:
       1. <solidColor id="bg-grad" color="..."/> （本质工坊SVG的标准背景定义）
       2. linearGradient 中第一个 stop 的 stop-color
-      3. <rect> 全屏填充色
-      4. 回退到 #ffffff
+      3. <rect> 全屏填充色（与 viewBox 同尺寸）
+      4. 第一个 <rect> 的 fill（常见于手写封面SVG）
+      5. 回退到 #ffffff
     """
     # 方式0: 提取 <solidColor id="bg-grad" color="..."/>
     # 本质工坊SVG使用 solidColor 定义背景，这是最准确的背景色来源
@@ -54,25 +55,34 @@ def _extract_bg_color(svg_content):
     if stops:
         return stops[0]
 
-    # 方式2: 提取全屏rect的fill（匹配width="100%"或width="1240"等精确像素值）
+    # 方式2: 提取全屏rect的fill
+    # 2a: 匹配 width="100%" 的 rect
     rect_fill = re.search(r'<rect[^>]+width="100%[^>]*fill="([^"]+)"', svg_content)
     if not rect_fill:
         rect_fill = re.search(r'<rect[^>]+fill="([^"]+)"[^>]+width="100%', svg_content)
-    if not rect_fill:
-        # 匹配 viewBox 同尺寸的 rect（精确像素值）
-        vb_match2 = re.search(r'viewBox="[\d.]+\s+[\d.]+\s+([\d.]+)\s+([\d.]+)"', svg_content)
-        if vb_match2:
-            vb_w, vb_h = vb_match2.group(1), vb_match2.group(2)
-            rect_fill = re.search(
-                rf'<rect[^>]+width="{vb_w}"[^>]*height="{vb_h}"[^>]*fill="([^"]+)"', svg_content)
-            if not rect_fill:
-                rect_fill = re.search(
-                    rf'<rect[^>]+fill="([^"]+)"[^>]+width="{vb_w}"', svg_content)
     if rect_fill:
         return rect_fill.group(1)
 
-    # 方式3: 回退黑底
-    return "#0A0A0A"
+    # 2b: 匹配 viewBox 同尺寸的 rect（属性顺序不固定）
+    vb_match2 = re.search(r'viewBox="[\d.]+\s+[\d.]+\s+([\d.]+)\s+([\d.]+)"', svg_content)
+    if vb_match2:
+        vb_w, vb_h = vb_match2.group(1), vb_match2.group(2)
+        # 查找所有 rect，逐一检查是否有匹配 viewBox 的 width+height
+        for rect_match in re.finditer(r'<rect\s+([^>]+)/?>', svg_content):
+            attrs = rect_match.group(1)
+            rw = re.search(r'width="([^"]+)"', attrs)
+            rh = re.search(r'height="([^"]+)"', attrs)
+            rf = re.search(r'fill="([^"]+)"', attrs)
+            if rw and rh and rf and rw.group(1) == vb_w and rh.group(1) == vb_h:
+                return rf.group(1)
+
+    # 方式3: 提取第一个 <rect> 的 fill（手写封面SVG通常第一个rect就是背景）
+    first_rect = re.search(r'<rect[^>]+fill="([^"]+)"', svg_content)
+    if first_rect:
+        return first_rect.group(1)
+
+    # 方式4: 回退白底（深色SVG如果提取失败，白底比黑底更容易发现问题）
+    return "#FFFFFF"
 
 
 def svg_to_png(svg_path, output_path, width=None, height=None, dpi=2, bg_color=None, max_retries=3):
@@ -100,9 +110,15 @@ def svg_to_png(svg_path, output_path, width=None, height=None, dpi=2, bg_color=N
         width = width or int(svg_w * dpi)
         height = height or int(svg_h * dpi)
 
-    # Force SVG to fill container by overriding width/height to 100%
-    svg_content = re.sub(r'width="[^"]*"', 'width="100%"', svg_content, count=1)
-    svg_content = re.sub(r'height="[^"]*"', 'height="100%"', svg_content, count=1)
+    # Force SVG element to fill container by overriding its width/height to 100%
+    # 只替换 <svg ...> 标签自身的 width/height，避免误命中 <rect> 等子元素
+    svg_content = re.sub(r'(<svg[^>]*?)\bwidth="[^"]*"', r'\1width="100%"', svg_content, count=1)
+    svg_content = re.sub(r'(<svg[^>]*?)\bheight="[^"]*"', r'\1height="100%"', svg_content, count=1)
+    # 如果 <svg> 没有 width/height 属性，补上
+    if not re.search(r'<svg[^>]*\bwidth=', svg_content):
+        svg_content = svg_content.replace('<svg', '<svg width="100%"', 1)
+    if not re.search(r'<svg[^>]*\bheight=', svg_content):
+        svg_content = svg_content.replace('<svg', '<svg height="100%"', 1)
 
     html = f"""<!DOCTYPE html>
 <html><head><style>
@@ -140,7 +156,7 @@ body {{ background:{bg_color}; margin:0; padding:0; }}
     raise RuntimeError(f"SVG→PNG failed after {max_retries} retries: {last_error}")
 
 
-def batch_convert(input_dir, output_dir, dpi=2, bg_color="#0A0A0A"):
+def batch_convert(input_dir, output_dir, dpi=2, bg_color=None):
     os.makedirs(output_dir, exist_ok=True)
     converted = 0
     for f in sorted(os.listdir(input_dir)):
@@ -165,7 +181,7 @@ def main():
     parser.add_argument("--dpi", type=float, default=2, help="渲染倍率（默认2x）")
     parser.add_argument("--width", type=int, default=None, help="输出宽度（像素）")
     parser.add_argument("--height", type=int, default=None, help="输出高度（像素）")
-    parser.add_argument("--bg", default="#0A0A0A", help="背景色（默认#0A0A0A）")
+    parser.add_argument("--bg", default=None, help="背景色（默认自动从SVG提取）")
     args = parser.parse_args()
 
     if not check_playwright_available():
