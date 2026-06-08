@@ -54,10 +54,20 @@ def _extract_bg_color(svg_content):
     if stops:
         return stops[0]
 
-    # 方式2: 提取全屏rect的fill
+    # 方式2: 提取全屏rect的fill（匹配width="100%"或width="1240"等精确像素值）
     rect_fill = re.search(r'<rect[^>]+width="100%[^>]*fill="([^"]+)"', svg_content)
     if not rect_fill:
         rect_fill = re.search(r'<rect[^>]+fill="([^"]+)"[^>]+width="100%', svg_content)
+    if not rect_fill:
+        # 匹配 viewBox 同尺寸的 rect（精确像素值）
+        vb_match2 = re.search(r'viewBox="[\d.]+\s+[\d.]+\s+([\d.]+)\s+([\d.]+)"', svg_content)
+        if vb_match2:
+            vb_w, vb_h = vb_match2.group(1), vb_match2.group(2)
+            rect_fill = re.search(
+                rf'<rect[^>]+width="{vb_w}"[^>]*height="{vb_h}"[^>]*fill="([^"]+)"', svg_content)
+            if not rect_fill:
+                rect_fill = re.search(
+                    rf'<rect[^>]+fill="([^"]+)"[^>]+width="{vb_w}"', svg_content)
     if rect_fill:
         return rect_fill.group(1)
 
