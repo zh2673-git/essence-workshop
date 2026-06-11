@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · {项目名称}</title>
+<style>
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-card: #1e2130;
+  --text-primary: #e8e8ed;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #2d3148;
+  --border-accent: var(--accent-color, #ff9800);
+  --accent-color: #ff9800;
+  --accent-glow: rgba(255, 152, 0, 0.12);
+  --success: #4caf50;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --color-math: #26c6da;
+  --color-physics: #ff7043;
+  --color-chemistry: #66bb6a;
+  --color-chinese: #ab47bc;
+  --color-history: #ffa726;
+  --color-english: #42a5f5;
+  --color-biology: #9ccc65;
+  --color-geography: #26a69a;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.8; min-height: 100vh; }
+body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.02) 0%, transparent 40%); pointer-events: none; z-index: 0; }
+
+.header { position: relative; z-index: 1; padding: 40px 24px 24px; max-width: 800px; margin: 0 auto; border-bottom: 1px solid var(--border-color); }
+.header .project-badge { display: inline-block; background: var(--accent-color); color: var(--bg-primary); padding: 2px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; }
+.header h1 { font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.header h1 .accent { color: var(--accent-color); }
+.header .meta { display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 0.9rem; flex-wrap: wrap; }
+.header .meta .tag { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 12px; border-radius: 20px; font-size: 0.85rem; }
+
+.main { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px; }
+
+/* 问题概述 */
+.question-overview { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+.question-overview h2 { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 12px; }
+.question-overview p { color: var(--text-secondary); line-height: 1.9; }
+
+/* 学习路径图 */
+.learning-path { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+.learning-path h2 { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 16px; }
+.learning-path svg { max-width: 100%; height: auto; }
+.learning-path svg text { font-family: var(--font-sans); }
+
+/* 知识点卡片 */
+.kp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.kp-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; transition: border-color 0.2s; position: relative; }
+.kp-card:hover { border-color: var(--border-accent); }
+.kp-card .kp-number { position: absolute; top: 12px; right: 16px; width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
+.kp-card .kp-subject { font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-bottom: 8px; }
+.kp-card .kp-subject.math { background: rgba(38,198,218,0.15); color: var(--color-math); }
+.kp-card .kp-subject.physics { background: rgba(255,112,67,0.15); color: var(--color-physics); }
+.kp-card .kp-subject.chemistry { background: rgba(102,187,106,0.15); color: var(--color-chemistry); }
+.kp-card .kp-subject.chinese { background: rgba(171,71,188,0.15); color: var(--color-chinese); }
+.kp-card .kp-subject.history { background: rgba(255,167,38,0.15); color: var(--color-history); }
+.kp-card .kp-subject.english { background: rgba(66,165,245,0.15); color: var(--color-english); }
+.kp-card .kp-subject.biology { background: rgba(156,204,101,0.15); color: var(--color-biology); }
+.kp-card .kp-subject.geography { background: rgba(38,166,154,0.15); color: var(--color-geography); }
+.kp-card .kp-name { font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.kp-card .kp-role { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; }
+.kp-card .kp-status { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+.kp-card .kp-status.generated { color: var(--success); }
+.kp-card .kp-status.pending { color: var(--text-muted); }
+.kp-card .kp-status .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+.kp-card .kp-status.generated .status-dot { background: var(--success); }
+.kp-card .kp-status.pending .status-dot { background: var(--text-muted); opacity: 0.5; }
+.kp-card .kp-link { display: inline-block; margin-top: 8px; padding: 4px 12px; border-radius: 16px; font-size: 0.8rem; text-decoration: none; transition: all 0.2s; }
+.kp-card .kp-link.view { background: rgba(76,175,80,0.1); border: 1px solid var(--success); color: var(--success); }
+.kp-card .kp-link.view:hover { background: rgba(76,175,80,0.2); }
+.kp-card .kp-link.generate { background: var(--bg-secondary); border: 1px dashed var(--border-color); color: var(--text-muted); }
+.kp-card .kp-link.generate:hover { border-color: var(--accent-color); color: var(--accent-color); }
+
+/* 综合思考 */
+.synthesis { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+.synthesis h2 { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 12px; }
+.synthesis p { color: var(--text-secondary); line-height: 1.9; margin-bottom: 12px; }
+.synthesis .highlight { color: var(--accent-color); font-weight: 500; }
+
+/* 延伸问题 */
+.extensions { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+.extensions h2 { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 12px; }
+.extensions ul { list-style: none; padding: 0; }
+.extensions ul li { padding: 8px 0 8px 20px; position: relative; color: var(--text-secondary); }
+.extensions ul li::before { content: ''; position: absolute; left: 0; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-color); opacity: 0.6; }
+
+.footer { position: relative; z-index: 1; max-width: 800px; margin: 40px auto 0; padding: 24px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+@media (max-width: 640px) { .header { padding: 24px 16px 16px; } .header h1 { font-size: 1.5rem; } .main { padding: 16px; } .kp-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="project-badge">项目式学习</span>
+  <h1>知本 · <span class="accent">{项目名称}</span></h1>
+  <div class="meta">
+    {学科标签}
+    <span class="tag">{学段}</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- 问题概述 -->
+  <div class="question-overview">
+    <h2>问题</h2>
+    <p>{问题概述内容}</p>
+  </div>
+
+  <!-- 学习路径图 -->
+  <div class="learning-path">
+    <h2>学习路径</h2>
+    {学习路径SVG}
+  </div>
+
+  <!-- 知识点卡片 -->
+  <h2 style="font-size:1.1rem;color:var(--text-primary);margin-bottom:12px;">知识点</h2>
+  <div class="kp-grid">
+    {知识点卡片}
+  </div>
+
+  <!-- 综合思考 -->
+  <div class="synthesis">
+    <h2>综合思考</h2>
+    <p>{综合思考内容}</p>
+  </div>
+
+  <!-- 延伸问题 -->
+  <div class="extensions">
+    <h2>延伸问题</h2>
+    <ul>
+      {延伸问题列表}
+    </ul>
+  </div>
+
+</div>
+
+<div class="footer">
+  知本 KnowledgeRoot — 知识本质拆解系统
+</div>
+
+</body>
+</html>

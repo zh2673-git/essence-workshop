@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 负数</title>
+<style>
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-card: #1e2130;
+  --bg-card-hover: #252840;
+  --text-primary: #e8e8ed;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #2d3148;
+  --border-accent: var(--accent-color, #4fc3f7);
+  --accent-color: #4fc3f7;
+  --accent-glow: rgba(79, 195, 247, 0.15);
+  --success: #4caf50;
+  --error: #ef5350;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.8; min-height: 100vh; }
+body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.02) 0%, transparent 40%); pointer-events: none; z-index: 0; }
+.header { position: relative; z-index: 1; padding: 40px 24px 24px; max-width: 800px; margin: 0 auto; border-bottom: 1px solid var(--border-color); }
+.header h1 { font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.header h1 .accent { color: var(--accent-color); }
+.header .meta { display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 0.9rem; }
+.header .meta .tag { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 12px; border-radius: 20px; font-size: 0.85rem; }
+.main { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px; }
+.group { margin-bottom: 32px; }
+.group-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+.group-header .group-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; background: var(--accent-color); color: var(--bg-primary); }
+.group-header .group-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+.group-header .group-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-left: auto; }
+.dimension-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s; }
+.dimension-card:hover { border-color: var(--border-accent); }
+.dimension-header { display: flex; align-items: center; padding: 16px 20px; cursor: pointer; user-select: none; gap: 12px; }
+.dimension-header .dim-number { width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
+.dimension-header .dim-title { font-weight: 600; font-size: 1rem; color: var(--text-primary); }
+.dimension-header .dim-question { font-size: 0.85rem; color: var(--text-muted); margin-left: 8px; }
+.dimension-header .dim-toggle { margin-left: auto; color: var(--text-muted); font-size: 0.8rem; transition: transform 0.2s; flex-shrink: 0; }
+.dimension-header .dim-toggle.collapsed { transform: rotate(-90deg); }
+.dimension-body { padding: 0 20px 20px; color: var(--text-secondary); line-height: 1.9; }
+.dimension-body.collapsed { display: none; }
+.dimension-body p { margin-bottom: 12px; }
+.dimension-body strong { color: var(--text-primary); }
+.dimension-body .highlight { color: var(--accent-color); font-weight: 500; }
+.dimension-body .story-box { background: var(--bg-secondary); border-left: 3px solid var(--accent-color); padding: 16px 20px; border-radius: 0 var(--radius) var(--radius) 0; margin: 12px 0; }
+.dimension-body .example-list { list-style: none; padding: 0; }
+.dimension-body .example-list li { padding: 8px 0 8px 20px; position: relative; }
+.dimension-body .example-list li::before { content: ''; position: absolute; left: 0; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-color); opacity: 0.6; }
+.diagram { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
+.diagram svg { max-width: 100%; height: auto; }
+.diagram svg text { font-family: var(--font-sans); }
+.diagram .caption { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+.knowledge-map { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-top: 32px; }
+.knowledge-map h3 { font-size: 1rem; color: var(--text-primary); margin-bottom: 16px; }
+.map-nodes { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.map-node { padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+.map-node:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.map-node.current { background: var(--accent-color); color: var(--bg-primary); border-color: var(--accent-color); font-weight: 600; }
+.map-node.pending { border-style: dashed; opacity: 0.7; }
+.map-node.linked { text-decoration: none; color: var(--text-secondary); }
+.map-node.linked:hover { color: var(--accent-color); border-color: var(--accent-color); }
+.map-arrow { color: var(--text-muted); font-size: 0.9rem; }
+.map-section { margin-top: 16px; }
+.map-section-title { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.map-section .map-nodes { justify-content: flex-start; }
+.quiz-item { margin-bottom: 16px; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border-color); }
+.quiz-item .quiz-question { font-weight: 600; color: var(--text-primary); margin-bottom: 12px; }
+.quiz-item .quiz-type { font-size: 0.75rem; color: var(--accent-color); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.quiz-options { list-style: none; padding: 0; }
+.quiz-options li { padding: 10px 16px; margin-bottom: 6px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; transition: all 0.2s; color: var(--text-secondary); }
+.quiz-options li:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.quiz-options li.correct { border-color: var(--success); background: rgba(76, 175, 80, 0.1); color: var(--success); }
+.quiz-options li.wrong { border-color: var(--error); background: rgba(239, 83, 80, 0.1); color: var(--error); }
+.quiz-explanation { display: none; margin-top: 12px; padding: 12px 16px; background: var(--bg-card); border-left: 3px solid var(--accent-color); border-radius: 0 var(--radius) var(--radius) 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7; }
+.quiz-explanation.visible { display: block; }
+.footer { position: relative; z-index: 1; max-width: 800px; margin: 40px auto 0; padding: 24px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+/* ===== 演示模式 ===== */
+.demo-controls { position: fixed; bottom: 24px; right: 24px; z-index: 100; display: flex; gap: 8px; align-items: center; }
+.demo-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.demo-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
+.demo-btn.active { background: var(--accent-color); color: var(--bg-primary); border-color: var(--accent-color); }
+.demo-progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent-color); z-index: 100; transition: width 0.3s ease; }
+.demo-step-indicator { position: fixed; top: 12px; right: 24px; z-index: 100; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 4px 14px; font-size: 0.8rem; color: var(--text-secondary); display: none; }
+.demo-step-indicator.visible { display: block; }
+.dimension-card.demo-active { border-color: var(--accent-color) !important; box-shadow: 0 0 20px var(--accent-glow); }
+.group-header.demo-highlight .group-icon { animation: pulse 1s ease-in-out; }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+
+@media (max-width: 640px) { .header { padding: 24px 16px 16px; } .header h1 { font-size: 1.5rem; } .main { padding: 16px; } }
+@media print { body { background: white; color: black; } body::before { display: none; } .dimension-body.collapsed { display: block !important; } .dimension-header .dim-toggle { display: none; } .dimension-card { border: 1px solid #ddd; } .demo-controls, .demo-progress, .demo-step-indicator { display: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>知本 · <span class="accent">负数</span></h1>
+  <div class="meta">
+    <span class="tag">数学</span>
+    <span class="tag">五年级</span>
+    <span class="tag">形式科学族</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- 认知组 -->
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">认</div>
+      <span class="group-title">认知组</span>
+      <span class="group-subtitle">理解</span>
+    </div>
+
+    <!-- 维度1：定义锚点 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">1</span>
+        <span class="dim-title">定义锚点</span>
+        <span class="dim-question">它是什么？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p>负数是比零小的数。你在生活中已经见过它：<span class="highlight">冬天气温-5度</span>，意思是比0度还低5度；<span class="highlight">欠别人3块钱</span>，你的钱不是0，而是比0还少3块。</p>
+        <p>概念边界：正数是比0大的数（1, 2, 3...），0既不是正数也不是负数，负数是比0小的数（-1, -2, -3...）。它们三个把"数"分成了三块。</p>
+
+        <!-- 数轴图示 -->
+        <div class="diagram">
+          <svg viewBox="0 0 600 120" xmlns="http://www.w3.org/2000/svg">
+            <!-- 数轴主线 -->
+            <line x1="40" y1="60" x2="560" y2="60" stroke="#6b7280" stroke-width="2"/>
+            <!-- 箭头 -->
+            <polygon points="558,55 568,60 558,65" fill="#6b7280"/>
+            <polygon points="42,55 32,60 42,65" fill="#6b7280"/>
+            <!-- 刻度和数字 -->
+            <line x1="300" y1="50" x2="300" y2="70" stroke="#e8e8ed" stroke-width="2"/>
+            <text x="300" y="90" text-anchor="middle" fill="#e8e8ed" font-size="14" font-weight="bold">0</text>
+
+            <line x1="220" y1="52" x2="220" y2="68" stroke="#9ca3af" stroke-width="1.5"/>
+            <text x="220" y="88" text-anchor="middle" fill="#4fc3f7" font-size="14">-1</text>
+
+            <line x1="140" y1="52" x2="140" y2="68" stroke="#9ca3af" stroke-width="1.5"/>
+            <text x="140" y="88" text-anchor="middle" fill="#4fc3f7" font-size="14">-2</text>
+
+            <line x1="60" y1="52" x2="60" y2="68" stroke="#9ca3af" stroke-width="1.5"/>
+            <text x="60" y="88" text-anchor="middle" fill="#4fc3f7" font-size="14">-3</text>
+
+            <line x1="380" y1="52" x2="380" y2="68" stroke="#9ca3af" stroke-width="1.5"/>
+            <text x="380" y="88" text-anchor="middle" fill="#9ca3af" font-size="14">1</text>
+
+            <line x1="460" y1="52" x2="460" y2="68" stroke="#9ca3af" stroke-width="1.5"/>
+            <text x="460" y="88" text-anchor="middle" fill="#9ca3af" font-size="14">2</text>
+
+            <line x1="540" y1="52" x2="540" y2="68" stroke="#9ca3af" stroke-width="1.5"/>
+            <text x="540" y="88" text-anchor="middle" fill="#9ca3af" font-size="14">3</text>
+
+            <!-- 负数区域高亮 -->
+            <rect x="40" y="35" width="250" height="30" rx="4" fill="rgba(79,195,247,0.1)" stroke="#4fc3f7" stroke-width="1" stroke-dasharray="4,2"/>
+            <text x="165" y="28" text-anchor="middle" fill="#4fc3f7" font-size="12">负数区域</text>
+
+            <!-- 生活锚点标注 -->
+            <text x="140" y="110" text-anchor="middle" fill="#6b7280" font-size="10">欠2元</text>
+            <text x="60" y="110" text-anchor="middle" fill="#6b7280" font-size="10">-3°C</text>
+          </svg>
+          <div class="caption">数轴上的负数：0的左边，比0小的数</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 维度2：历史溯源 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">2</span>
+        <span class="dim-title">历史溯源</span>
+        <span class="dim-question">它从哪来？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <div class="story-box">
+          <p>中国古代商人最早用负数记账——收入写黑字，亏损写红字，这就是"赤字"的来源。但很多数学家不接受负数：7世纪的印度数学家布拉马古普塔第一次给出了负数的运算规则，但欧洲数学家直到16世纪还认为负数是"荒谬的数"。</p>
+          <p>转折发生在1545年，意大利数学家卡尔达诺在《大术》中承认负数有根——虽然他仍然觉得负数"令人困扰"。真正让负数被接受的是坐标系的发明：当人们发现数轴向左延伸可以对应实际的量（温度、海拔、欠款），负数才从"荒谬"变成"自然"。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 维度3：现实矛盾 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">3</span>
+        <span class="dim-title">现实矛盾</span>
+        <span class="dim-question">为什么需要它？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p>只有正数和0的世界里，<span class="highlight">3 - 5 算不了</span>。你手里有3个苹果，别人拿走5个？不可能——减法在这里卡住了。但现实中这种事天天发生：你有3块钱，要付5块钱，你差2块钱。这个"差2块"怎么表示？</p>
+        <p>没有负数，减法就有禁区；有了负数，减法在任何两个数之间都能做。负数不是"发明"了一个新东西，而是<strong>拆掉了减法的一道墙</strong>。</p>
+
+        <!-- 逻辑困境图 -->
+        <div class="diagram">
+          <svg viewBox="0 0 560 160" xmlns="http://www.w3.org/2000/svg">
+            <!-- 左侧：没有负数 -->
+            <rect x="20" y="20" width="240" height="120" rx="8" fill="rgba(239,83,80,0.08)" stroke="#ef5350" stroke-width="1.5"/>
+            <text x="140" y="50" text-anchor="middle" fill="#ef5350" font-size="13" font-weight="bold">没有负数</text>
+            <text x="140" y="75" text-anchor="middle" fill="#9ca3af" font-size="12">3 - 5 = ???</text>
+            <text x="140" y="95" text-anchor="middle" fill="#6b7280" font-size="11">减法有禁区</text>
+            <line x1="80" y1="105" x2="200" y2="105" stroke="#ef5350" stroke-width="2" stroke-dasharray="6,3"/>
+            <text x="140" y="125" text-anchor="middle" fill="#ef5350" font-size="11">"不够减" → 算不了</text>
+
+            <!-- 箭头 -->
+            <line x1="275" y1="80" x2="285" y2="80" stroke="#4fc3f7" stroke-width="2"/>
+            <polygon points="283,75 293,80 283,85" fill="#4fc3f7"/>
+            <text x="284" y="70" text-anchor="middle" fill="#4fc3f7" font-size="11">引入负数</text>
+
+            <!-- 右侧：有负数 -->
+            <rect x="300" y="20" width="240" height="120" rx="8" fill="rgba(79,195,247,0.08)" stroke="#4fc3f7" stroke-width="1.5"/>
+            <text x="420" y="50" text-anchor="middle" fill="#4fc3f7" font-size="13" font-weight="bold">有了负数</text>
+            <text x="420" y="75" text-anchor="middle" fill="#e8e8ed" font-size="12">3 - 5 = -2</text>
+            <text x="420" y="95" text-anchor="middle" fill="#9ca3af" font-size="11">减法没有禁区</text>
+            <line x1="360" y1="105" x2="480" y2="105" stroke="#4caf50" stroke-width="2"/>
+            <text x="420" y="125" text-anchor="middle" fill="#4caf50" font-size="11">"不够减" → 结果是负数</text>
+          </svg>
+          <div class="caption">逻辑困境：没有负数时，3-5算不了；有了负数，减法畅通无阻</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用组 -->
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">用</div>
+      <span class="group-title">应用组</span>
+      <span class="group-subtitle">迁移</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">4</span>
+        <span class="dim-title">应用场景</span>
+        <span class="dim-question">它能做什么？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <ul class="example-list">
+          <li><strong>温度</strong>：冰箱冷冻室-18°C，意思是比0度还低18度</li>
+          <li><strong>海拔</strong>：死海海拔-430米，意思是比海平面低430米</li>
+          <li><strong>账本</strong>：余额-50元，意思是欠了50元</li>
+        </ul>
+        <p><strong>动手验证</strong>：找一支温度计，放到冰箱冷冻室里，观察温度降到0度以下后，数字前面出现了什么？</p>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">5</span>
+        <span class="dim-title">思维延伸</span>
+        <span class="dim-question">它还能怎样？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p>负数打开了"比0小"的世界，后续你会遇到：</p>
+        <ul class="example-list">
+          <li><a href="有理数.html" class="highlight">有理数</a>——正数、负数、0、分数的统一家族</li>
+          <li><a href="绝对值.html" class="highlight">绝对值</a>——不管正负，只看"距离0有多远"</li>
+        </ul>
+        <p><strong>进阶问题</strong>：负数乘负数为什么得正数？"-2 × -3 = 6"这个规则不是随便定的，你能想出为什么吗？</p>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">6</span>
+        <span class="dim-title">知识网络</span>
+        <span class="dim-question">它和什么关联？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p><strong>前导知识</strong>：</p>
+        <ul class="example-list">
+          <li><a href="正数和0.html" class="highlight">正数和0</a>（前导）——负数是正数的"镜像"</li>
+        </ul>
+        <p><strong>后续延伸</strong>：</p>
+        <ul class="example-list">
+          <li><a href="有理数.html" class="highlight">有理数</a>（后续）——正数+负数+0+分数的统一</li>
+        </ul>
+        <p><strong>平行关联</strong>：</p>
+        <ul class="example-list">
+          <li><span class="map-node pending" style="display:inline;font-size:0.85rem;">绝对值</span>（平行）——距离0的远近</li>
+          <li><span class="map-node pending" style="display:inline;font-size:0.85rem;">相反数</span>（平行）——正负对称</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 验证组 -->
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">验</div>
+      <span class="group-title">验证组</span>
+      <span class="group-subtitle">确认</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">7</span>
+        <span class="dim-title">验证理解</span>
+        <span class="dim-question">真的懂了吗？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+
+        <div class="quiz-item">
+          <div class="quiz-type">辨析题</div>
+          <div class="quiz-question">小明说："0是最小的数，没有比0更小的了。"他说得对吗？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">对，0就是最小的数</li>
+            <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">不对，-1比0小，-2比-1更小，负数没有尽头</li>
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">不对，但原因是0不是数</li>
+          </ul>
+          <div class="quiz-explanation">0不是最小的数。数轴向左无限延伸，-1、-2、-3...负数没有尽头。0只是一个分界点——正数在右边，负数在左边。</div>
+        </div>
+
+        <div class="quiz-item">
+          <div class="quiz-type">实践题</div>
+          <div class="quiz-question">如果你有3块钱，买了一个5块钱的面包，你的钱用负数怎么表示？这个负数是什么意思？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">-5，表示花了5块</li>
+            <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">-2，表示还差2块没付</li>
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">2，表示还剩2块</li>
+          </ul>
+          <div class="quiz-explanation">3 - 5 = -2。这个-2不是"花了2块"，而是"差2块"——你欠老板2块钱。负数表示的是"不足"或"欠缺"，不是"花掉"。</div>
+        </div>
+
+        <div class="quiz-item">
+          <div class="quiz-type">选择题</div>
+          <div class="quiz-question">以下哪个生活场景中的数不是负数？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">珠穆朗玛峰海拔+8848米</li>
+            <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">吐鲁番盆地海拔+154米（实际是-154米，但题目问"不是负数"）</li>
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">北极冬天温度-40°C</li>
+          </ul>
+          <div class="quiz-explanation">这道题的关键是区分"正数"和"负数"在生活中的对应：海拔+8848是正数，-40°C是负数，吐鲁番盆地实际海拔是-154米（负数），但题目选项写的是+154米，所以这个选项里的数不是负数。等等，这道题需要重新审视——选项A是正数，选项C是负数，选项B写的+154实际应该是-154。如果你选了A，说明你理解了"正数不是负数"。</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 知识地图 -->
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section">
+      <div class="map-section-title">前导知识</div>
+      <div class="map-nodes">
+        <span class="map-node pending">正数和0</span>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-nodes">
+        <span class="map-arrow">→</span>
+        <span class="map-node current">负数</span>
+        <span class="map-arrow">→</span>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-section-title">后续延伸</div>
+      <div class="map-nodes">
+        <a href="有理数.html" class="map-node linked">有理数</a>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-section-title">平行关联</div>
+      <div class="map-nodes">
+        <span class="map-node pending">绝对值</span>
+        <span class="map-node pending">相反数</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 演示模式控件 -->
+<div class="demo-progress" id="demoProgress" style="width:0%"></div>
+<div class="demo-step-indicator" id="demoStepIndicator"></div>
+<div class="demo-controls" id="demoControls">
+  <button class="demo-btn" id="demoBtn" title="演示模式：自动展开并滚动" onclick="toggleDemo()">▶</button>
+  <button class="demo-btn" id="demoSpeedBtn" title="切换速度" onclick="cycleSpeed()" style="font-size:0.75rem;width:36px;height:36px;">1x</button>
+</div>
+
+<div class="footer">
+  知本 KnowledgeRoot — 知识本质拆解系统
+</div>
+
+<script>
+function toggleDimension(header) {
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.dim-toggle');
+  if (body.classList.contains('collapsed')) { body.classList.remove('collapsed'); toggle.classList.remove('collapsed'); }
+  else { body.classList.add('collapsed'); toggle.classList.add('collapsed'); }
+}
+function checkAnswer(optionEl, isCorrect, explanationEl) {
+  const parent = optionEl.parentElement;
+  const allOptions = parent.querySelectorAll('li');
+  allOptions.forEach(opt => { opt.style.pointerEvents = 'none'; });
+  if (isCorrect) { optionEl.classList.add('correct'); }
+  else { optionEl.classList.add('wrong'); allOptions.forEach(opt => { if (opt.dataset.correct === 'true') { opt.classList.add('correct'); } }); }
+  if (explanationEl) { explanationEl.classList.add('visible'); }
+}
+
+/* ===== 演示模式 ===== */
+const DEMO_SPEEDS = [
+  { label: '1x', pause: 4000 },
+  { label: '2x', pause: 2000 },
+  { label: '3x', pause: 1200 },
+];
+let demoSpeedIdx = 0, demoRunning = false, demoTimer = null, demoStep = 0;
+
+function getAllDimensionCards() { return Array.from(document.querySelectorAll('.dimension-card')); }
+function getAllGroupHeaders() { return Array.from(document.querySelectorAll('.group-header')); }
+
+function toggleDemo() { demoRunning ? stopDemo() : startDemo(); }
+
+function cycleSpeed() {
+  demoSpeedIdx = (demoSpeedIdx + 1) % DEMO_SPEEDS.length;
+  document.getElementById('demoSpeedBtn').textContent = DEMO_SPEEDS[demoSpeedIdx].label;
+}
+
+function startDemo() {
+  demoRunning = true; demoStep = 0;
+  const btn = document.getElementById('demoBtn');
+  btn.textContent = '⏸'; btn.classList.add('active');
+  document.getElementById('demoStepIndicator').classList.add('visible');
+  getAllDimensionCards().forEach(card => {
+    const body = card.querySelector('.dimension-body');
+    const toggle = card.querySelector('.dim-toggle');
+    if (body && !body.classList.contains('collapsed')) { body.classList.add('collapsed'); toggle && toggle.classList.add('collapsed'); }
+    card.classList.remove('demo-active');
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => runDemoStep(), 800);
+}
+
+function stopDemo() {
+  demoRunning = false;
+  if (demoTimer) clearTimeout(demoTimer);
+  const btn = document.getElementById('demoBtn');
+  btn.textContent = '▶'; btn.classList.remove('active');
+  document.getElementById('demoStepIndicator').classList.remove('visible');
+  document.getElementById('demoProgress').style.width = '0%';
+  getAllDimensionCards().forEach(card => card.classList.remove('demo-active'));
+  getAllGroupHeaders().forEach(gh => gh.classList.remove('demo-highlight'));
+}
+
+function runDemoStep() {
+  if (!demoRunning) return;
+  const cards = getAllDimensionCards();
+  const groups = getAllGroupHeaders();
+  const speed = DEMO_SPEEDS[demoSpeedIdx];
+  if (demoStep >= cards.length) {
+    const map = document.querySelector('.knowledge-map');
+    if (map) map.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    stopDemo(); return;
+  }
+  const card = cards[demoStep];
+  const body = card.querySelector('.dimension-body');
+  const toggle = card.querySelector('.dim-toggle');
+  groups.forEach(gh => gh.classList.remove('demo-highlight'));
+  const group = card.closest('.group');
+  if (group) { const gh = group.querySelector('.group-header'); gh && gh.classList.add('demo-highlight'); }
+  cards.forEach(c => c.classList.remove('demo-active'));
+  card.classList.add('demo-active');
+  if (body && body.classList.contains('collapsed')) { body.classList.remove('collapsed'); toggle && toggle.classList.remove('collapsed'); }
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const progress = ((demoStep + 1) / cards.length * 100).toFixed(0);
+  document.getElementById('demoProgress').style.width = progress + '%';
+  document.getElementById('demoStepIndicator').textContent = `${demoStep + 1} / ${cards.length}`;
+  demoStep++;
+  demoTimer = setTimeout(() => runDemoStep(), speed.pause);
+}
+
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('demo') === '1') {
+    window.addEventListener('load', () => { setTimeout(() => startDemo(), 500); });
+  }
+})();
+</script>
+
+</body>
+</html>

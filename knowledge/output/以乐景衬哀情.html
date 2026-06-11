@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 以乐景衬哀情</title>
+<style>
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-card: #1e2130;
+  --text-primary: #e8e8ed;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #2d3148;
+  --border-accent: var(--accent-color, #ffd54f);
+  --accent-color: #ffd54f;
+  --accent-glow: rgba(255, 213, 79, 0.1);
+  --success: #4caf50;
+  --error: #ef5350;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.8; min-height: 100vh; }
+body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.02) 0%, transparent 40%); pointer-events: none; z-index: 0; }
+.header { position: relative; z-index: 1; padding: 40px 24px 24px; max-width: 800px; margin: 0 auto; border-bottom: 1px solid var(--border-color); }
+.header h1 { font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.header h1 .accent { color: var(--accent-color); }
+.header .meta { display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 0.9rem; }
+.header .meta .tag { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 12px; border-radius: 20px; font-size: 0.85rem; }
+.main { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px; }
+.group { margin-bottom: 32px; }
+.group-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+.group-header .group-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; background: var(--accent-color); color: var(--bg-primary); }
+.group-header .group-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+.group-header .group-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-left: auto; }
+.dimension-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s; }
+.dimension-card:hover { border-color: var(--border-accent); }
+.dimension-header { display: flex; align-items: center; padding: 16px 20px; cursor: pointer; user-select: none; gap: 12px; }
+.dimension-header .dim-number { width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
+.dimension-header .dim-title { font-weight: 600; font-size: 1rem; color: var(--text-primary); }
+.dimension-header .dim-question { font-size: 0.85rem; color: var(--text-muted); margin-left: 8px; }
+.dimension-header .dim-toggle { margin-left: auto; color: var(--text-muted); font-size: 0.8rem; transition: transform 0.2s; flex-shrink: 0; }
+.dimension-header .dim-toggle.collapsed { transform: rotate(-90deg); }
+.dimension-body { padding: 0 20px 20px; color: var(--text-secondary); line-height: 1.9; }
+.dimension-body.collapsed { display: none; }
+.dimension-body p { margin-bottom: 12px; }
+.dimension-body strong { color: var(--text-primary); }
+.dimension-body .highlight { color: var(--accent-color); font-weight: 500; }
+.dimension-body .story-box { background: var(--bg-secondary); border-left: 3px solid var(--accent-color); padding: 16px 20px; border-radius: 0 var(--radius) var(--radius) 0; margin: 12px 0; }
+.dimension-body .example-list { list-style: none; padding: 0; }
+.dimension-body .example-list li { padding: 8px 0 8px 20px; position: relative; }
+.dimension-body .example-list li::before { content: ''; position: absolute; left: 0; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-color); opacity: 0.6; }
+.diagram { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
+.diagram svg { max-width: 100%; height: auto; }
+.diagram svg text { font-family: var(--font-sans); }
+.diagram .caption { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+.knowledge-map { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-top: 32px; }
+.knowledge-map h3 { font-size: 1rem; color: var(--text-primary); margin-bottom: 16px; }
+.map-nodes { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.map-node { padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+.map-node:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.map-node.current { background: var(--accent-color); color: var(--bg-primary); border-color: var(--accent-color); font-weight: 600; }
+.map-node.pending { border-style: dashed; opacity: 0.7; }
+.map-node.linked { text-decoration: none; color: var(--text-secondary); }
+.map-node.linked:hover { color: var(--accent-color); border-color: var(--accent-color); }
+.map-arrow { color: var(--text-muted); font-size: 0.9rem; }
+.map-section { margin-top: 16px; }
+.map-section-title { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.map-section .map-nodes { justify-content: flex-start; }
+.quiz-item { margin-bottom: 16px; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border-color); }
+.quiz-item .quiz-question { font-weight: 600; color: var(--text-primary); margin-bottom: 12px; }
+.quiz-item .quiz-type { font-size: 0.75rem; color: var(--accent-color); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.quiz-options { list-style: none; padding: 0; }
+.quiz-options li { padding: 10px 16px; margin-bottom: 6px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; transition: all 0.2s; color: var(--text-secondary); }
+.quiz-options li:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.quiz-options li.correct { border-color: var(--success); background: rgba(76, 175, 80, 0.1); color: var(--success); }
+.quiz-options li.wrong { border-color: var(--error); background: rgba(239, 83, 80, 0.1); color: var(--error); }
+.quiz-explanation { display: none; margin-top: 12px; padding: 12px 16px; background: var(--bg-card); border-left: 3px solid var(--accent-color); border-radius: 0 var(--radius) var(--radius) 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7; }
+.quiz-explanation.visible { display: block; }
+.footer { position: relative; z-index: 1; max-width: 800px; margin: 40px auto 0; padding: 24px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+@media (max-width: 640px) { .header { padding: 24px 16px 16px; } .header h1 { font-size: 1.5rem; } .main { padding: 16px; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>知本 · <span class="accent">以乐景衬哀情</span></h1>
+  <div class="meta">
+    <span class="tag">语文</span>
+    <span class="tag">八年级</span>
+    <span class="tag">人文学科族</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">认</div>
+      <span class="group-title">认知组</span>
+      <span class="group-subtitle">理解</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">1</span>
+        <span class="dim-title">定义锚点</span>
+        <span class="dim-question">它是什么？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p>"以乐景衬哀情"——<span class="highlight">越美好的景色，越显得心里悲伤</span>。它不是"写开心的景来表达开心的情"，而是反过来：写开心的景，是为了让你更强烈地感受到那份悲伤。</p>
+        <p>你可以这样感受：想象你刚失去一个重要的人，走在阳光灿烂的公园里，到处是笑声和花香——这时候阳光越暖，你心里越冷。这就是"以乐景衬哀情"。</p>
+        <p>概念边界：它和"借景抒情"不同——借景抒情是"用景色烘托情感"，而"以乐景衬哀情"特指<strong>用相反的景色反衬情感</strong>，情感被放大了。</p>
+
+        <!-- 情感光谱图 -->
+        <div class="diagram">
+          <svg viewBox="0 0 560 180" xmlns="http://www.w3.org/2000/svg">
+            <!-- 光谱轴 -->
+            <line x1="40" y1="90" x2="520" y2="90" stroke="#6b7280" stroke-width="2"/>
+            <polygon points="518,85 528,90 518,95" fill="#6b7280"/>
+            <text x="530" y="95" fill="#6b7280" font-size="11">情感强度</text>
+
+            <!-- 正面情感区 -->
+            <rect x="60" y="40" width="180" height="40" rx="6" fill="rgba(255,213,79,0.1)" stroke="#ffd54f" stroke-width="1"/>
+            <text x="150" y="65" text-anchor="middle" fill="#ffd54f" font-size="12">乐景（景色）</text>
+
+            <!-- 负面情感区 -->
+            <rect x="300" y="40" width="180" height="40" rx="6" fill="rgba(239,83,80,0.1)" stroke="#ef5350" stroke-width="1"/>
+            <text x="390" y="65" text-anchor="middle" fill="#ef5350" font-size="12">哀情（内心）</text>
+
+            <!-- 反衬箭头 -->
+            <path d="M 240 60 Q 270 30 300 60" fill="none" stroke="#ffd54f" stroke-width="2"/>
+            <polygon points="298,55 305,62 295,63" fill="#ffd54f"/>
+            <text x="270" y="25" text-anchor="middle" fill="#ffd54f" font-size="11" font-weight="bold">反衬放大</text>
+
+            <!-- 对比：正衬 -->
+            <rect x="60" y="120" width="180" height="40" rx="6" fill="rgba(255,213,79,0.08)" stroke="#6b7280" stroke-width="1" stroke-dasharray="4,2"/>
+            <text x="150" y="145" text-anchor="middle" fill="#9ca3af" font-size="12">乐景</text>
+
+            <rect x="300" y="120" width="180" height="40" rx="6" fill="rgba(255,213,79,0.08)" stroke="#6b7280" stroke-width="1" stroke-dasharray="4,2"/>
+            <text x="390" y="145" text-anchor="middle" fill="#9ca3af" font-size="12">乐情（正衬）</text>
+
+            <line x1="240" y1="140" x2="300" y2="140" stroke="#6b7280" stroke-width="1.5"/>
+            <polygon points="298,135 308,140 298,145" fill="#6b7280"/>
+            <text x="270" y="133" text-anchor="middle" fill="#6b7280" font-size="10">顺向烘托</text>
+          </svg>
+          <div class="caption">情感光谱：乐景与哀情方向相反，反衬使情感被放大</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">2</span>
+        <span class="dim-title">历史溯源</span>
+        <span class="dim-question">它从哪来？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <div class="story-box">
+          <p><strong>When</strong>：公元759年，安史之乱第4年。<strong>Who</strong>：杜甫，48岁，流落西南。<strong>What</strong>：他路过一座破败的宫殿，看到春花依旧盛开，鸟鸣依旧清脆，但宫殿已空无一人。<strong>Why</strong>：这种"景还在、人已非"的巨大落差，让杜甫写出了"感时花溅泪，恨别鸟惊心"——花本该让人开心，此刻却让他落泪。</p>
+          <p>杜甫不是第一个用这种手法的人，但他是把"以乐景衬哀情"用得最刻骨铭心的人。在他之前，《诗经》里已有"昔我往矣，杨柳依依"——出征时杨柳春风，回来时雨雪霏霏，用曾经的乐景反衬此刻的哀伤。</p>
+        </div>
+
+        <!-- 时间线图 -->
+        <div class="diagram">
+          <svg viewBox="0 0 560 140" xmlns="http://www.w3.org/2000/svg">
+            <!-- 时间轴 -->
+            <line x1="40" y1="70" x2="520" y2="70" stroke="#6b7280" stroke-width="2"/>
+            <polygon points="518,65 528,70 518,75" fill="#6b7280"/>
+
+            <!-- 《诗经》节点 -->
+            <circle cx="100" cy="70" r="8" fill="#ffd54f" opacity="0.7"/>
+            <text x="100" y="55" text-anchor="middle" fill="#ffd54f" font-size="11" font-weight="bold">《诗经》</text>
+            <text x="100" y="95" text-anchor="middle" fill="#9ca3af" font-size="10">约公元前6世纪</text>
+            <text x="100" y="110" text-anchor="middle" fill="#6b7280" font-size="9">"杨柳依依"</text>
+
+            <!-- 杜甫节点 -->
+            <circle cx="280" cy="70" r="10" fill="#ffd54f"/>
+            <text x="280" y="50" text-anchor="middle" fill="#ffd54f" font-size="12" font-weight="bold">杜甫</text>
+            <text x="280" y="95" text-anchor="middle" fill="#e8e8ed" font-size="10">759年·安史之乱</text>
+            <text x="280" y="110" text-anchor="middle" fill="#6b7280" font-size="9">"花溅泪·鸟惊心"</text>
+
+            <!-- 王夫之节点 -->
+            <circle cx="440" cy="70" r="8" fill="#ffd54f" opacity="0.7"/>
+            <text x="440" y="55" text-anchor="middle" fill="#ffd54f" font-size="11" font-weight="bold">王夫之</text>
+            <text x="440" y="95" text-anchor="middle" fill="#9ca3af" font-size="10">17世纪</text>
+            <text x="440" y="110" text-anchor="middle" fill="#6b7280" font-size="9">"以乐景写哀"理论化</text>
+
+            <!-- 连线标注 -->
+            <text x="190" y="40" text-anchor="middle" fill="#6b7280" font-size="9">萌芽</text>
+            <text x="360" y="40" text-anchor="middle" fill="#6b7280" font-size="9">理论化</text>
+          </svg>
+          <div class="caption">4W时间锚：从《诗经》萌芽，到杜甫登峰，到王夫之理论化</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">3</span>
+        <span class="dim-title">现实矛盾</span>
+        <span class="dim-question">为什么需要它？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p><span class="highlight">表达困境</span>：如果你很悲伤，直接说"我很伤心"，听的人能感受到多少？可能不多。因为"我很伤心"是一个结论，不是一种体验。</p>
+        <p>但如果你说"我站在满树的樱花下，风一吹，花瓣落了我一身，可我连伸手接一片的心情都没有"——听的人立刻能感受到那种悲伤。美好的景色和内心的荒凉形成了巨大的落差，<strong>悲伤被放大了</strong>。</p>
+        <p>这就是"以乐景衬哀情"解决的表达困境：<strong>直接说悲伤，悲伤是平的；用乐景反衬，悲伤是立体的</strong>。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">用</div>
+      <span class="group-title">应用组</span>
+      <span class="group-subtitle">迁移</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">4</span>
+        <span class="dim-title">应用场景</span>
+        <span class="dim-question">它能做什么？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <ul class="example-list">
+          <li><strong>古诗</strong>：杜甫《春望》"感时花溅泪，恨别鸟惊心"——春花烂漫，但国破家亡，花越美越刺痛</li>
+          <li><strong>现代散文</strong>：朱自清《背影》中火车站的热闹喧嚣，反衬父亲蹒跚背影的孤独</li>
+          <li><strong>电影</strong>：《辛德勒的名单》中穿红衣的小女孩走在灰暗的人群中——那一抹红色越鲜艳，越让人心碎</li>
+        </ul>
+        <p><strong>仿写练习</strong>：用"以乐景衬哀情"写一段话，描述一个考试失利的学生走在放学路上。要求：不出现"伤心""难过"等词，只用景色来传达。</p>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">5</span>
+        <span class="dim-title">思维延伸</span>
+        <span class="dim-question">它还能怎样？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p>"以乐景衬哀情"是"反衬"手法的一种。反衬家族还有：</p>
+        <ul class="example-list">
+          <li><a href="以哀景衬乐情.html" class="highlight">以哀景衬乐情</a>——用凄凉的景色反衬内心的喜悦（如"久旱逢甘霖"）</li>
+          <li><a href="反衬手法.html" class="highlight">反衬手法</a>——更上层的概念：动衬静、明衬暗、大衬小</li>
+        </ul>
+        <p><strong>进阶问题</strong>：为什么"以乐景衬哀情"比"以哀景衬乐情"更常见、更有力量？这和人类对"失去"的心理反应有什么关系？</p>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">6</span>
+        <span class="dim-title">知识网络</span>
+        <span class="dim-question">它和什么关联？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p><strong>前导知识</strong>：</p>
+        <ul class="example-list">
+          <li><a href="借景抒情.html" class="highlight">借景抒情</a>（前导）——用景色表达情感的通用手法</li>
+        </ul>
+        <p><strong>后续延伸</strong>：</p>
+        <ul class="example-list">
+          <li><a href="反衬手法.html" class="highlight">反衬手法</a>（后续）——更上层的反衬理论</li>
+        </ul>
+        <p><strong>平行关联</strong>：</p>
+        <ul class="example-list">
+          <li><span class="map-node pending" style="display:inline;font-size:0.85rem;">以哀景衬乐情</span>（平行）——反向的反衬</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">验</div>
+      <span class="group-title">验证组</span>
+      <span class="group-subtitle">确认</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">7</span>
+        <span class="dim-title">验证理解</span>
+        <span class="dim-question">真的懂了吗？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+
+        <div class="quiz-item">
+          <div class="quiz-type">感受辨析</div>
+          <div class="quiz-question">"春风得意马蹄疾，一日看尽长安花"——这句诗用了"以乐景衬哀情"吗？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">是的，春风和花都是乐景，反衬了内心的哀伤</li>
+            <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">不是，这是"以乐景写乐情"——春风得意，景和情是同向的</li>
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">无法判断</li>
+          </ul>
+          <div class="quiz-explanation">"春风得意马蹄疾"是正衬（乐景+乐情），不是反衬。关键判断标准：景色和情感的方向是否相反。春风+得意=同向=正衬；春花+落泪=反向=反衬。</div>
+        </div>
+
+        <div class="quiz-item">
+          <div class="quiz-type">仿写题</div>
+          <div class="quiz-question">以下哪个句子最准确地体现了"以乐景衬哀情"？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">秋雨淅沥，她站在窗前，泪水无声滑落</li>
+            <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">婚礼的鲜花开得正盛，她看着请柬上别人的名字，轻轻合上了信封</li>
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">夕阳西下，他独自走在回家的路上，影子越拉越长</li>
+          </ul>
+          <div class="quiz-explanation">A是"哀景+哀情"（正衬），C是"哀景+哀情"（正衬），B是"乐景（婚礼鲜花）+哀情（不是自己的婚礼）"——景和情方向相反，才是"以乐景衬哀情"。</div>
+        </div>
+
+        <div class="quiz-item">
+          <div class="quiz-type">选择题</div>
+          <div class="quiz-question">为什么"以乐景衬哀情"比直接写哀情更有力量？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">因为乐景的文字更多，描写更丰富</li>
+            <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">因为乐景和哀情的落差制造了张力，读者需要自己填补这个落差，参与感更强</li>
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">因为古人喜欢含蓄，不喜欢直接表达</li>
+          </ul>
+          <div class="quiz-explanation">核心是"落差制造张力"。直接说"我很悲伤"，读者是被动的接收者；用乐景反衬，读者需要自己感受到那种"景越美心越痛"的落差，这个感受过程让悲伤变得更深刻。不是含蓄的问题，是认知参与度的问题。</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 知识地图 -->
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section">
+      <div class="map-section-title">前导知识</div>
+      <div class="map-nodes">
+        <a href="借景抒情.html" class="map-node linked">借景抒情</a>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-nodes">
+        <span class="map-arrow">→</span>
+        <span class="map-node current">以乐景衬哀情</span>
+        <span class="map-arrow">→</span>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-section-title">后续延伸</div>
+      <div class="map-nodes">
+        <a href="反衬手法.html" class="map-node linked">反衬手法</a>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-section-title">平行关联</div>
+      <div class="map-nodes">
+        <span class="map-node pending">以哀景衬乐情</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  知本 KnowledgeRoot — 知识本质拆解系统
+</div>
+
+<script>
+function toggleDimension(header) {
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.dim-toggle');
+  if (body.classList.contains('collapsed')) { body.classList.remove('collapsed'); toggle.classList.remove('collapsed'); }
+  else { body.classList.add('collapsed'); toggle.classList.add('collapsed'); }
+}
+function checkAnswer(optionEl, isCorrect, explanationEl) {
+  const parent = optionEl.parentElement;
+  const allOptions = parent.querySelectorAll('li');
+  allOptions.forEach(opt => { opt.style.pointerEvents = 'none'; });
+  if (isCorrect) { optionEl.classList.add('correct'); }
+  else { optionEl.classList.add('wrong'); allOptions.forEach(opt => { if (opt.dataset.correct === 'true') { opt.classList.add('correct'); } }); }
+  if (explanationEl) { explanationEl.classList.add('visible'); }
+}
+</script>
+
+</body>
+</html>

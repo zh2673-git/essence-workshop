@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 知识图谱</title>
+<style>
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-card: #1e2130;
+  --text-primary: #e8e8ed;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #2d3148;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --color-math: #26c6da;
+  --color-physics: #ff7043;
+  --color-chemistry: #66bb6a;
+  --color-chinese: #ab47bc;
+  --color-history: #ffa726;
+  --color-english: #42a5f5;
+  --color-biology: #9ccc65;
+  --color-geography: #26a69a;
+  --color-project: #ff9800;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.8; min-height: 100vh; }
+
+.header { padding: 32px 24px 16px; max-width: 1000px; margin: 0 auto; border-bottom: 1px solid var(--border-color); }
+.header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 8px; }
+.header h1 .accent { color: #ff9800; }
+.header .subtitle { color: var(--text-muted); font-size: 0.9rem; }
+
+.stats { display: flex; gap: 24px; padding: 20px 24px; max-width: 1000px; margin: 0 auto; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; }
+.stat-item { text-align: center; }
+.stat-item .stat-number { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); }
+.stat-item .stat-label { font-size: 0.8rem; color: var(--text-muted); }
+
+.graph-container { max-width: 1000px; margin: 24px auto; padding: 0 24px; }
+.graph-container h2 { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 16px; }
+.graph-svg { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; overflow-x: auto; }
+.graph-svg svg { width: 100%; height: auto; }
+.graph-svg svg text { font-family: var(--font-sans); }
+
+.legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px; padding: 12px 16px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-secondary); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+.node-list { max-width: 1000px; margin: 24px auto; padding: 0 24px; }
+.node-list h2 { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 16px; }
+.node-table { width: 100%; border-collapse: collapse; }
+.node-table th { text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+.node-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.9rem; }
+.node-table tr:hover { background: var(--bg-card); }
+.node-table a { color: var(--text-secondary); text-decoration: none; }
+.node-table a:hover { color: #ff9800; }
+.node-table .subject-badge { padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; display: inline-block; }
+.node-table .subject-badge.math { background: rgba(38,198,218,0.15); color: var(--color-math); }
+.node-table .subject-badge.physics { background: rgba(255,112,67,0.15); color: var(--color-physics); }
+.node-table .subject-badge.chemistry { background: rgba(102,187,106,0.15); color: var(--color-chemistry); }
+.node-table .subject-badge.chinese { background: rgba(171,71,188,0.15); color: var(--color-chinese); }
+.node-table .subject-badge.history { background: rgba(255,167,38,0.15); color: var(--color-history); }
+.node-table .subject-badge.english { background: rgba(66,165,245,0.15); color: var(--color-english); }
+.node-table .subject-badge.biology { background: rgba(156,204,101,0.15); color: var(--color-biology); }
+.node-table .subject-badge.geography { background: rgba(38,166,154,0.15); color: var(--color-geography); }
+.node-table .subject-badge.project { background: rgba(255,152,0,0.15); color: var(--color-project); }
+
+.footer { max-width: 1000px; margin: 40px auto 0; padding: 24px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+@media (max-width: 640px) { .header { padding: 20px 16px 12px; } .stats { padding: 16px; gap: 16px; } .graph-container, .node-list { padding: 0 16px; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>知本 · <span class="accent">知识图谱</span></h1>
+  <div class="subtitle">所有已生成知识点的全局视图</div>
+</div>
+
+<div class="stats">
+  <div class="stat-item">
+    <div class="stat-number" id="total-nodes">0</div>
+    <div class="stat-label">知识点</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-number" id="total-edges">0</div>
+    <div class="stat-label">关联</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-number" id="total-subjects">0</div>
+    <div class="stat-label">学科</div>
+  </div>
+</div>
+
+<div class="graph-container">
+  <h2>图谱视图</h2>
+  <div class="graph-svg">
+    <svg id="graph-svg-canvas" viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg">
+    </svg>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot" style="background:var(--color-math)"></span>数学</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--color-physics)"></span>物理</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--color-chemistry)"></span>化学</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--color-chinese)"></span>语文</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--color-history)"></span>历史</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--color-english)"></span>英语</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--color-biology)"></span>生物</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--color-geography)"></span>地理</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--color-project)"></span>项目</div>
+  </div>
+</div>
+
+<div class="node-list">
+  <h2>节点列表</h2>
+  <table class="node-table">
+    <thead>
+      <tr>
+        <th>名称</th>
+        <th>学科</th>
+        <th>学段</th>
+        <th>关联数</th>
+        <th>生成日期</th>
+      </tr>
+    </thead>
+    <tbody id="node-table-body">
+    </tbody>
+  </table>
+</div>
+
+<div class="footer">
+  知本 KnowledgeRoot — 知识本质拆解系统
+</div>
+
+<script>
+// 知识图谱数据 - 由Skill自动生成时填充
+const GRAPH_DATA = {"meta":{"version":"1.0","updated_at":"2026-06-11"},"nodes":{"负数":{"id":"negative-number","name":"负数","subject":"math","grade":5,"paradigm_family":"formal_science","html_file":"负数.html","generated_at":"2026-06-11"},"以乐景衬哀情":{"id":"joy-sets-off-sorrow","name":"以乐景衬哀情","subject":"chinese","grade":8,"paradigm_family":"humanities","html_file":"以乐景衬哀情.html","generated_at":"2026-06-11"},"惯性":{"id":"inertia","name":"惯性","subject":"physics","grade":8,"paradigm_family":"formal_science","html_file":"惯性.html","generated_at":"2026-06-11"},"一般现在时":{"id":"simple-present-tense","name":"一般现在时","subject":"english","grade":7,"paradigm_family":"humanities","html_file":"一般现在时.html","generated_at":"2026-06-11"},"为什么桥梁不会塌":{"id":"why-bridges-dont-collapse","name":"为什么桥梁不会塌","type":"project","subjects":["physics","math"],"grade":8,"html_file":"为什么桥梁不会塌.html","generated_at":"2026-06-11"},"力的平衡":{"id":"force-equilibrium","name":"力的平衡","subject":"physics","grade":8,"paradigm_family":"formal_science","html_file":"力的平衡.html","generated_at":"2026-06-11"},"力的合成与分解":{"id":"force-composition-decomposition","name":"力的合成与分解","subject":"physics","grade":8,"paradigm_family":"formal_science","html_file":"力的合成与分解.html","generated_at":"2026-06-11"},"杠杆原理":{"id":"lever-principle","name":"杠杆原理","subject":"physics","grade":8,"paradigm_family":"formal_science","html_file":"杠杆原理.html","generated_at":"2026-06-11"},"桁架结构":{"id":"truss-structure","name":"桁架结构","subject":"physics","grade":8,"paradigm_family":"formal_science","html_file":"桁架结构.html","generated_at":"2026-06-11"},"三角形稳定性":{"id":"triangle-stability","name":"三角形稳定性","subject":"math","grade":8,"paradigm_family":"formal_science","html_file":"三角形稳定性.html","generated_at":"2026-06-11"},"大气压强":{"id":"atmospheric-pressure","name":"大气压强","subject":"physics","grade":8,"paradigm_family":"formal_science","html_file":"大气压强.html","generated_at":"2026-06-11"},"伯努利原理":{"id":"bernoulli-principle","name":"伯努利原理","subject":"physics","grade":8,"paradigm_family":"formal_science","html_file":"伯努利原理.html","generated_at":"2026-06-11"},"升力":{"id":"lift-force","name":"升力","subject":"physics","grade":8,"paradigm_family":"formal_science","html_file":"升力.html","generated_at":"2026-06-11"},"为什么飞机能飞":{"id":"why-planes-can-fly","name":"为什么飞机能飞","type":"project","subjects":["physics"],"grade":8,"html_file":"为什么飞机能飞.html","generated_at":"2026-06-11"}},"edges":[{"from":"正数和0","to":"负数","type":"prerequisite","label":"前导"},{"from":"负数","to":"有理数","type":"subsequent","label":"后续"},{"from":"负数","to":"绝对值","type":"parallel","label":"平行"},{"from":"负数","to":"相反数","type":"parallel","label":"平行"},{"from":"借景抒情","to":"以乐景衬哀情","type":"prerequisite","label":"前导"},{"from":"以乐景衬哀情","to":"反衬手法","type":"subsequent","label":"后续"},{"from":"以乐景衬哀情","to":"以哀景衬乐情","type":"parallel","label":"平行"},{"from":"质量","to":"惯性","type":"prerequisite","label":"前导"},{"from":"惯性","to":"牛顿第一定律","type":"subsequent","label":"后续"},{"from":"惯性","to":"惯性定律","type":"parallel","label":"平行"},{"from":"动词原形","to":"一般现在时","type":"prerequisite","label":"前导"},{"from":"第三人称单数","to":"一般现在时","type":"prerequisite","label":"前导"},{"from":"一般现在时","to":"现在进行时","type":"subsequent","label":"后续"},{"from":"一般现在时","to":"一般过去时","type":"subsequent","label":"后续"},{"from":"一般现在时","to":"频率副词","type":"parallel","label":"平行"},{"from":"为什么桥梁不会塌","to":"力的平衡","type":"contains","label":"包含"},{"from":"为什么桥梁不会塌","to":"力的合成与分解","type":"contains","label":"包含"},{"from":"为什么桥梁不会塌","to":"杠杆原理","type":"contains","label":"包含"},{"from":"为什么桥梁不会塌","to":"桁架结构","type":"contains","label":"包含"},{"from":"为什么桥梁不会塌","to":"三角形稳定性","type":"contains","label":"包含"},{"from":"力的平衡","to":"力的合成与分解","type":"prerequisite","label":"前导"},{"from":"杠杆原理","to":"桁架结构","type":"prerequisite","label":"前导"},{"from":"三角形稳定性","to":"桁架结构","type":"prerequisite","label":"前导"},{"from":"为什么飞机能飞","to":"大气压强","type":"contains","label":"包含"},{"from":"为什么飞机能飞","to":"伯努利原理","type":"contains","label":"包含"},{"from":"为什么飞机能飞","to":"升力","type":"contains","label":"包含"},{"from":"大气压强","to":"伯努利原理","type":"prerequisite","label":"前导"},{"from":"伯努利原理","to":"升力","type":"prerequisite","label":"前导"},{"from":"升力","to":"空气动力学","type":"subsequent","label":"后续"}]};
+
+const SUBJECT_COLORS = {
+  math: '#26c6da', physics: '#ff7043', chemistry: '#66bb6a',
+  chinese: '#ab47bc', history: '#ffa726', english: '#42a5f5',
+  biology: '#9ccc65', geography: '#26a69a', project: '#ff9800'
+};
+
+const SUBJECT_NAMES = {
+  math: '数学', physics: '物理', chemistry: '化学',
+  chinese: '语文', history: '历史', english: '英语',
+  biology: '生物', geography: '地理'
+};
+
+function render() {
+  const nodes = Object.values(GRAPH_DATA.nodes || {});
+  const edges = GRAPH_DATA.edges || [];
+
+  // Stats
+  document.getElementById('total-nodes').textContent = nodes.length;
+  document.getElementById('total-edges').textContent = edges.length;
+  const subjects = new Set(nodes.map(n => n.type === 'project' ? 'project' : n.subject));
+  document.getElementById('total-subjects').textContent = subjects.size;
+
+  // SVG Graph
+  const svg = document.getElementById('graph-svg-canvas');
+  const width = 900, height = 500;
+  const cx = width / 2, cy = height / 2;
+
+  // Simple circular layout grouped by subject
+  const subjectGroups = {};
+  nodes.forEach(n => {
+    const key = n.type === 'project' ? 'project' : n.subject;
+    if (!subjectGroups[key]) subjectGroups[key] = [];
+    subjectGroups[key].push(n);
+  });
+
+  const groupKeys = Object.keys(subjectGroups);
+  const groupAngle = (2 * Math.PI) / groupKeys.length;
+  const groupRadius = Math.min(cx, cy) - 80;
+
+  // Position nodes
+  const positions = {};
+  groupKeys.forEach((key, gi) => {
+    const groupCx = cx + groupRadius * Math.cos(groupAngle * gi - Math.PI / 2);
+    const groupCy = cy + groupRadius * Math.sin(groupAngle * gi - Math.PI / 2);
+    const groupNodes = subjectGroups[key];
+    const nodeAngle = (2 * Math.PI) / Math.max(groupNodes.length, 1);
+    const nodeRadius = Math.min(60, 20 + groupNodes.length * 8);
+    groupNodes.forEach((n, ni) => {
+      positions[n.name] = {
+        x: groupCx + nodeRadius * Math.cos(nodeAngle * ni),
+        y: groupCy + nodeRadius * Math.sin(nodeAngle * ni)
+      };
+    });
+  });
+
+  // Draw edges
+  edges.forEach(e => {
+    const from = positions[e.from];
+    const to = positions[e.to];
+    if (!from || !to) return;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', from.x);
+    line.setAttribute('y1', from.y);
+    line.setAttribute('x2', to.x);
+    line.setAttribute('y2', to.y);
+    line.setAttribute('stroke', '#2d3148');
+    line.setAttribute('stroke-width', '1.5');
+    if (e.type === 'contains') line.setAttribute('stroke-dasharray', '4,2');
+    svg.appendChild(line);
+
+    // Edge label
+    const midX = (from.x + to.x) / 2;
+    const midY = (from.y + to.y) / 2;
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', midX);
+    label.setAttribute('y', midY - 4);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('fill', '#6b7280');
+    label.setAttribute('font-size', '8');
+    label.textContent = e.label;
+    svg.appendChild(label);
+  });
+
+  // Draw nodes
+  nodes.forEach(n => {
+    const pos = positions[n.name];
+    if (!pos) return;
+    const color = n.type === 'project' ? SUBJECT_COLORS.project : (SUBJECT_COLORS[n.subject] || '#9ca3af');
+    const isProject = n.type === 'project';
+    const r = isProject ? 22 : 16;
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+    g.setAttribute('href', n.html_file);
+    g.setAttribute('target', '_blank');
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', pos.x);
+    circle.setAttribute('cy', pos.y);
+    circle.setAttribute('r', r);
+    circle.setAttribute('fill', color + '20');
+    circle.setAttribute('stroke', color);
+    circle.setAttribute('stroke-width', '2');
+    if (isProject) circle.setAttribute('stroke-dasharray', '4,2');
+    g.appendChild(circle);
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', pos.x);
+    text.setAttribute('y', pos.y + r + 14);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('fill', '#e8e8ed');
+    text.setAttribute('font-size', '11');
+    text.setAttribute('font-weight', isProject ? 'bold' : 'normal');
+    text.textContent = n.name;
+    g.appendChild(text);
+
+    svg.appendChild(g);
+  });
+
+  // Node table
+  const tbody = document.getElementById('node-table-body');
+  const edgeCount = {};
+  edges.forEach(e => {
+    edgeCount[e.from] = (edgeCount[e.from] || 0) + 1;
+    edgeCount[e.to] = (edgeCount[e.to] || 0) + 1;
+  });
+  nodes.forEach(n => {
+    const tr = document.createElement('tr');
+    const subjectKey = n.type === 'project' ? 'project' : n.subject;
+    const subjectName = n.type === 'project' ? '项目' : (SUBJECT_NAMES[n.subject] || n.subject);
+    tr.innerHTML = `
+      <td><a href="${n.html_file}">${n.name}</a></td>
+      <td><span class="subject-badge ${subjectKey}">${subjectName}</span></td>
+      <td>${n.grade ? n.grade + '年级' : '-'}</td>
+      <td>${edgeCount[n.name] || 0}</td>
+      <td>${n.generated_at || '-'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+render();
+</script>
+
+</body>
+</html>

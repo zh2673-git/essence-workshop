@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "version": "1.0",
+    "updated_at": "2026-06-11"
+  },
+  "nodes": {
+    "负数": {
+      "id": "negative-number",
+      "name": "负数",
+      "subject": "math",
+      "grade": 5,
+      "paradigm_family": "formal_science",
+      "html_file": "output/负数.html",
+      "generated_at": "2026-06-11"
+    },
+    "以乐景衬哀情": {
+      "id": "joy-sets-off-sorrow",
+      "name": "以乐景衬哀情",
+      "subject": "chinese",
+      "grade": 8,
+      "paradigm_family": "humanities",
+      "html_file": "output/以乐景衬哀情.html",
+      "generated_at": "2026-06-11"
+    },
+    "惯性": {
+      "id": "inertia",
+      "name": "惯性",
+      "subject": "physics",
+      "grade": 8,
+      "paradigm_family": "formal_science",
+      "html_file": "output/惯性.html",
+      "generated_at": "2026-06-11"
+    },
+    "一般现在时": {
+      "id": "simple-present-tense",
+      "name": "一般现在时",
+      "subject": "english",
+      "grade": 7,
+      "paradigm_family": "humanities",
+      "html_file": "output/一般现在时.html",
+      "generated_at": "2026-06-11"
+    },
+    "为什么桥梁不会塌": {
+      "id": "why-bridges-dont-collapse",
+      "name": "为什么桥梁不会塌",
+      "type": "project",
+      "subjects": ["physics", "math"],
+      "grade": 8,
+      "html_file": "output/为什么桥梁不会塌.html",
+      "contains": ["力的平衡", "力的合成与分解", "杠杆原理", "桁架结构", "三角形稳定性"],
+      "generated_at": "2026-06-11"
+    },
+    "力的平衡": {
+      "id": "force-equilibrium",
+      "name": "力的平衡",
+      "subject": "physics",
+      "grade": 8,
+      "paradigm_family": "formal_science",
+      "html_file": "output/力的平衡.html",
+      "generated_at": "2026-06-11"
+    },
+    "力的合成与分解": {
+      "id": "force-composition-decomposition",
+      "name": "力的合成与分解",
+      "subject": "physics",
+      "grade": 8,
+      "paradigm_family": "formal_science",
+      "html_file": "output/力的合成与分解.html",
+      "generated_at": "2026-06-11"
+    },
+    "杠杆原理": {
+      "id": "lever-principle",
+      "name": "杠杆原理",
+      "subject": "physics",
+      "grade": 8,
+      "paradigm_family": "formal_science",
+      "html_file": "output/杠杆原理.html",
+      "generated_at": "2026-06-11"
+    },
+    "桁架结构": {
+      "id": "truss-structure",
+      "name": "桁架结构",
+      "subject": "physics",
+      "grade": 8,
+      "paradigm_family": "formal_science",
+      "html_file": "output/桁架结构.html",
+      "generated_at": "2026-06-11"
+    },
+    "三角形稳定性": {
+      "id": "triangle-stability",
+      "name": "三角形稳定性",
+      "subject": "math",
+      "grade": 8,
+      "paradigm_family": "formal_science",
+      "html_file": "output/三角形稳定性.html",
+      "generated_at": "2026-06-11"
+    },
+    "大气压强": {
+      "id": "atmospheric-pressure",
+      "name": "大气压强",
+      "subject": "physics",
+      "grade": 8,
+      "paradigm_family": "formal_science",
+      "html_file": "output/大气压强.html",
+      "generated_at": "2026-06-11"
+    },
+    "伯努利原理": {
+      "id": "bernoulli-principle",
+      "name": "伯努利原理",
+      "subject": "physics",
+      "grade": 8,
+      "paradigm_family": "formal_science",
+      "html_file": "output/伯努利原理.html",
+      "generated_at": "2026-06-11"
+    },
+    "升力": {
+      "id": "lift-force",
+      "name": "升力",
+      "subject": "physics",
+      "grade": 8,
+      "paradigm_family": "formal_science",
+      "html_file": "output/升力.html",
+      "generated_at": "2026-06-11"
+    },
+    "为什么飞机能飞": {
+      "id": "why-planes-can-fly",
+      "name": "为什么飞机能飞",
+      "type": "project",
+      "subjects": ["physics"],
+      "grade": 8,
+      "html_file": "output/为什么飞机能飞.html",
+      "contains": ["大气压强", "伯努利原理", "升力"],
+      "generated_at": "2026-06-11"
+    }
+  },
+  "edges": [
+    { "from": "正数和0", "to": "负数", "type": "prerequisite", "label": "前导" },
+    { "from": "负数", "to": "有理数", "type": "subsequent", "label": "后续" },
+    { "from": "负数", "to": "绝对值", "type": "parallel", "label": "平行" },
+    { "from": "负数", "to": "相反数", "type": "parallel", "label": "平行" },
+    { "from": "借景抒情", "to": "以乐景衬哀情", "type": "prerequisite", "label": "前导" },
+    { "from": "以乐景衬哀情", "to": "反衬手法", "type": "subsequent", "label": "后续" },
+    { "from": "以乐景衬哀情", "to": "以哀景衬乐情", "type": "parallel", "label": "平行" },
+    { "from": "质量", "to": "惯性", "type": "prerequisite", "label": "前导" },
+    { "from": "惯性", "to": "牛顿第一定律", "type": "subsequent", "label": "后续" },
+    { "from": "惯性", "to": "惯性定律", "type": "parallel", "label": "平行" },
+    { "from": "动词原形", "to": "一般现在时", "type": "prerequisite", "label": "前导" },
+    { "from": "第三人称单数", "to": "一般现在时", "type": "prerequisite", "label": "前导" },
+    { "from": "一般现在时", "to": "现在进行时", "type": "subsequent", "label": "后续" },
+    { "from": "一般现在时", "to": "一般过去时", "type": "subsequent", "label": "后续" },
+    { "from": "一般现在时", "to": "频率副词", "type": "parallel", "label": "平行" },
+    { "from": "为什么桥梁不会塌", "to": "力的平衡", "type": "contains", "label": "包含" },
+    { "from": "为什么桥梁不会塌", "to": "力的合成与分解", "type": "contains", "label": "包含" },
+    { "from": "为什么桥梁不会塌", "to": "杠杆原理", "type": "contains", "label": "包含" },
+    { "from": "为什么桥梁不会塌", "to": "桁架结构", "type": "contains", "label": "包含" },
+    { "from": "为什么桥梁不会塌", "to": "三角形稳定性", "type": "contains", "label": "包含" },
+    { "from": "力的平衡", "to": "力的合成与分解", "type": "prerequisite", "label": "前导" },
+    { "from": "杠杆原理", "to": "桁架结构", "type": "prerequisite", "label": "前导" },
+    { "from": "三角形稳定性", "to": "桁架结构", "type": "prerequisite", "label": "前导" },
+    { "from": "为什么飞机能飞", "to": "大气压强", "type": "contains", "label": "包含" },
+    { "from": "为什么飞机能飞", "to": "伯努利原理", "type": "contains", "label": "包含" },
+    { "from": "为什么飞机能飞", "to": "升力", "type": "contains", "label": "包含" },
+    { "from": "大气压强", "to": "伯努利原理", "type": "prerequisite", "label": "前导" },
+    { "from": "伯努利原理", "to": "升力", "type": "prerequisite", "label": "前导" },
+    { "from": "升力", "to": "空气动力学", "type": "subsequent", "label": "后续" }
+  ]
+}

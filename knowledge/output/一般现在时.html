@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 一般现在时</title>
+<style>
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-card: #1e2130;
+  --text-primary: #e8e8ed;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #2d3148;
+  --border-accent: var(--accent-color, #66bb6a);
+  --accent-color: #66bb6a;
+  --accent-glow: rgba(102, 187, 106, 0.12);
+  --success: #4caf50;
+  --error: #ef5350;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.8; min-height: 100vh; }
+body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.02) 0%, transparent 40%); pointer-events: none; z-index: 0; }
+.header { position: relative; z-index: 1; padding: 40px 24px 24px; max-width: 800px; margin: 0 auto; border-bottom: 1px solid var(--border-color); }
+.header h1 { font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.header h1 .accent { color: var(--accent-color); }
+.header .meta { display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 0.9rem; }
+.header .meta .tag { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 12px; border-radius: 20px; font-size: 0.85rem; }
+.main { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px; }
+.group { margin-bottom: 32px; }
+.group-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+.group-header .group-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; background: var(--accent-color); color: var(--bg-primary); }
+.group-header .group-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+.group-header .group-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-left: auto; }
+.dimension-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s; }
+.dimension-card:hover { border-color: var(--border-accent); }
+.dimension-header { display: flex; align-items: center; padding: 16px 20px; cursor: pointer; user-select: none; gap: 12px; }
+.dimension-header .dim-number { width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
+.dimension-header .dim-title { font-weight: 600; font-size: 1rem; color: var(--text-primary); }
+.dimension-header .dim-question { font-size: 0.85rem; color: var(--text-muted); margin-left: 8px; }
+.dimension-header .dim-toggle { margin-left: auto; color: var(--text-muted); font-size: 0.8rem; transition: transform 0.2s; flex-shrink: 0; }
+.dimension-header .dim-toggle.collapsed { transform: rotate(-90deg); }
+.dimension-body { padding: 0 20px 20px; color: var(--text-secondary); line-height: 1.9; }
+.dimension-body.collapsed { display: none; }
+.dimension-body p { margin-bottom: 12px; }
+.dimension-body strong { color: var(--text-primary); }
+.dimension-body .highlight { color: var(--accent-color); font-weight: 500; }
+.dimension-body .story-box { background: var(--bg-secondary); border-left: 3px solid var(--accent-color); padding: 16px 20px; border-radius: 0 var(--radius) var(--radius) 0; margin: 12px 0; }
+.dimension-body .example-list { list-style: none; padding: 0; }
+.dimension-body .example-list li { padding: 8px 0 8px 20px; position: relative; }
+.dimension-body .example-list li::before { content: ''; position: absolute; left: 0; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-color); opacity: 0.6; }
+.dimension-body .en-sentence { font-style: italic; color: var(--accent-color); }
+.dimension-body .cn-note { color: var(--text-muted); font-size: 0.9rem; }
+.diagram { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
+.diagram svg { max-width: 100%; height: auto; }
+.diagram svg text { font-family: var(--font-sans); }
+.diagram .caption { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+.knowledge-map { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-top: 32px; }
+.knowledge-map h3 { font-size: 1rem; color: var(--text-primary); margin-bottom: 16px; }
+.map-nodes { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.map-node { padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+.map-node:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.map-node.current { background: var(--accent-color); color: var(--bg-primary); border-color: var(--accent-color); font-weight: 600; }
+.map-node.pending { border-style: dashed; opacity: 0.7; }
+.map-node.linked { text-decoration: none; color: var(--text-secondary); }
+.map-node.linked:hover { color: var(--accent-color); border-color: var(--accent-color); }
+.map-arrow { color: var(--text-muted); font-size: 0.9rem; }
+.map-section { margin-top: 16px; }
+.map-section-title { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.map-section .map-nodes { justify-content: flex-start; }
+.quiz-item { margin-bottom: 16px; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border-color); }
+.quiz-item .quiz-question { font-weight: 600; color: var(--text-primary); margin-bottom: 12px; }
+.quiz-item .quiz-type { font-size: 0.75rem; color: var(--accent-color); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.quiz-options { list-style: none; padding: 0; }
+.quiz-options li { padding: 10px 16px; margin-bottom: 6px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; transition: all 0.2s; color: var(--text-secondary); }
+.quiz-options li:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.quiz-options li.correct { border-color: var(--success); background: rgba(76, 175, 80, 0.1); color: var(--success); }
+.quiz-options li.wrong { border-color: var(--error); background: rgba(239, 83, 80, 0.1); color: var(--error); }
+.quiz-explanation { display: none; margin-top: 12px; padding: 12px 16px; background: var(--bg-card); border-left: 3px solid var(--accent-color); border-radius: 0 var(--radius) var(--radius) 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7; }
+.quiz-explanation.visible { display: block; }
+.footer { position: relative; z-index: 1; max-width: 800px; margin: 40px auto 0; padding: 24px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+@media (max-width: 640px) { .header { padding: 24px 16px 16px; } .header h1 { font-size: 1.5rem; } .main { padding: 16px; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>知本 · <span class="accent">一般现在时</span></h1>
+  <div class="meta">
+    <span class="tag">英语</span>
+    <span class="tag">七年级</span>
+    <span class="tag">人文学科族</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">认</div>
+      <span class="group-title">认知组</span>
+      <span class="group-subtitle">理解</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">1</span>
+        <span class="dim-title">定义锚点</span>
+        <span class="dim-question">它是什么？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p>一般现在时是英语中用来表达<span class="highlight">习惯性动作、客观事实和当前状态</span>的时态。它描述的不是"现在正在做"的事，而是"经常做""一直如此"的事。</p>
+        <p>你可以这样感受：当你想说"我每天早上7点起床"——这不是此刻正在起床，而是一个习惯；当你想说"太阳从东边升起"——这不是此刻正在升起，而是一个事实。这两种情况，英语都用一般现在时。</p>
+        <p>概念边界：一般现在时和现在进行时不同。<span class="en-sentence">I eat breakfast at 7.</span> <span class="cn-note">（一般现在时：习惯）</span> vs <span class="en-sentence">I am eating breakfast now.</span> <span class="cn-note">（现在进行时：此刻正在做）</span></p>
+        <p><strong>母语思维对比</strong>：中文不靠动词变形区分时态，靠时间词（"每天""正在"）。英语必须靠动词本身的变化来体现——第三人称单数加-s，这是中文母语者最容易忽略的。</p>
+
+        <!-- 语法树图示 -->
+        <div class="diagram">
+          <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- 一般现在时 -->
+            <rect x="180" y="15" width="200" height="36" rx="18" fill="#66bb6a" opacity="0.2" stroke="#66bb6a" stroke-width="1.5"/>
+            <text x="280" y="39" text-anchor="middle" fill="#66bb6a" font-size="13" font-weight="bold">一般现在时 Simple Present</text>
+
+            <!-- 三大用法 -->
+            <line x1="230" y1="51" x2="150" y2="75" stroke="#6b7280" stroke-width="1.5"/>
+            <line x1="280" y1="51" x2="280" y2="75" stroke="#6b7280" stroke-width="1.5"/>
+            <line x1="330" y1="51" x2="410" y2="75" stroke="#6b7280" stroke-width="1.5"/>
+
+            <!-- 习惯 -->
+            <rect x="60" y="75" width="180" height="50" rx="8" fill="rgba(102,187,106,0.08)" stroke="#66bb6a" stroke-width="1"/>
+            <text x="150" y="95" text-anchor="middle" fill="#66bb6a" font-size="12" font-weight="bold">习惯性动作</text>
+            <text x="150" y="115" text-anchor="middle" fill="#9ca3af" font-size="10">I run every day.</text>
+
+            <!-- 事实 -->
+            <rect x="190" y="75" width="180" height="50" rx="8" fill="rgba(102,187,106,0.08)" stroke="#66bb6a" stroke-width="1"/>
+            <text x="280" y="95" text-anchor="middle" fill="#66bb6a" font-size="12" font-weight="bold">客观事实</text>
+            <text x="280" y="115" text-anchor="middle" fill="#9ca3af" font-size="10">Water boils at 100°C.</text>
+
+            <!-- 状态 -->
+            <rect x="320" y="75" width="180" height="50" rx="8" fill="rgba(102,187,106,0.08)" stroke="#66bb6a" stroke-width="1"/>
+            <text x="410" y="95" text-anchor="middle" fill="#66bb6a" font-size="12" font-weight="bold">当前状态</text>
+            <text x="410" y="115" text-anchor="middle" fill="#9ca3af" font-size="10">I live in Beijing.</text>
+
+            <!-- 关键规则 -->
+            <rect x="120" y="145" width="320" height="40" rx="8" fill="rgba(239,83,80,0.08)" stroke="#ef5350" stroke-width="1" stroke-dasharray="4,2"/>
+            <text x="280" y="165" text-anchor="middle" fill="#ef5350" font-size="12" font-weight="bold">关键规则：He/She/It + 动词-s</text>
+            <text x="280" y="180" text-anchor="middle" fill="#6b7280" font-size="10">中文母语者最常忘记！中文"他跑"和"我跑"动词不变</text>
+          </svg>
+          <div class="caption">一般现在时三大用法 + 第三人称单数规则（中文母语者易忘）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">2</span>
+        <span class="dim-title">历史溯源</span>
+        <span class="dim-question">它从哪来？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <div class="story-box">
+          <p>古英语（约5世纪-11世纪）的动词变形比现在复杂得多——每个人称都有不同的词尾变化。比如"我唱"是 <em>sing-e</em>，"你唱"是 <em>sing-est</em>，"他唱"是 <em>sing-eth</em>。</p>
+          <p>随着时间推移，英语经历了一场"简化革命"。大多数词尾变化消失了，只留下了一个"顽固分子"——第三人称单数的 -s。它从古英语的 -eth 演变而来（<em>singeth</em> → <em>sings</em>），是唯一残存的人称变化。</p>
+          <p>为什么偏偏是它留下来了？因为第三人称（他/她/它）是最常用来描述"他人行为"的，在叙事中频率最高，所以最不容易被简化掉。</p>
+        </div>
+        <p><strong>母语思维对比</strong>：中文说"他吃饭"和"我吃饭"，动词"吃"完全不变。英语必须说 <span class="en-sentence">He eat<strong>s</strong>.</span> 但 <span class="en-sentence">I eat.</span>——这个 -s 是中文母语者最常忘记的，因为中文思维里"动词不需要变"。</p>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">3</span>
+        <span class="dim-title">现实矛盾</span>
+        <span class="dim-question">为什么需要它？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p>中文思维里，"我每天跑步"和"他每天跑步"，动词都是"跑步"，不需要变。但英语里，<span class="en-sentence">I run every day.</span> 和 <span class="en-sentence">He run<strong>s</strong> every day.</span>——动词必须跟着主语变。</p>
+        <p><span class="highlight">母语干扰</span>：你的中文直觉告诉你"动词不需要变"，所以你会自然地写出 <span class="en-sentence">He run every day.</span>（错误）——这在中文里完全没问题，但在英语里是一个语法错误。</p>
+        <p>这个矛盾的根源是：中文用<strong>时间词</strong>（每天、正在、已经）来表示时态，英语用<strong>动词变形</strong>来表示时态。两种语言处理"时间"的方式完全不同，所以中文母语者学英语时态时，最大的障碍不是规则本身，而是<strong>要克服"动词不变"的母语习惯</strong>。</p>
+
+        <!-- 母语干扰图 -->
+        <div class="diagram">
+          <svg viewBox="0 0 560 130" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="20" width="240" height="90" rx="8" fill="rgba(239,83,80,0.08)" stroke="#ef5350" stroke-width="1.5"/>
+            <text x="140" y="45" text-anchor="middle" fill="#ef5350" font-size="12" font-weight="bold">中文思维</text>
+            <text x="140" y="68" text-anchor="middle" fill="#9ca3af" font-size="12">我跑步 / 他跑步</text>
+            <text x="140" y="88" text-anchor="middle" fill="#6b7280" font-size="11">动词不变，靠时间词区分</text>
+
+            <line x1="275" y1="65" x2="285" y2="65" stroke="#66bb6a" stroke-width="2"/>
+            <polygon points="283,60 293,65 283,70" fill="#66bb6a"/>
+            <text x="284" y="55" text-anchor="middle" fill="#66bb6a" font-size="10">转换</text>
+
+            <rect x="300" y="20" width="240" height="90" rx="8" fill="rgba(102,187,106,0.08)" stroke="#66bb6a" stroke-width="1.5"/>
+            <text x="420" y="45" text-anchor="middle" fill="#66bb6a" font-size="12" font-weight="bold">英语思维</text>
+            <text x="420" y="68" text-anchor="middle" fill="#e8e8ed" font-size="12">I run / He run<strong style="fill:#ef5350">s</strong></text>
+            <text x="420" y="88" text-anchor="middle" fill="#6b7280" font-size="11">动词必须变，靠变形区分时态</text>
+          </svg>
+          <div class="caption">母语干扰：中文动词不变 → 英语动词必须变，这是最大的思维障碍</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">用</div>
+      <span class="group-title">应用组</span>
+      <span class="group-subtitle">迁移</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">4</span>
+        <span class="dim-title">应用场景</span>
+        <span class="dim-question">它能做什么？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <ul class="example-list">
+          <li><strong>描述习惯</strong>：<span class="en-sentence">She goes to school by bus.</span> <span class="cn-note">（她坐公交车上学。——习惯性动作）</span></li>
+          <li><strong>陈述事实</strong>：<span class="en-sentence">Water boils at 100°C.</span> <span class="cn-note">（水在100度沸腾。——客观事实）</span></li>
+          <li><strong>表达状态</strong>：<span class="en-sentence">I live in Beijing.</span> <span class="cn-note">（我住在北京。——当前状态）</span></li>
+        </ul>
+        <p><strong>角色扮演</strong>：假设你是一名记者，正在采访一位运动员的日常训练。请用一般现在时写出3个问题和3个回答。注意第三人称单数加 -s！</p>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">5</span>
+        <span class="dim-title">思维延伸</span>
+        <span class="dim-question">它还能怎样？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p>一般现在时是英语时态体系的"地基"。理解了它，后续时态都是在它基础上叠加信息：</p>
+        <ul class="example-list">
+          <li>一般现在时 + "正在" → <a href="现在进行时.html" class="highlight">现在进行时</a>（<span class="en-sentence">I run</span> → <span class="en-sentence">I am running</span>）</li>
+          <li>一般现在时 + "已经" → 现在完成时（<span class="en-sentence">I run</span> → <span class="en-sentence">I have run</span>）</li>
+          <li>一般现在时 + "过去" → <a href="一般过去时.html" class="highlight">一般过去时</a>（<span class="en-sentence">I run</span> → <span class="en-sentence">I ran</span>）</li>
+        </ul>
+        <p><strong>进阶问题</strong>：为什么说 "The train leaves at 3 pm tomorrow" 用的是一般现在时，但描述的是将来的事？一般现在时到底能不能表示将来？</p>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">6</span>
+        <span class="dim-title">知识网络</span>
+        <span class="dim-question">它和什么关联？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p><strong>前导知识</strong>：</p>
+        <ul class="example-list">
+          <li><span class="map-node pending" style="display:inline;font-size:0.85rem;">动词原形</span>（前导）——一般现在时的基础形式</li>
+          <li><span class="map-node pending" style="display:inline;font-size:0.85rem;">第三人称单数</span>（前导）——he/she/it 触发 -s 规则</li>
+        </ul>
+        <p><strong>后续延伸</strong>：</p>
+        <ul class="example-list">
+          <li><a href="现在进行时.html" class="highlight">现在进行时</a>（后续）——一般现在时 + 正在进行</li>
+          <li><a href="一般过去时.html" class="highlight">一般过去时</a>（后续）——一般现在时 + 过去时间</li>
+        </ul>
+        <p><strong>平行关联</strong>：</p>
+        <ul class="example-list">
+          <li><span class="map-node pending" style="display:inline;font-size:0.85rem;">频率副词</span>（平行）——always/usually/often + 一般现在时</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">验</div>
+      <span class="group-title">验证组</span>
+      <span class="group-subtitle">确认</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">7</span>
+        <span class="dim-title">验证理解</span>
+        <span class="dim-question">真的懂了吗？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+
+        <div class="quiz-item">
+          <div class="quiz-type">交际选择</div>
+          <div class="quiz-question">你在学校遇到新同学，想介绍自己的日常。以下哪种表达是正确的一般现在时？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">I am going to school by bike every day. <span class="cn-note">（我每天骑自行车上学。）</span></li>
+            <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">I go to school by bike every day. <span class="cn-note">（我每天骑自行车上学。）</span></li>
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">I went to school by bike every day. <span class="cn-note">（我每天骑自行车上学。）</span></li>
+          </ul>
+          <div class="quiz-explanation">"每天骑自行车上学"是习惯性动作，用一般现在时。A选项用了现在进行时（am going），表示此刻正在做，和"每天"矛盾。C选项用了过去时（went），和"每天"矛盾。B选项正确：一般现在时 + 频率副词。</div>
+        </div>
+
+        <div class="quiz-item">
+          <div class="quiz-type">辨析题</div>
+          <div class="quiz-question">以下哪个句子的一般现在时用法是"陈述客观事实"？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">She plays piano after dinner. <span class="cn-note">（她晚饭后弹钢琴。）</span></li>
+            <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">The Earth revolves around the Sun. <span class="cn-note">（地球绕太阳转。）</span></li>
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">I am a student. <span class="cn-note">（我是学生。）</span></li>
+          </ul>
+          <div class="quiz-explanation">A是习惯性动作（她经常弹），C是当前状态（我现在是学生），B是客观事实（地球绕太阳转，不以人的意志为改变）。一般现在时的三大用法：习惯、事实、状态，这里问的是"事实"。</div>
+        </div>
+
+        <div class="quiz-item">
+          <div class="quiz-type">交际选择</div>
+          <div class="quiz-question">你的朋友说 "My brother play football every weekend." 你发现了一个语法错误。应该怎么改？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">My brother is playing football every weekend.</li>
+            <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">My brother play<strong>s</strong> football every weekend.</li>
+            <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">My brother played football every weekend.</li>
+          </ul>
+          <div class="quiz-explanation">"My brother" 是第三人称单数（he），一般现在时中动词必须加 -s：play → plays。这是中文母语者最常犯的错误——中文思维里"他踢球"和"我踢球"的动词不变，但英语必须变。</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 知识地图 -->
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section">
+      <div class="map-section-title">前导知识</div>
+      <div class="map-nodes">
+        <span class="map-node pending">动词原形</span>
+        <span class="map-node pending">第三人称单数</span>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-nodes">
+        <span class="map-arrow">→</span>
+        <span class="map-node current">一般现在时</span>
+        <span class="map-arrow">→</span>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-section-title">后续延伸</div>
+      <div class="map-nodes">
+        <a href="现在进行时.html" class="map-node linked">现在进行时</a>
+        <a href="一般过去时.html" class="map-node linked">一般过去时</a>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-section-title">平行关联</div>
+      <div class="map-nodes">
+        <span class="map-node pending">频率副词</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  知本 KnowledgeRoot — 知识本质拆解系统
+</div>
+
+<script>
+function toggleDimension(header) {
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.dim-toggle');
+  if (body.classList.contains('collapsed')) { body.classList.remove('collapsed'); toggle.classList.remove('collapsed'); }
+  else { body.classList.add('collapsed'); toggle.classList.add('collapsed'); }
+}
+function checkAnswer(optionEl, isCorrect, explanationEl) {
+  const parent = optionEl.parentElement;
+  const allOptions = parent.querySelectorAll('li');
+  allOptions.forEach(opt => { opt.style.pointerEvents = 'none'; });
+  if (isCorrect) { optionEl.classList.add('correct'); }
+  else { optionEl.classList.add('wrong'); allOptions.forEach(opt => { if (opt.dataset.correct === 'true') { opt.classList.add('correct'); } }); }
+  if (explanationEl) { explanationEl.classList.add('visible'); }
+}
+</script>
+
+</body>
+</html>

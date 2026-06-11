@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 伯努利原理</title>
+<style>
+:root{--bg-primary:#0f1117;--bg-secondary:#1a1d27;--bg-card:#1e2130;--text-primary:#e8e8ed;--text-secondary:#9ca3af;--text-muted:#6b7280;--border-color:#2d3148;--accent-color:#ff7043;--accent-glow:rgba(255,112,67,0.12);--success:#4caf50;--error:#ef5350;--radius:8px;--radius-lg:12px;--font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);line-height:1.8;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:radial-gradient(circle at 20% 50%,var(--accent-glow) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,255,255,0.02) 0%,transparent 40%);pointer-events:none;z-index:0}
+.header{position:relative;z-index:1;padding:40px 24px 24px;max-width:800px;margin:0 auto;border-bottom:1px solid var(--border-color)}
+.header h1{font-size:2rem;font-weight:700;margin-bottom:8px}
+.header h1 .accent{color:var(--accent-color)}
+.header .meta{display:flex;gap:16px;align-items:center;color:var(--text-secondary);font-size:0.9rem}
+.header .meta .tag{background:var(--bg-card);border:1px solid var(--border-color);padding:2px 12px;border-radius:20px;font-size:0.85rem}
+.main{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:24px}
+.group{margin-bottom:32px}
+.group-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border-color)}
+.group-header .group-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;background:var(--accent-color);color:var(--bg-primary)}
+.group-header .group-title{font-size:1.1rem;font-weight:600;color:var(--text-primary)}
+.group-header .group-subtitle{font-size:0.85rem;color:var(--text-muted);margin-left:auto}
+.dimension-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;transition:border-color 0.2s}
+.dimension-card:hover{border-color:var(--accent-color)}
+.dimension-header{display:flex;align-items:center;padding:16px 20px;cursor:pointer;user-select:none;gap:12px}
+.dimension-header .dim-number{width:24px;height:24px;border-radius:50%;background:var(--bg-secondary);border:1px solid var(--border-color);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;color:var(--text-secondary);flex-shrink:0}
+.dimension-header .dim-title{font-weight:600;font-size:1rem;color:var(--text-primary)}
+.dimension-header .dim-question{font-size:0.85rem;color:var(--text-muted);margin-left:8px}
+.dimension-header .dim-toggle{margin-left:auto;color:var(--text-muted);font-size:0.8rem;transition:transform 0.2s;flex-shrink:0}
+.dimension-header .dim-toggle.collapsed{transform:rotate(-90deg)}
+.dimension-body{padding:0 20px 20px;color:var(--text-secondary);line-height:1.9}
+.dimension-body.collapsed{display:none}
+.dimension-body p{margin-bottom:12px}
+.dimension-body strong{color:var(--text-primary)}
+.dimension-body .highlight{color:var(--accent-color);font-weight:500}
+.dimension-body .story-box{background:var(--bg-secondary);border-left:3px solid var(--accent-color);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;margin:12px 0}
+.dimension-body .example-list{list-style:none;padding:0}
+.dimension-body .example-list li{padding:8px 0 8px 20px;position:relative}
+.dimension-body .example-list li::before{content:'';position:absolute;left:0;top:16px;width:8px;height:8px;border-radius:50%;background:var(--accent-color);opacity:0.6}
+.diagram{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:20px;margin:16px 0;text-align:center;overflow-x:auto}
+.diagram svg{max-width:100%;height:auto}
+.diagram svg text{font-family:var(--font-sans)}
+.diagram .caption{font-size:0.8rem;color:var(--text-muted);margin-top:8px}
+.knowledge-map{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px;margin-top:32px}
+.knowledge-map h3{font-size:1rem;color:var(--text-primary);margin-bottom:16px}
+.map-nodes{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.map-node{padding:6px 16px;border-radius:20px;font-size:0.85rem;border:1px solid var(--border-color);background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;transition:all 0.2s}
+.map-node:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.map-node.current{background:var(--accent-color);color:var(--bg-primary);border-color:var(--accent-color);font-weight:600}
+.map-node.pending{border-style:dashed;opacity:0.7}
+.map-node.linked{text-decoration:none;color:var(--text-secondary)}
+.map-node.linked:hover{color:var(--accent-color);border-color:var(--accent-color)}
+.map-arrow{color:var(--text-muted);font-size:0.9rem}
+.map-section{margin-top:16px}
+.map-section-title{font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.map-section .map-nodes{justify-content:flex-start}
+.quiz-item{margin-bottom:16px;padding:16px;background:var(--bg-secondary);border-radius:var(--radius);border:1px solid var(--border-color)}
+.quiz-item .quiz-question{font-weight:600;color:var(--text-primary);margin-bottom:12px}
+.quiz-item .quiz-type{font-size:0.75rem;color:var(--accent-color);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.quiz-options{list-style:none;padding:0}
+.quiz-options li{padding:10px 16px;margin-bottom:6px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;color:var(--text-secondary)}
+.quiz-options li:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.quiz-options li.correct{border-color:var(--success);background:rgba(76,175,80,0.1);color:var(--success)}
+.quiz-options li.wrong{border-color:var(--error);background:rgba(239,83,80,0.1);color:var(--error)}
+.quiz-explanation{display:none;margin-top:12px;padding:12px 16px;background:var(--bg-card);border-left:3px solid var(--accent-color);border-radius:0 var(--radius) var(--radius) 0;color:var(--text-secondary);font-size:0.9rem;line-height:1.7}
+.quiz-explanation.visible{display:block}
+.footer{position:relative;z-index:1;max-width:800px;margin:40px auto 0;padding:24px;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);font-size:0.8rem}
+@media(max-width:640px){.header{padding:24px 16px 16px}.header h1{font-size:1.5rem}.main{padding:16px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>知本 · <span class="accent">伯努利原理</span></h1>
+  <div class="meta">
+    <span class="tag">物理</span>
+    <span class="tag">八年级</span>
+    <span class="tag">形式科学族</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">认</div>
+      <span class="group-title">认知组</span>
+      <span class="group-subtitle">理解</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">1</span>
+        <span class="dim-title">定义锚点</span>
+        <span class="dim-question">它是什么？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p>伯努利原理：在流体中，<span class="highlight">流速越快的地方，压强越小</span>。</p>
+        <p>这不是一个"假设"，而是能量守恒的必然结果。流体的能量分为两部分：动能（因为运动）和压力能（因为压强）。总能量守恒，所以动能大了，压力能就得小——压强就低。</p>
+        <p>概念边界：伯努利原理只适用于同一流线上的不同点，不能随意比较两条不同流线上的点。而且它假设流体不可压缩、无粘性——真实世界只是近似满足。</p>
+
+        <div class="diagram">
+          <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- 管道截面变化 -->
+            <rect x="40" y="40" width="480" height="120" rx="4" fill="none" stroke="#2d3148" stroke-width="1.5"/>
+            <!-- 宽管 -->
+            <rect x="40" y="40" width="160" height="120" fill="rgba(255,112,67,0.05)"/>
+            <!-- 收缩段 -->
+            <polygon points="200,40 280,65 280,135 200,160" fill="rgba(255,112,67,0.03)"/>
+            <!-- 窄管 -->
+            <rect x="280" y="65" width="160" height="70" fill="rgba(38,198,218,0.08)"/>
+            <!-- 扩张段 -->
+            <polygon points="440,65 520,40 520,160 440,135" fill="rgba(255,112,67,0.03)"/>
+
+            <!-- 流速箭头 - 宽管 -->
+            <line x1="80" y1="100" x2="130" y2="100" stroke="#ff7043" stroke-width="2"/>
+            <polygon points="128,95 138,100 128,105" fill="#ff7043"/>
+            <text x="105" y="90" text-anchor="middle" fill="#ff7043" font-size="10">慢</text>
+
+            <!-- 流速箭头 - 窄管 -->
+            <line x1="300" y1="100" x2="380" y2="100" stroke="#26c6da" stroke-width="3"/>
+            <polygon points="378,94 390,100 378,106" fill="#26c6da"/>
+            <text x="340" y="90" text-anchor="middle" fill="#26c6da" font-size="10">快</text>
+
+            <!-- 压强标注 -->
+            <text x="120" y="175" text-anchor="middle" fill="#ff7043" font-size="11" font-weight="bold">压强大</text>
+            <text x="360" y="175" text-anchor="middle" fill="#26c6da" font-size="11" font-weight="bold">压强小</text>
+
+            <!-- 压力计 -->
+            <rect x="110" y="10" width="4" height="30" rx="2" fill="#ff7043" opacity="0.6"/>
+            <text x="112" y="8" text-anchor="middle" fill="#ff7043" font-size="9">↑P</text>
+            <rect x="350" y="25" width="4" height="15" rx="2" fill="#26c6da" opacity="0.6"/>
+            <text x="352" y="23" text-anchor="middle" fill="#26c6da" font-size="9">↑P</text>
+          </svg>
+          <div class="caption">管道窄处流速快、压强小；宽处流速慢、压强大</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">2</span>
+        <span class="dim-title">历史溯源</span>
+        <span class="dim-question">它从哪来？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <div class="story-box">
+          <p>1738年，瑞士数学家丹尼尔·伯努利出版了《流体动力学》一书。他出身于一个"学霸家族"——父亲约翰、叔叔雅各布、表哥尼古拉都是顶尖数学家。</p>
+          <p>伯努利当时在研究血液流动和管道中水流的问题。他发现了一个反直觉的现象：<strong>管道变窄时，水流变快，但压强反而变小</strong>。这就像你用手指堵住水管口，水喷得更远——但管口的压强其实更低了。</p>
+          <p>他用能量守恒来解释：水在窄管里跑得快，动能增大了，那压力能就得减少，所以压强降低。这个看似简单的发现，后来成了空气动力学的基石。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">3</span>
+        <span class="dim-title">现实矛盾</span>
+        <span class="dim-question">为什么需要它？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p><span class="highlight">直觉告诉你：流速快 = 力量大 = 压强大</span>。但事实恰恰相反！</p>
+        <p>你感受过淋浴时浴帘往里飘吗？水流动时，浴帘内侧空气被带动流速加快，压强降低，外面的大压就把浴帘推向你。不是风吹的，是伯努利原理。</p>
+
+        <div class="diagram">
+          <svg viewBox="0 0 560 120" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="20" width="240" height="80" rx="8" fill="rgba(239,83,80,0.08)" stroke="#ef5350" stroke-width="1.5"/>
+            <text x="140" y="45" text-anchor="middle" fill="#ef5350" font-size="12" font-weight="bold">直觉</text>
+            <text x="140" y="68" text-anchor="middle" fill="#9ca3af" font-size="12">流速快 → 压强大</text>
+            <text x="140" y="88" text-anchor="middle" fill="#6b7280" font-size="11">"风大就是压力大"</text>
+
+            <line x1="275" y1="60" x2="285" y2="60" stroke="#ff7043" stroke-width="2"/>
+            <polygon points="283,55 293,60 283,65" fill="#ff7043"/>
+
+            <rect x="300" y="20" width="240" height="80" rx="8" fill="rgba(255,112,67,0.08)" stroke="#ff7043" stroke-width="1.5"/>
+            <text x="420" y="45" text-anchor="middle" fill="#ff7043" font-size="12" font-weight="bold">事实</text>
+            <text x="420" y="68" text-anchor="middle" fill="#e8e8ed" font-size="12">流速快 → 压强小</text>
+            <text x="420" y="88" text-anchor="middle" fill="#6b7280" font-size="11">能量守恒：动能↑ → 压力能↓</text>
+          </svg>
+          <div class="caption">反直觉：流速快的地方压强反而小</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">用</div>
+      <span class="group-title">应用组</span>
+      <span class="group-subtitle">迁移</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">4</span>
+        <span class="dim-title">应用场景</span>
+        <span class="dim-question">它能做什么？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <ul class="example-list">
+          <li><strong>飞机机翼</strong>：上面空气流速快→压强小，下面流速慢→压强大→产生升力</li>
+          <li><strong>喷雾器</strong>：气流快速吹过管口→管口压强低→液体被吸上来并喷出</li>
+          <li><strong>乒乓球弧圈球</strong>：球旋转时一侧空气流速快→压强低→球走弧线</li>
+          <li><strong>火车站安全线</strong>：列车高速驶过→附近空气流速快→压强低→人可能被"吸"向列车</li>
+        </ul>
+        <p><strong>动手验证</strong>：拿两张纸，平行放在嘴两侧，往中间吹气——纸不会分开，反而靠拢了。因为中间空气流速快、压强低，两边的大气压把纸推向中间。</p>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">5</span>
+        <span class="dim-title">思维延伸</span>
+        <span class="dim-question">它还能怎样？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p>伯努利原理是连接"压强"和"运动"的桥梁。它告诉我们：静态的压强和动态的流速是一体两面。</p>
+        <ul class="example-list">
+          <li><a href="升力.html" class="highlight">升力</a>——伯努利原理最著名的应用：机翼上下压强差</li>
+          <li>文丘里效应——管道收缩处压强降低，可以用来混合气体或测量流速</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">6</span>
+        <span class="dim-title">知识网络</span>
+        <span class="dim-question">它和什么关联？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p><strong>前导知识</strong>：</p>
+        <ul class="example-list">
+          <li><a href="大气压强.html" class="highlight">大气压强</a>（前导）——空气有压强，是伯努利原理的前提</li>
+        </ul>
+        <p><strong>后续延伸</strong>：</p>
+        <ul class="example-list">
+          <li><a href="升力.html" class="highlight">升力</a>（后续）——伯努利原理的直接应用</li>
+        </ul>
+        <p><strong>所属项目</strong>：</p>
+        <ul class="example-list">
+          <li><a href="为什么飞机能飞.html" class="highlight">为什么飞机能飞</a>（项目）——核心知识</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">验</div>
+      <span class="group-title">验证组</span>
+      <span class="group-subtitle">确认</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">7</span>
+        <span class="dim-title">验证理解</span>
+        <span class="dim-question">真的懂了吗？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+
+        <div class="quiz-item">
+          <div class="quiz-type">辨析题</div>
+          <div class="quiz-question">为什么台风天要关紧窗户，而不是打开窗户？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">关窗可以挡风，开窗风会灌进来</li>
+            <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)" data-correct="true">开窗时，窗外风速快压强低，屋内压强高，巨大的压强差可能把窗户或屋顶掀掉</li>
+            <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">开窗会让雨水进来</li>
+          </ul>
+          <div class="quiz-explanation">这是伯努利原理的典型应用。台风天窗外空气流速极快，压强远低于室内。如果开窗，室内外巨大的压强差会把窗户向外推，甚至把屋顶掀翻。关窗后，虽然窗外压强低，但窗户两侧压强差由窗户结构承受，比让压强差直接作用在屋顶上安全得多。</div>
+        </div>
+
+        <div class="quiz-item">
+          <div class="quiz-type">推理题</div>
+          <div class="quiz-question">两艘大船并排同向行驶，为什么有相撞的危险？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">因为船之间有引力</li>
+            <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)" data-correct="true">两船之间水流速快→压强低，两船外侧水流速慢→压强高，压强差把两船推向中间</li>
+            <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">因为船的惯性</li>
+          </ul>
+          <div class="quiz-explanation">两船之间水道变窄，水流加速（就像管道变窄），压强降低。两船外侧水道宽，流速慢，压强高。外侧高压把两船推向中间低压区——这就是"船吸现象"。航海规则要求两船并航时必须保持足够距离。</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 知识地图 -->
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section">
+      <div class="map-section-title">前导知识</div>
+      <div class="map-nodes">
+        <a href="大气压强.html" class="map-node linked">大气压强</a>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px">
+      <div class="map-nodes">
+        <span class="map-arrow">→</span>
+        <span class="map-node current">伯努利原理</span>
+        <span class="map-arrow">→</span>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px">
+      <div class="map-section-title">后续延伸</div>
+      <div class="map-nodes">
+        <a href="升力.html" class="map-node linked">升力</a>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px">
+      <div class="map-section-title">所属项目</div>
+      <div class="map-nodes">
+        <a href="为什么飞机能飞.html" class="map-node linked">为什么飞机能飞</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">知本 KnowledgeRoot — 知识本质拆解系统</div>
+
+<script>
+function toggleDimension(h){const b=h.nextElementSibling;const t=h.querySelector('.dim-toggle');if(b.classList.contains('collapsed')){b.classList.remove('collapsed');t.classList.remove('collapsed')}else{b.classList.add('collapsed');t.classList.add('collapsed')}}
+function checkAnswer(o,c,e){const p=o.parentElement;const a=p.querySelectorAll('li');a.forEach(x=>{x.style.pointerEvents='none'});if(c){o.classList.add('correct')}else{o.classList.add('wrong');a.forEach(x=>{if(x.dataset.correct==='true')x.classList.add('correct')})}if(e)e.classList.add('visible')}
+</script>
+</body>
+</html>
