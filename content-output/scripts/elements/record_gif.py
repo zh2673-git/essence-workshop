@@ -32,8 +32,8 @@ def record_gif(html_path, output_path, frame_delay_ms=200, pause_frames=8):
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page(
-            viewport={"width": 800, "height": 500},
-            device_scale_factor=1.5,  # 1.5x = 1200x750，清晰度与体积平衡
+            viewport={"width": 800, "height": 600},
+            device_scale_factor=1.5,  # 1.5x = 1200x900，清晰度与体积平衡
         )
         page.goto(f"file:///{html_abs}", timeout=60000)
         page.wait_for_timeout(500)

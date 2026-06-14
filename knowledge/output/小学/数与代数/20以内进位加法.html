@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>知本 · 20以内进位加法</title><style>:root{--bg-primary:#0f1117;--bg-secondary:#1a1d27;--bg-card:#1e2130;--text-primary:#e8e8ed;--text-secondary:#9ca3af;--text-muted:#6b7280;--border-color:#2d3148;--border-accent:var(--accent-color,#4fc3f7);--accent-color:#4fc3f7;--accent-glow:rgba(79,195,247,0.12);--success:#4caf50;--error:#ef5350;--radius:8px;--radius-lg:12px;--font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);line-height:1.8;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:radial-gradient(circle at 20% 50%,var(--accent-glow) 0%,transparent 50%);pointer-events:none;z-index:0}
+.header{position:relative;z-index:1;padding:40px 24px 24px;max-width:800px;margin:0 auto;border-bottom:1px solid var(--border-color)}
+.header h1{font-size:2rem;font-weight:700}.header h1 .accent{color:var(--accent-color)}
+.header .meta{display:flex;gap:16px;align-items:center;color:var(--text-secondary);font-size:0.9rem;flex-wrap:wrap}
+.header .meta .tag{background:var(--bg-card);border:1px solid var(--border-color);padding:2px 12px;border-radius:20px;font-size:0.85rem}
+.main{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:24px}
+.group{margin-bottom:32px}
+.group-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border-color)}
+.group-header .group-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;background:var(--accent-color);color:var(--bg-primary)}
+.group-header .group-title{font-size:1.1rem;font-weight:600}.group-header .group-subtitle{font-size:0.85rem;color:var(--text-muted);margin-left:auto}
+.dimension-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;transition:border-color 0.2s}
+.dimension-card:hover{border-color:var(--border-accent)}
+.dimension-header{display:flex;align-items:center;padding:16px 20px;cursor:pointer;user-select:none;gap:12px}
+.dimension-header .dim-number{width:24px;height:24px;border-radius:50%;background:var(--bg-secondary);border:1px solid var(--border-color);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;color:var(--text-secondary);flex-shrink:0}
+.dimension-header .dim-title{font-weight:600}.dimension-header .dim-question{font-size:0.85rem;color:var(--text-muted);margin-left:8px}
+.dimension-header .dim-toggle{margin-left:auto;color:var(--text-muted);font-size:0.8rem;transition:transform 0.2s;flex-shrink:0}
+.dimension-header .dim-toggle.collapsed{transform:rotate(-90deg)}
+.dimension-body{padding:0 20px 20px;color:var(--text-secondary);line-height:1.9}
+.dimension-body.collapsed{display:none}.dimension-body p{margin-bottom:12px}
+.dimension-body strong{color:var(--text-primary)}.dimension-body .highlight{color:var(--accent-color);font-weight:500}
+.dimension-body .story-box{background:var(--bg-secondary);border-left:3px solid var(--accent-color);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;margin:12px 0}
+.dimension-body .example-list{list-style:none;padding:0}.dimension-body .example-list li{padding:8px 0 8px 20px;position:relative}
+.dimension-body .example-list li::before{content:'';position:absolute;left:0;top:16px;width:8px;height:8px;border-radius:50%;background:var(--accent-color);opacity:0.6}
+.diagram{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:20px;margin:16px 0;text-align:center;overflow-x:auto}
+.diagram svg{max-width:100%;height:auto}.diagram svg text{font-family:var(--font-sans)}
+.diagram .caption{font-size:0.8rem;color:var(--text-muted);margin-top:8px}
+.quiz-container{padding:0}.quiz-item{margin-bottom:16px;padding:16px;background:var(--bg-secondary);border-radius:var(--radius);border:1px solid var(--border-color)}
+.quiz-item .quiz-question{font-weight:600;color:var(--text-primary);margin-bottom:12px}
+.quiz-item .quiz-type{font-size:0.75rem;color:var(--accent-color);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.quiz-options{list-style:none;padding:0}.quiz-options li{padding:10px 16px;margin-bottom:6px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;color:var(--text-secondary)}
+.quiz-options li:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.quiz-options li.correct{border-color:var(--success);background:rgba(76,175,80,0.1);color:var(--success)}
+.quiz-options li.wrong{border-color:var(--error);background:rgba(239,83,80,0.1);color:var(--error)}
+.quiz-explanation{display:none;margin-top:12px;padding:12px 16px;background:var(--bg-card);border-left:3px solid var(--accent-color);border-radius:0 var(--radius) var(--radius) 0;color:var(--text-secondary);font-size:0.9rem;line-height:1.7}
+.quiz-explanation.visible{display:block}
+.map-node{padding:6px 16px;border-radius:20px;font-size:0.85rem;border:1px solid var(--border-color);background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;transition:all 0.2s;display:inline-block}
+.map-node:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.map-node.current{background:var(--accent-color);color:var(--bg-primary);border-color:var(--accent-color);font-weight:600}
+.map-node.pending{border-style:dashed;opacity:0.7}
+.knowledge-map{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px;margin-top:32px}
+.knowledge-map h3{font-size:1rem;margin-bottom:16px}
+.map-section{margin-top:12px}.map-section-title{font-size:0.8rem;color:var(--text-muted);margin-bottom:8px}
+.map-nodes{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.map-arrow{color:var(--text-muted);font-size:0.9rem}
+.footer{position:relative;z-index:1;max-width:800px;margin:40px auto 0;padding:24px;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);font-size:0.8rem}:root{--accent-color:#4fc3f7;--accent-glow:#4fc3f720;--border-accent:#4fc3f7}</style></head><body>
+<div class="header"><h1>知本 · <span class="accent">20以内进位加法</span></h1><div class="meta"><span class="tag">数学</span><span class="tag">一年级</span><span class="tag">数与代数</span></div></div>
+<div class="main">
+<div class="group"><div class="group-header"><div class="group-icon">认</div><span class="group-title">认知组</span><span class="group-subtitle">理解</span></div><p><strong>20以内进位加法</strong>就是两个一位数相加，结果超过10，需要"进位"的加法。比如8+5=13，个位满10要向十位进1。</p><p>核心方法——<span class="highlight">凑十法</span>：8+5，把5分成2和3，8+2=10，10+3=13。关键是找到"8和2凑成10"。</p><p>生活锚点：<span class="highlight">凑十法分苹果</span>——9个苹果再加5个，先把5分成1和4，9+1=10，10+4=14。<span class="highlight">跳格子</span>——从第8格跳7格，先跳2格到10，再跳5格到15。</p>
+<p>概念边界：进位加法和10以内加法的区别在于<span class="highlight">结果是否超过10</span>。9+2=11需要进位，3+4=7不需要。</p><div class="story-box"><p>进位加法的本质是<span class="highlight">十进制</span>的产物。如果人类用十二进制，那"满12进1"，进位的规则就完全不同了。十进制来自10个手指，所以"凑十"是最自然的计算方式。</p><p>中国珠算的"进位"非常直观：下珠满5换上珠，上珠满10进前档。珠算口诀"八上三去五进一"就是8+5的进位操作。</p></div><p><strong>困境时刻</strong>：8+5，如果不会进位，你可能从8开始往后数5个数：9、10、11、12、13——太慢了！<span class="highlight">凑十法让你不用数，直接算出来</span>。</p><p>更深层的是：进位是<span class="highlight">位值制</span>的核心。13中的"1"不是1，而是1个十。理解了进位，就理解了为什么13写成"1"和"3"——1个十和3个一。</p></div>
+
+<div class="diagram"><svg viewBox="0 0 440 200" xmlns="http://www.w3.org/2000/svg"><text x="220" y="30" fill="#4fc3f7" font-size="14" text-anchor="middle">凑十法</text><rect x="30" y="50" width="60" height="40" rx="6" fill="rgba(79,195,247,0.15)" stroke="#4fc3f7" stroke-width="1.5"/><text x="60" y="75" fill="#e8e8ed" font-size="16" text-anchor="middle">8</text><text x="110" y="75" fill="#4caf50" font-size="20">+</text><rect x="130" y="50" width="60" height="40" rx="6" fill="rgba(76,175,80,0.15)" stroke="#4caf50" stroke-width="1.5"/><text x="160" y="75" fill="#e8e8ed" font-size="16" text-anchor="middle">5</text><text x="220" y="130" fill="#e8e8ed" font-size="12" text-anchor="middle">把5拆成2和3，8+2=10，10+3=13</text><text x="220" y="160" fill="#6b7280" font-size="11" text-anchor="middle">凑十法：看大数，拆小数，先凑十，再加余</text></svg><div class="caption">凑十法计算20以内进位加法</div></div>
+<div class="group"><div class="group-header"><div class="group-icon">用</div><span class="group-title">应用组</span><span class="group-subtitle">迁移</span></div><ul class="example-list"><li><strong>购物</strong>：8元的书和5元的笔，8+5=13元。</li><li><strong>凑整</strong>：7+6=13，9+4=13，快速心算。</li><li><strong>时间</strong>：8点再过5小时是13点（下午1点）。</li></ul><p>凑十法是<span class="highlight">所有多位数加法</span>的基础。比如38+25，先算个位8+5=13（进位），再算十位3+2+1=6，结果63。不管多大的数，加法的核心永远是"凑十进位"。</p><p><strong>前导知识</strong>：<span class="map-node pending">10以内加减法</span>——先会10以内加法；<span class="map-node pending">分与合</span>——凑十法就是分与合。</p><p><strong>后续知识</strong>：<span class="map-node pending">20以内退位减法</span>——进位的逆运算；<span class="map-node pending">100以内加减法</span>——多位数进位。</p></div>
+<div class="group"><div class="group-header"><div class="group-icon">验</div><span class="group-title">验证组</span><span class="group-subtitle">确认</span></div><div class="quiz-container"><div class="quiz-item"><div class="quiz-type">动手操作</div><div class="quiz-question">7+8用凑十法怎么算？</div><ul class="quiz-options"><li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">把8分成3和5，7+3=10，10+5=15</li><li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">把7分成2和5，8+2=10，10+5=15</li><li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">两种方法都可以</li></ul><div class="quiz-explanation">7+8可以凑7的十（8分成3和5，7+3=10），也可以凑8的十（7分成2和5，8+2=10），两种方法都得到15。凑十法灵活选择凑哪个数更方便。</div></div><div class="quiz-item"><div class="quiz-type">概念辨析</div><div class="quiz-question">为什么13中的"1"代表10而不是1？</div><ul class="quiz-options"><li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">因为位值制：十位上的1代表1个十</li><li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">因为1就是10</li><li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">没有原因，规定而已</li></ul><div class="quiz-explanation">位值制是数字的核心规则：同一个数字在不同位置代表不同的值。13中的1在十位，代表1个十（10）；3在个位，代表3个一（3）。</div></div></div></div>
+<div class="knowledge-map"><h3>知识地图</h3>
+<div class="map-section"><div class="map-section-title">前导知识</div><div class="map-nodes"><span class="map-node pending">10以内加减法</span></div></div>
+<div class="map-section"><div class="map-nodes"><span class="map-arrow">→</span><span class="map-node current">20以内进位加法</span><span class="map-arrow">→</span></div></div>
+<div class="map-section"><div class="map-section-title">后续延伸</div><div class="map-nodes"><span class="map-node pending">20以内退位减法</span></div></div>
+</div></div>
+<div class="footer">知本 KnowledgeRoot — 知识本质拆解系统</div>
+<script>function toggleDimension(h){const b=h.nextElementSibling;const t=h.querySelector('.dim-toggle');b.classList.toggle('collapsed');t.classList.toggle('collapsed')}
+function checkAnswer(el,correct,expl){const p=el.parentElement;const opts=p.querySelectorAll('li');opts.forEach(o=>{o.style.pointerEvents='none';});if(correct){el.classList.add('correct');}else{el.classList.add('wrong');opts.forEach(o=>{if(o.dataset.correct==='true')o.classList.add('correct');});}if(expl)expl.classList.add('visible')}</script></body></html>

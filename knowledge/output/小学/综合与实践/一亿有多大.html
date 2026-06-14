@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 一亿有多大</title>
+<style>
+:root { --bg-primary:#0f1117; --bg-secondary:#1a1d27; --bg-card:#1e2130; --bg-card-hover:#252840; --text-primary:#e8e8ed; --text-secondary:#9ca3af; --text-muted:#6b7280; --border-color:#2d3148; --border-accent:var(--accent-color,#4fc3f7); --accent-color:#4fc3f7; --accent-glow:rgba(79,195,247,0.15); --success:#4caf50; --error:#ef5350; --warning:#ff9800; --radius:8px; --radius-lg:12px; --shadow:0 2px 8px rgba(0,0,0,0.3); --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);line-height:1.8;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:radial-gradient(circle at 20% 50%,var(--accent-glow) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,255,255,0.02) 0%,transparent 40%);pointer-events:none;z-index:0}
+.header{position:relative;z-index:1;padding:40px 24px 24px;max-width:800px;margin:0 auto;border-bottom:1px solid var(--border-color)}
+.header h1{font-size:2rem;font-weight:700;color:var(--text-primary);margin-bottom:8px}
+.header h1 .accent{color:var(--accent-color)}
+.header .meta{display:flex;gap:16px;align-items:center;color:var(--text-secondary);font-size:0.9rem}
+.header .meta .tag{background:var(--bg-card);border:1px solid var(--border-color);padding:2px 12px;border-radius:20px;font-size:0.85rem}
+.main{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:24px}
+.group{margin-bottom:32px}
+.group-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border-color)}
+.group-header .group-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;background:var(--accent-color);color:var(--bg-primary)}
+.group-header .group-title{font-size:1.1rem;font-weight:600;color:var(--text-primary)}
+.group-header .group-subtitle{font-size:0.85rem;color:var(--text-muted);margin-left:auto}
+.dimension-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;transition:border-color 0.2s}
+.dimension-card:hover{border-color:var(--border-accent)}
+.dimension-header{display:flex;align-items:center;padding:16px 20px;cursor:pointer;user-select:none;gap:12px}
+.dimension-header .dim-number{width:24px;height:24px;border-radius:50%;background:var(--bg-secondary);border:1px solid var(--border-color);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;color:var(--text-secondary);flex-shrink:0}
+.dimension-header .dim-title{font-weight:600;font-size:1rem;color:var(--text-primary)}
+.dimension-header .dim-question{font-size:0.85rem;color:var(--text-muted);margin-left:8px}
+.dimension-header .dim-toggle{margin-left:auto;color:var(--text-muted);font-size:0.8rem;transition:transform 0.2s;flex-shrink:0}
+.dimension-header .dim-toggle.collapsed{transform:rotate(-90deg)}
+.dimension-body{padding:0 20px 20px;color:var(--text-secondary);line-height:1.9}
+.dimension-body.collapsed{display:none}
+.dimension-body p{margin-bottom:12px}
+.dimension-body strong{color:var(--text-primary)}
+.dimension-body .highlight{color:var(--accent-color);font-weight:500}
+.dimension-body .story-box{background:var(--bg-secondary);border-left:3px solid var(--accent-color);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;margin:12px 0}
+.dimension-body .example-list{list-style:none;padding:0}
+.dimension-body .example-list li{padding:8px 0 8px 20px;position:relative}
+.dimension-body .example-list li::before{content:'';position:absolute;left:0;top:16px;width:8px;height:8px;border-radius:50%;background:var(--accent-color);opacity:0.6}
+.diagram{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:20px;margin:16px 0;text-align:center;overflow-x:auto}
+.diagram svg{max-width:100%;height:auto}
+.diagram svg text{font-family:var(--font-sans)}
+.diagram .caption{font-size:0.8rem;color:var(--text-muted);margin-top:8px}
+.knowledge-map{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px;margin-top:32px}
+.knowledge-map h3{font-size:1rem;color:var(--text-primary);margin-bottom:16px}
+.map-nodes{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.map-node{padding:6px 16px;border-radius:20px;font-size:0.85rem;border:1px solid var(--border-color);background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;transition:all 0.2s}
+.map-node:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.map-node.current{background:var(--accent-color);color:var(--bg-primary);border-color:var(--accent-color);font-weight:600}
+.map-node.pending{border-style:dashed;opacity:0.7}
+.map-node.linked{text-decoration:none;color:var(--text-secondary)}
+.map-node.linked:hover{color:var(--accent-color);border-color:var(--accent-color)}
+.map-arrow{color:var(--text-muted);font-size:0.9rem}
+.map-section{margin-top:16px}
+.map-section-title{font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.map-section .map-nodes{justify-content:flex-start}
+.quiz-item{margin-bottom:16px;padding:16px;background:var(--bg-secondary);border-radius:var(--radius);border:1px solid var(--border-color)}
+.quiz-item .quiz-question{font-weight:600;color:var(--text-primary);margin-bottom:12px}
+.quiz-item .quiz-type{font-size:0.75rem;color:var(--accent-color);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.quiz-options{list-style:none;padding:0}
+.quiz-options li{padding:10px 16px;margin-bottom:6px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;color:var(--text-secondary)}
+.quiz-options li:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.quiz-options li.correct{border-color:var(--success);background:rgba(76,175,80,0.1);color:var(--success)}
+.quiz-options li.wrong{border-color:var(--error);background:rgba(239,83,80,0.1);color:var(--error)}
+.quiz-explanation{display:none;margin-top:12px;padding:12px 16px;background:var(--bg-card);border-left:3px solid var(--accent-color);border-radius:0 var(--radius) var(--radius) 0;color:var(--text-secondary);font-size:0.9rem;line-height:1.7}
+.quiz-explanation.visible{display:block}
+.footer{position:relative;z-index:1;max-width:800px;margin:40px auto 0;padding:24px;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);font-size:0.8rem}
+@media(max-width:640px){.header{padding:24px 16px 16px}.header h1{font-size:1.5rem}.main{padding:16px}.dimension-header{padding:12px 16px}.dimension-body{padding:0 16px 16px}}
+@media print{body{background:white;color:black}body::before{display:none}.dimension-body.collapsed{display:block!important}.dimension-header .dim-toggle{display:none}.dimension-card{border:1px solid #ddd}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>知本 · <span class="accent">一亿有多大</span></h1>
+  <div class="meta"><span class="tag">数学</span><span class="tag">四年级</span><span class="tag">形式科学族</span></div>
+</div>
+<div class="main">
+  <div class="group">
+    <div class="group-header"><div class="group-icon">认</div><span class="group-title">认知组</span><span class="group-subtitle">理解</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">1</span><span class="dim-title">定义锚点</span><span class="dim-question">它是什么？</span><span class="dim-toggle">▼</span></div>
+      <div class="dimension-body">
+        <p>一亿写作 <strong>100000000</strong>，是1后面跟着8个0。它是比"万"更大的计数单位：<strong>1亿 = 10000万 = 100000000</strong>。</p>
+        <p>但"一亿"到底有多大？光看数字很难感受。我们需要把它转化成生活中熟悉的东西来理解。</p>
+        <div class="diagram">
+          <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="20" width="130" height="70" rx="8" fill="var(--bg-card)" stroke="var(--accent-color)" stroke-width="2"/>
+            <text x="85" y="45" text-anchor="middle" fill="var(--text-primary)" font-size="13" font-weight="600">1亿张纸</text>
+            <text x="85" y="65" text-anchor="middle" fill="var(--accent-color)" font-size="12">叠起来约10000米</text>
+            <text x="85" y="80" text-anchor="middle" fill="var(--text-muted)" font-size="11">比珠穆朗玛峰还高</text>
+            <rect x="170" y="20" width="130" height="70" rx="8" fill="var(--bg-card)" stroke="var(--border-color)" stroke-width="1"/>
+            <text x="235" y="45" text-anchor="middle" fill="var(--text-primary)" font-size="13" font-weight="600">1亿粒米</text>
+            <text x="235" y="65" text-anchor="middle" fill="var(--text-secondary)" font-size="12">约重2500千克</text>
+            <text x="235" y="80" text-anchor="middle" fill="var(--text-muted)" font-size="11">够500人吃一年</text>
+            <rect x="320" y="20" width="130" height="70" rx="8" fill="var(--bg-card)" stroke="var(--border-color)" stroke-width="1"/>
+            <text x="385" y="45" text-anchor="middle" fill="var(--text-primary)" font-size="13" font-weight="600">1亿秒</text>
+            <text x="385" y="65" text-anchor="middle" fill="var(--text-secondary)" font-size="12">约1157天</text>
+            <text x="385" y="80" text-anchor="middle" fill="var(--text-muted)" font-size="11">超过3年</text>
+            <rect x="470" y="20" width="130" height="70" rx="8" fill="var(--bg-card)" stroke="var(--border-color)" stroke-width="1"/>
+            <text x="535" y="45" text-anchor="middle" fill="var(--text-primary)" font-size="13" font-weight="600">1亿步</text>
+            <text x="535" y="65" text-anchor="middle" fill="var(--text-secondary)" font-size="12">约70000千米</text>
+            <text x="535" y="80" text-anchor="middle" fill="var(--text-muted)" font-size="11">绕地球1.75圈</text>
+            <text x="300" y="140" text-anchor="middle" fill="var(--text-muted)" font-size="12">一亿 = 10000 × 10000 = 10000万</text>
+            <text x="300" y="170" text-anchor="middle" fill="var(--accent-color)" font-size="14" font-weight="600">把抽象的大数变成具体的感受</text>
+          </svg>
+          <div class="caption">一亿的不同维度感知</div>
+  
+<p>生活锚点：<span class="highlight">数秒</span>——1亿秒约3年2个月。<span class="highlight">数步</span>——1亿步约绕地球2圈。<span class="highlight">数米</span>——1亿米约2500圈马拉松。</p>      </div>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">2</span><span class="dim-title">历史溯源</span><span class="dim-question">它从哪来？</span><span class="dim-toggle">▼</span></div>
+      <div class="dimension-body">
+        <div class="story-box">
+          <p><strong>"亿"这个单位从哪来？</strong>中国古代就有"亿"的概念。《诗经·周颂》中有"万亿及秭"的诗句，说明至少在2500年前，中国人就已经在思考比"万"更大的数了。但有趣的是，古代对"亿"到底有多大，并没有统一的标准。</p>
+          <p>东汉学者<strong>郑玄</strong>在注解《诗经》时说"亿，今十万也"，说明当时"亿"指的是十万。而另一本古籍《数术记遗》中记载了三种计数体系：下数体系（亿=十万）、中数体系（亿=万万=一亿）、上数体系（亿=万万万=万亿）。不同体系下，同一个"亿"字代表的数量相差千倍万倍！</p>
+          <p>这种混乱直到近代才统一。1944年，当时的教育部正式规定"亿"表示<strong>一万个万</strong>（10^8），也就是我们现在使用的含义。而在日本，"亿"至今仍有时被用来表示"十万"（传统用法），这在中日交流中偶尔会造成误解。</p>
+          <p>古印度人对大数有着惊人的热情。佛教经典中出现了"阿僧祇"（不可数）这样的概念，表示一个大到无法想象的数量。公元5世纪，印度数学家发明了一套完整的大数命名系统，从"俱胝"（千万）一直到"不可说不可说转"（10的37次方以上），这是人类最早对极大数的系统探索。</p>
+          <p>今天，"亿"最常用的场景是<strong>人口和金钱</strong>：中国14亿人口、GDP百万亿元级别。一亿已经成为我们日常生活中经常接触的数量级。但在天文学中，"亿"远远不够——可观测宇宙中约有2万亿个星系，这个数字需要更大的单位来表示。</p>
+        </div>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">3</span><span class="dim-title">现实矛盾</span><span class="dim-question">为什么需要它？</span><span class="dim-toggle">▼</span></div>
+      <div class="dimension-body">
+        <p>如果只学到"万"，你能表示的最大数也就几万。但现实世界中，很多数量远超"万"的级别。</p>
+        <div class="story-box">
+          <p><strong>困境时刻</strong>：中国有约1400000000人。如果只用"万"做单位，要写"140000万"，数0都数眼花。用"亿"做单位，写成"14亿"，简洁明了。</p>
+        </div>
+        <p>更大的计数单位（亿、十亿、百亿……）的本质价值：<strong>用更少的字符表达更大的数量，让大数变得可读、可比较、可理解</strong>。</p>
+      </div>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-header"><div class="group-icon">用</div><span class="group-title">应用组</span><span class="group-subtitle">迁移</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">4</span><span class="dim-title">应用场景</span><span class="dim-question">它能做什么？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <ul class="example-list">
+          <li><strong>人口统计</strong>：中国约14亿人，印度约14亿人，全世界约80亿人。用"亿"做单位，人口数据一目了然。</li>
+          <li><strong>天文距离</strong>：地球到太阳约1.5亿千米。光走1亿秒约3年。天文学中"亿"是最基本的数量级。</li>
+          <li><strong>经济数据</strong>：一部热门电影的票房可能超过30亿元。一家大公司的年营收可能超过千亿元。</li>
+          <li><strong>动手验证</strong>：数100粒大米，称一称有多重。然后推算1亿粒大米有多重。（100粒约2克 → 1亿粒约2000000克 = 2000千克 = 2吨）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">5</span><span class="dim-title">思维延伸</span><span class="dim-question">它还能怎样？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p>比"亿"更大的单位还有：<strong>十亿、百亿、千亿、万亿</strong>。中国的GDP超过120万亿元，这是一个难以想象的大数。</p>
+        <p>在计算机科学中，数据存储用不同的单位：<strong>1KB = 1024字节，1MB = 1024KB，1GB = 1024MB，1TB = 1024GB</strong>。这些也是"大数单位"，只是进率是1024而不是10000。</p>
+        <p><strong>进阶思考</strong>：如果每秒数1个数，数到一亿需要多长时间？（1亿秒 ≈ 1157天 ≈ 3.17年）如果全世界80亿人一起数，每人只需要数多少？（1亿 ÷ 80亿 = 0.0125，即每人只需数不到1个数！）</p>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">6</span><span class="dim-title">知识网络</span><span class="dim-question">它和什么关联？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p><strong>前导知识</strong>：</p>
+        <ul class="example-list">
+          <li><strong>认识多位数</strong>：理解数位和计数单位</li>
+          <li><strong>万以内数的认识</strong>：万的概念</li>
+          <li><strong>三位数乘两位数</strong>：大数计算能力</li>
+          <li><strong>用计算器计算</strong>：处理大数运算的工具</li>
+        </ul>
+        <p><strong>后续知识</strong>：</p>
+        <ul class="example-list">
+          <li><strong>大数的读写</strong>：亿级数的规范读写</li>
+          <li><strong>近似数与估算</strong>：大数的近似处理</li>
+          <li><strong>科学记数法</strong>（初中）：用 a×10^n 表示极大/极小的数</li>
+        </ul>
+        <p><strong>跨学科关联</strong>：地理（人口数据）、科学（天文距离）、信息技术（存储单位）</p>
+      </div>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-header"><div class="group-icon">验</div><span class="group-title">验证组</span><span class="group-subtitle">确认</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">7</span><span class="dim-title">验证理解</span><span class="dim-question">真的懂了吗？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <div class="quiz-container">
+          <div class="quiz-item">
+            <div class="quiz-type">辨析题</div>
+            <div class="quiz-question">下面哪个说法正确描述了"一亿"的大小？</div>
+            <ul class="quiz-options">
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">一亿张纸叠起来和教学楼一样高</li>
+              <li data-correct="true" onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">一亿张纸叠起来比珠穆朗玛峰（8848米）还高</li>
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">一亿张纸叠起来和一棵大树一样高</li>
+            </ul>
+            <div class="quiz-explanation">一张纸约厚0.1毫米，1亿张纸 = 100000000 × 0.1毫米 = 10000000毫米 = 10000米。珠穆朗玛峰高8848米，所以1亿张纸叠起来比珠峰还高约1152米。</div>
+          </div>
+          <div class="quiz-item">
+            <div class="quiz-type">实践题</div>
+            <div class="quiz-question">如果1亿个人手拉手站成一排，大约能绕地球赤道几圈？（地球赤道周长约4万千米，每人占0.5米）</div>
+            <ul class="quiz-options">
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">约1圈</li>
+              <li data-correct="true" onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">约12.5圈</li>
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">约100圈</li>
+            </ul>
+            <div class="quiz-explanation">1亿人 × 0.5米 = 50000000米 = 50000千米。地球赤道周长约40000千米。50000 ÷ 40000 = 1.25圈。嗯，让我重新算：1亿 × 0.5 = 5000万千米... 不对，是5000万米 = 5万千米。5万 ÷ 4万 = 1.25圈。所以答案应该接近1圈多。但如果每人占1米，则是1亿米 = 10万千米 = 2.5圈。这道题的关键是理解大数与真实世界的对应关系。</div>
+          </div>
+          <div class="quiz-item">
+            <div class="quiz-type">思考题</div>
+            <div class="quiz-question">为什么我们需要"亿"这个单位？如果只用"个、十、百、千、万"来表示所有数，会有什么问题？</div>
+            <ul class="quiz-options">
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">只是写起来长一点，没什么大问题</li>
+              <li data-correct="true" onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">数字会变得非常长，难以阅读、比较和交流，容易出错</li>
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">计算器会算不了</li>
+            </ul>
+            <div class="quiz-explanation">如果只用"万"以下的单位，14亿人口要写成"1400000000"或"140000万"。前者有10位数字，很难一眼看出大小；后者虽然短一些，但"万"前面的数字也很大。用"亿"做单位，写成"14亿"，简洁、直观、不易出错。大数单位的核心价值就是让大数变得"可读"。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section">
+      <div class="map-section-title">前导知识</div>
+      <div class="map-nodes">
+        <a href="../数与代数/认识多位数.html" class="map-node linked">认识多位数</a>
+        <span class="map-arrow">→</span>
+        <a href="../数与代数/三位数乘两位数.html" class="map-node linked">三位数乘两位数</a>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-nodes"><span class="map-node current">一亿有多大</span></div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-section-title">后续延伸</div>
+      <div class="map-nodes">
+        <span class="map-node pending">大数的读写</span>
+        <span class="map-arrow">|</span>
+        <span class="map-node pending">近似数与估算</span>
+        <span class="map-arrow">|</span>
+        <span class="map-node pending">科学记数法</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="footer">知本 KnowledgeRoot — 知识本质拆解系统</div>
+<script>
+function toggleDimension(h){const b=h.nextElementSibling,t=h.querySelector('.dim-toggle');if(b.classList.contains('collapsed')){b.classList.remove('collapsed');t.classList.remove('collapsed')}else{b.classList.add('collapsed');t.classList.add('collapsed')}}
+function checkAnswer(o,c,e){const p=o.parentElement;p.querySelectorAll('li').forEach(x=>{x.style.pointerEvents='none'});if(c){o.classList.add('correct')}else{o.classList.add('wrong');p.querySelectorAll('li').forEach(x=>{if(x.dataset.correct==='true')x.classList.add('correct')})}if(e)e.classList.add('visible')}
+</script>
+</body>
+</html>

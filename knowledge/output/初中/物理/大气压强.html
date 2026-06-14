@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 大气压强</title>
+<style>
+:root{--bg-primary:#0f1117;--bg-secondary:#1a1d27;--bg-card:#1e2130;--text-primary:#e8e8ed;--text-secondary:#9ca3af;--text-muted:#6b7280;--border-color:#2d3148;--accent-color:#ff7043;--accent-glow:rgba(255,112,67,0.12);--success:#4caf50;--error:#ef5350;--radius:8px;--radius-lg:12px;--font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);line-height:1.8;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:radial-gradient(circle at 20% 50%,var(--accent-glow) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,255,255,0.02) 0%,transparent 40%);pointer-events:none;z-index:0}
+.header{position:relative;z-index:1;padding:40px 24px 24px;max-width:800px;margin:0 auto;border-bottom:1px solid var(--border-color)}
+.header h1{font-size:2rem;font-weight:700;margin-bottom:8px}
+.header h1 .accent{color:var(--accent-color)}
+.header .meta{display:flex;gap:16px;align-items:center;color:var(--text-secondary);font-size:0.9rem}
+.header .meta .tag{background:var(--bg-card);border:1px solid var(--border-color);padding:2px 12px;border-radius:20px;font-size:0.85rem}
+.main{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:24px}
+.group{margin-bottom:32px}
+.group-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border-color)}
+.group-header .group-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;background:var(--accent-color);color:var(--bg-primary)}
+.group-header .group-title{font-size:1.1rem;font-weight:600;color:var(--text-primary)}
+.group-header .group-subtitle{font-size:0.85rem;color:var(--text-muted);margin-left:auto}
+.dimension-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;transition:border-color 0.2s}
+.dimension-card:hover{border-color:var(--accent-color)}
+.dimension-header{display:flex;align-items:center;padding:16px 20px;cursor:pointer;user-select:none;gap:12px}
+.dimension-header .dim-number{width:24px;height:24px;border-radius:50%;background:var(--bg-secondary);border:1px solid var(--border-color);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;color:var(--text-secondary);flex-shrink:0}
+.dimension-header .dim-title{font-weight:600;font-size:1rem;color:var(--text-primary)}
+.dimension-header .dim-question{font-size:0.85rem;color:var(--text-muted);margin-left:8px}
+.dimension-header .dim-toggle{margin-left:auto;color:var(--text-muted);font-size:0.8rem;transition:transform 0.2s;flex-shrink:0}
+.dimension-header .dim-toggle.collapsed{transform:rotate(-90deg)}
+.dimension-body{padding:0 20px 20px;color:var(--text-secondary);line-height:1.9}
+.dimension-body.collapsed{display:none}
+.dimension-body p{margin-bottom:12px}
+.dimension-body strong{color:var(--text-primary)}
+.dimension-body .highlight{color:var(--accent-color);font-weight:500}
+.dimension-body .story-box{background:var(--bg-secondary);border-left:3px solid var(--accent-color);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;margin:12px 0}
+.dimension-body .example-list{list-style:none;padding:0}
+.dimension-body .example-list li{padding:8px 0 8px 20px;position:relative}
+.dimension-body .example-list li::before{content:'';position:absolute;left:0;top:16px;width:8px;height:8px;border-radius:50%;background:var(--accent-color);opacity:0.6}
+.diagram{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:20px;margin:16px 0;text-align:center;overflow-x:auto}
+.diagram svg{max-width:100%;height:auto}
+.diagram svg text{font-family:var(--font-sans)}
+.diagram .caption{font-size:0.8rem;color:var(--text-muted);margin-top:8px}
+.knowledge-map{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px;margin-top:32px}
+.knowledge-map h3{font-size:1rem;color:var(--text-primary);margin-bottom:16px}
+.map-nodes{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.map-node{padding:6px 16px;border-radius:20px;font-size:0.85rem;border:1px solid var(--border-color);background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;transition:all 0.2s}
+.map-node:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.map-node.current{background:var(--accent-color);color:var(--bg-primary);border-color:var(--accent-color);font-weight:600}
+.map-node.pending{border-style:dashed;opacity:0.7}
+.map-node.linked{text-decoration:none;color:var(--text-secondary)}
+.map-node.linked:hover{color:var(--accent-color);border-color:var(--accent-color)}
+.map-arrow{color:var(--text-muted);font-size:0.9rem}
+.map-section{margin-top:16px}
+.map-section-title{font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.map-section .map-nodes{justify-content:flex-start}
+.quiz-item{margin-bottom:16px;padding:16px;background:var(--bg-secondary);border-radius:var(--radius);border:1px solid var(--border-color)}
+.quiz-item .quiz-question{font-weight:600;color:var(--text-primary);margin-bottom:12px}
+.quiz-item .quiz-type{font-size:0.75rem;color:var(--accent-color);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.quiz-options{list-style:none;padding:0}
+.quiz-options li{padding:10px 16px;margin-bottom:6px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;color:var(--text-secondary)}
+.quiz-options li:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.quiz-options li.correct{border-color:var(--success);background:rgba(76,175,80,0.1);color:var(--success)}
+.quiz-options li.wrong{border-color:var(--error);background:rgba(239,83,80,0.1);color:var(--error)}
+.quiz-explanation{display:none;margin-top:12px;padding:12px 16px;background:var(--bg-card);border-left:3px solid var(--accent-color);border-radius:0 var(--radius) var(--radius) 0;color:var(--text-secondary);font-size:0.9rem;line-height:1.7}
+.quiz-explanation.visible{display:block}
+.footer{position:relative;z-index:1;max-width:800px;margin:40px auto 0;padding:24px;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);font-size:0.8rem}
+@media(max-width:640px){.header{padding:24px 16px 16px}.header h1{font-size:1.5rem}.main{padding:16px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>知本 · <span class="accent">大气压强</span></h1>
+  <div class="meta">
+    <span class="tag">物理</span>
+    <span class="tag">八年级</span>
+    <span class="tag">形式科学族</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">认</div>
+      <span class="group-title">认知组</span>
+      <span class="group-subtitle">理解</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">1</span>
+        <span class="dim-title">定义锚点</span>
+        <span class="dim-question">它是什么？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p>大气压强是<span class="highlight">空气对物体表面施加的压力</span>。你此刻正被大约10万帕的气压从四面八方挤压着——相当于每平方厘米承受约1千克的力量。</p>
+        <p>为什么你感觉不到？因为你体内也有压强，内外抵消了。就像鱼感觉不到水的压力一样——你是一条在空气海洋里游泳的鱼。</p>
+        <p>概念边界：大气压强不是"空气的重量压下来"。空气分子在四面八方运动，撞击物体表面，所以压强来自所有方向，不只是向下。</p>
+
+        <div class="diagram">
+          <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- 人体被气压包围 -->
+            <circle cx="280" cy="80" r="40" fill="rgba(255,112,67,0.1)" stroke="#ff7043" stroke-width="1.5"/>
+            <text x="280" y="78" text-anchor="middle" fill="#ff7043" font-size="11">你</text>
+            <text x="280" y="92" text-anchor="middle" fill="#ff7043" font-size="9">体内=体外</text>
+
+            <!-- 四面八方的箭头 -->
+            <line x1="280" y1="30" x2="280" y2="38" stroke="#9ca3af" stroke-width="1.5"/>
+            <polygon points="276,36 280,28 284,36" fill="#9ca3af"/>
+            <line x1="280" y1="122" x2="280" y2="130" stroke="#9ca3af" stroke-width="1.5"/>
+            <polygon points="276,128 280,136 284,128" fill="#9ca3af"/>
+            <line x1="230" y1="80" x2="238" y2="80" stroke="#9ca3af" stroke-width="1.5"/>
+            <polygon points="236,76 228,80 236,84" fill="#9ca3af"/>
+            <line x1="322" y1="80" x2="330" y2="80" stroke="#9ca3af" stroke-width="1.5"/>
+            <polygon points="328,76 336,80 328,84" fill="#9ca3af"/>
+
+            <text x="280" y="22" text-anchor="middle" fill="#9ca3af" font-size="9">↓ 1atm</text>
+            <text x="280" y="148" text-anchor="middle" fill="#9ca3af" font-size="9">↑ 1atm</text>
+            <text x="218" y="84" text-anchor="middle" fill="#9ca3af" font-size="9">→</text>
+            <text x="342" y="84" text-anchor="middle" fill="#9ca3af" font-size="9">←</text>
+
+            <!-- 马德堡半球 -->
+            <text x="280" y="175" text-anchor="middle" fill="#e8e8ed" font-size="11" font-weight="bold">马德堡半球实验：16匹马拉不开两个合在一起的铜半球</text>
+            <text x="280" y="192" text-anchor="middle" fill="#6b7280" font-size="10">因为外面的大气压把两个半球紧紧压在一起</text>
+          </svg>
+          <div class="caption">大气压强：四面八方的空气分子撞击你，内外抵消所以你感觉不到</div>
+        </div>
+      </div>
+    
+<p>生活锚点：<span class="highlight">吸管喝饮料</span>——吸气使管内气压降低，大气压把饮料压上来。<span class="highlight">吸盘挂钩</span>——挤出空气后，大气压把吸盘紧压在墙上。</p>
+</div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">2</span>
+        <span class="dim-title">历史溯源</span>
+        <span class="dim-question">它从哪来？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <div class="story-box">
+          <p>1643年，意大利科学家托里拆利遇到一个难题：矿工抽水时，水泵最多只能把水抽到10米高。为什么不能再高了？</p>
+          <p>当时的人认为是"自然厌恶真空"——大自然不允许出现真空，所以水被"吸"上去。但托里拆利不信。他做了一个实验：用一根1米长的玻璃管装满水银，倒插在水银槽里。水银下降到76厘米就停了——上面空出来的24厘米就是真空。</p>
+          <p>他的结论：不是水被"吸"上去，而是<strong>大气压把水银压上去的</strong>。76厘米水银柱的重量，正好等于10米水柱的重量，也正好等于大气压强。这就是著名的托里拆利实验。</p>
+          <p>1654年，马德堡市长奥托·冯·格里克做了更震撼的演示：两个铜半球合在一起，抽掉里面的空气，16匹马都拉不开——因为外面的大气压太强了。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">3</span>
+        <span class="dim-title">现实矛盾</span>
+        <span class="dim-question">为什么需要它？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p><span class="highlight">直觉告诉你空气是"空的"</span>——你看不见、摸不着，感觉不到它的存在。但空气不是"空的"，它有质量、有压力、有力量。</p>
+        <p>如果没有大气压强的概念，你无法解释：为什么吸管能吸上饮料？为什么真空包装袋紧紧贴住食物？为什么高山上水不到100度就开了？这些都是大气压在起作用。</p>
+
+        <div class="diagram">
+          <svg viewBox="0 0 560 120" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="20" width="240" height="80" rx="8" fill="rgba(239,83,80,0.08)" stroke="#ef5350" stroke-width="1.5"/>
+            <text x="140" y="45" text-anchor="middle" fill="#ef5350" font-size="12" font-weight="bold">直觉</text>
+            <text x="140" y="68" text-anchor="middle" fill="#9ca3af" font-size="12">空气是"空的"</text>
+            <text x="140" y="88" text-anchor="middle" fill="#6b7280" font-size="11">吸管靠"吸力"把饮料吸上来</text>
+
+            <line x1="275" y1="60" x2="285" y2="60" stroke="#ff7043" stroke-width="2"/>
+            <polygon points="283,55 293,60 283,65" fill="#ff7043"/>
+
+            <rect x="300" y="20" width="240" height="80" rx="8" fill="rgba(255,112,67,0.08)" stroke="#ff7043" stroke-width="1.5"/>
+            <text x="420" y="45" text-anchor="middle" fill="#ff7043" font-size="12" font-weight="bold">事实</text>
+            <text x="420" y="68" text-anchor="middle" fill="#e8e8ed" font-size="12">空气有压强（~100000Pa）</text>
+            <text x="420" y="88" text-anchor="middle" fill="#6b7280" font-size="11">吸管靠大气压把饮料"压"上来</text>
+          </svg>
+          <div class="caption">不是"吸"上去的，是大气压"压"上去的</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">用</div>
+      <span class="group-title">应用组</span>
+      <span class="group-subtitle">迁移</span>
+    
+<p><strong>困境时刻</strong>：为什么吸管能吸上饮料？不是你"吸"上来的，是<span class="highlight">大气压把饮料压上来的</span>。你吸气只是降低了管内气压，外面的大气压比管内大，就把液体压上来了。在真空中吸管完全不起作用。</p>
+</div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">4</span>
+        <span class="dim-title">应用场景</span>
+        <span class="dim-question">它能做什么？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <ul class="example-list">
+          <li><strong>吸管喝饮料</strong>：你吸气时管内气压降低，外面的大气压把饮料压上来</li>
+          <li><strong>真空包装</strong>：抽掉袋内空气，外面的大气压把袋子紧紧压在食物上</li>
+          <li><strong>高海拔烹饪</strong>：海拔越高大气压越低，水不到100度就开了，所以高原煮不熟饭</li>
+        </ul>
+        <p><strong>动手验证</strong>：把一个装满水的杯子用纸片盖住，倒过来——纸片不会掉，水不会洒。为什么？因为外面的大气压向上托住了纸片，力量远大于水的重力。</p>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">5</span>
+        <span class="dim-title">思维延伸</span>
+        <span class="dim-question">它还能怎样？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p>大气压强是理解流体力学的基础。理解了"空气有压强"，下一个问题自然出现：<span class="highlight">如果空气流动起来，压强会变吗？</span></p>
+        <ul class="example-list">
+          <li><a href="伯努利原理.html" class="highlight">伯努利原理</a>——流速快的地方压强小，这是飞机能飞的关键</li>
+          <li>天气预报——高压区天气晴朗，低压区容易下雨</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">6</span>
+        <span class="dim-title">知识网络</span>
+        <span class="dim-question">它和什么关联？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p><strong>前导知识</strong>：</p>
+        <ul class="example-list">
+          <li><span class="map-node pending" style="display:inline;font-size:0.85rem">压强</span>（前导）——压强的定义和公式</li>
+        </ul>
+        <p><strong>后续延伸</strong>：</p>
+        <ul class="example-list">
+          <li><a href="伯努利原理.html" class="highlight">伯努利原理</a>（后续）——流速影响压强</li>
+          <li><a href="升力.html" class="highlight">升力</a>（后续）——压强差产生向上的力</li>
+        </ul>
+        <p><strong>所属项目</strong>：</p>
+        <ul class="example-list">
+          <li><a href="为什么飞机能飞.html" class="highlight">为什么飞机能飞</a>（项目）——本项目的前导知识</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">验</div>
+      <span class="group-title">验证组</span>
+      <span class="group-subtitle">确认</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">7</span>
+        <span class="dim-title">验证理解</span>
+        <span class="dim-question">真的懂了吗？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+
+        <div class="quiz-item">
+          <div class="quiz-type">辨析题</div>
+          <div class="quiz-question">有人说："吸管能吸上饮料，是因为嘴的吸力把饮料吸上来了。"这个说法对吗？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">对，嘴的吸力把饮料吸上来</li>
+            <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)" data-correct="true">不对，是外面的大气压把饮料压上来的。嘴只是让管内气压降低</li>
+            <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">不对，是饮料自己流上来的</li>
+          </ul>
+          <div class="quiz-explanation">在太空中用吸管喝饮料是做不到的——因为没有外面的大气压来"压"。吸管工作的原理是：嘴吸气→管内气压降低→外面的大气压>管内气压→大气压把饮料压上来。嘴不是"拉"饮料，而是"让出位置"让大气压去推。</div>
+        </div>
+
+        <div class="quiz-item">
+          <div class="quiz-type">推理题</div>
+          <div class="quiz-question">在珠穆朗玛峰顶（海拔8848米），水大约在71°C就沸腾了。为什么？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">因为山顶温度低，所以水更容易沸腾</li>
+            <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)" data-correct="true">因为山顶大气压低，水不需要那么高的温度就能产生足够的蒸汽压来对抗大气压</li>
+            <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">因为山顶空气稀薄，热量更容易散失</li>
+          </ul>
+          <div class="quiz-explanation">沸腾的本质是：水的蒸汽压 = 大气压。大气压越低，水需要的蒸汽压越低，需要的温度就越低。所以不是"更容易沸腾"，而是"对抗的压力更小，不需要那么热就够了"。</div>
+        </div>
+
+        <div class="quiz-item">
+          <div class="quiz-type">选择题</div>
+          <div class="quiz-question">马德堡半球实验中，16匹马拉不开两个铜半球。如果现在在半球上开一个小孔，会发生什么？</div>
+          <ul class="quiz-options">
+            <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">什么都不会发生，因为孔太小</li>
+            <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)" data-correct="true">两个半球会轻松分开，因为空气从小孔进入，内外气压相等了</li>
+            <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">空气会从小孔喷出，半球更紧</li>
+          </ul>
+          <div class="quiz-explanation">马德堡半球拉不开的原因是：内部真空（气压≈0），外部大气压把两个半球压在一起。一旦开孔，空气进入，内外气压相等，大气压的"压力差"消失，两个半球就自然分开了。</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 知识地图 -->
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section">
+      <div class="map-section-title">前导知识</div>
+      <div class="map-nodes">
+        <span class="map-node pending">压强</span>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px">
+      <div class="map-nodes">
+        <span class="map-arrow">→</span>
+        <span class="map-node current">大气压强</span>
+        <span class="map-arrow">→</span>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px">
+      <div class="map-section-title">后续延伸</div>
+      <div class="map-nodes">
+        <a href="伯努利原理.html" class="map-node linked">伯努利原理</a>
+        <a href="升力.html" class="map-node linked">升力</a>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px">
+      <div class="map-section-title">所属项目</div>
+      <div class="map-nodes">
+        <a href="为什么飞机能飞.html" class="map-node linked">为什么飞机能飞</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">知本 KnowledgeRoot — 知识本质拆解系统</div>
+
+<script>
+function toggleDimension(h){const b=h.nextElementSibling;const t=h.querySelector('.dim-toggle');if(b.classList.contains('collapsed')){b.classList.remove('collapsed');t.classList.remove('collapsed')}else{b.classList.add('collapsed');t.classList.add('collapsed')}}
+function checkAnswer(o,c,e){const p=o.parentElement;const a=p.querySelectorAll('li');a.forEach(x=>{x.style.pointerEvents='none'});if(c){o.classList.add('correct')}else{o.classList.add('wrong');a.forEach(x=>{if(x.dataset.correct==='true')x.classList.add('correct')})}if(e)e.classList.add('visible')}
+</script>
+</body>
+</html>

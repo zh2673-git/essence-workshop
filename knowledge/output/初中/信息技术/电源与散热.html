@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 电源与散热</title>
+<style>
+:root { --bg-primary: #0f1117; --bg-secondary: #1a1d27; --bg-card: #1e2130; --bg-card-hover: #252840; --text-primary: #e8e8ed; --text-secondary: #9ca3af; --text-muted: #6b7280; --border-color: #2d3148; --border-accent: var(--accent-color, #ef5350); --accent-color: #ef5350; --accent-glow: rgba(239, 83, 80, 0.15); --success: #4caf50; --error: #ef5350; --warning: #ff9800; --radius: 8px; --radius-lg: 12px; --shadow: 0 2px 8px rgba(0,0,0,0.3); --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.8; min-height: 100vh; }
+body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.02) 0%, transparent 40%); pointer-events: none; z-index: 0; }
+.header { position: relative; z-index: 1; padding: 40px 24px 24px; max-width: 800px; margin: 0 auto; border-bottom: 1px solid var(--border-color); }
+.header h1 { font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.header h1 .accent { color: var(--accent-color); }
+.header .meta { display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 0.9rem; flex-wrap: wrap; }
+.header .meta .tag { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 12px; border-radius: 20px; font-size: 0.85rem; }
+.main { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px; }
+.group { margin-bottom: 32px; }
+.group-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+.group-header .group-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; background: var(--accent-color); color: var(--bg-primary); }
+.group-header .group-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+.group-header .group-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-left: auto; }
+.dimension-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s; }
+.dimension-card:hover { border-color: var(--border-accent); }
+.dimension-header { display: flex; align-items: center; padding: 16px 20px; cursor: pointer; user-select: none; gap: 12px; }
+.dimension-header .dim-number { width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
+.dimension-header .dim-title { font-weight: 600; font-size: 1rem; color: var(--text-primary); }
+.dimension-header .dim-question { font-size: 0.85rem; color: var(--text-muted); margin-left: 8px; }
+.dimension-header .dim-toggle { margin-left: auto; color: var(--text-muted); font-size: 0.8rem; transition: transform 0.2s; flex-shrink: 0; }
+.dimension-header .dim-toggle.collapsed { transform: rotate(-90deg); }
+.dimension-body { padding: 0 20px 20px; color: var(--text-secondary); line-height: 1.9; }
+.dimension-body.collapsed { display: none; }
+.dimension-body p { margin-bottom: 12px; }
+.dimension-body strong { color: var(--text-primary); }
+.dimension-body .highlight { color: var(--accent-color); font-weight: 500; }
+.dimension-body .story-box { background: var(--bg-secondary); border-left: 3px solid var(--accent-color); padding: 16px 20px; border-radius: 0 var(--radius) var(--radius) 0; margin: 12px 0; }
+.dimension-body .example-list { list-style: none; padding: 0; }
+.dimension-body .example-list li { padding: 8px 0 8px 20px; position: relative; }
+.dimension-body .example-list li::before { content: ''; position: absolute; left: 0; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-color); opacity: 0.6; }
+.diagram { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
+.diagram svg { max-width: 100%; height: auto; }
+.diagram svg text { font-family: var(--font-sans); }
+.diagram .caption { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+.knowledge-map { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-top: 32px; }
+.knowledge-map h3 { font-size: 1rem; color: var(--text-primary); margin-bottom: 16px; }
+.map-nodes { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.map-node { padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+.map-node:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.map-node.current { background: var(--accent-color); color: var(--bg-primary); border-color: var(--accent-color); font-weight: 600; }
+.map-node.pending { border-style: dashed; opacity: 0.7; }
+.map-node.linked { text-decoration: none; color: var(--text-secondary); display: inline-block; }
+.map-node.linked:hover { color: var(--accent-color); border-color: var(--accent-color); text-decoration: none; }
+.map-arrow { color: var(--text-muted); font-size: 0.9rem; }
+.map-section { margin-top: 16px; }
+.map-section-title { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.map-section .map-nodes { justify-content: flex-start; }
+.quiz-container { padding: 0; }
+.quiz-item { margin-bottom: 16px; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border-color); }
+.quiz-item .quiz-question { font-weight: 600; color: var(--text-primary); margin-bottom: 12px; }
+.quiz-item .quiz-type { font-size: 0.75rem; color: var(--accent-color); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.quiz-options { list-style: none; padding: 0; }
+.quiz-options li { padding: 10px 16px; margin-bottom: 6px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; transition: all 0.2s; color: var(--text-secondary); }
+.quiz-options li:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.quiz-options li.correct { border-color: var(--success); background: rgba(76, 175, 80, 0.1); color: var(--success); }
+.quiz-options li.wrong { border-color: var(--error); background: rgba(239, 83, 80, 0.1); color: var(--error); }
+.quiz-explanation { display: none; margin-top: 12px; padding: 12px 16px; background: var(--bg-card); border-left: 3px solid var(--accent-color); border-radius: 0 var(--radius) var(--radius) 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7; }
+.quiz-explanation.visible { display: block; }
+.footer { position: relative; z-index: 1; max-width: 800px; margin: 40px auto 0; padding: 24px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+@media (max-width: 640px) { .header { padding: 24px 16px 16px; } .header h1 { font-size: 1.5rem; } .main { padding: 16px; } .dimension-header { padding: 12px 16px; } .dimension-body { padding: 0 16px 16px; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>知本 · <span class="accent">电源与散热</span></h1>
+  <div class="meta">
+    <span class="tag">信息技术</span>
+    <span class="tag">初中</span>
+    <span class="tag">形式科学族</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">认</div>
+      <span class="group-title">认知组</span>
+      <span class="group-subtitle">理解</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">1</span>
+        <span class="dim-title">定义锚点</span>
+        <span class="dim-question">它是什么？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p>电脑里每个部件都在"吃电"和"发热"。就像人体需要食物供能、需要出汗散热一样，电脑也需要<strong>电源</strong>供电、<strong>散热系统</strong>降温。</p>
+        <p><strong>电源（PSU）</strong>——把墙上220V交流电转换成12V/5V/3.3V直流电，分配给各部件。关键参数是<strong>额定功率</strong>（如650W），表示能稳定输出的最大功率。电源不是"越大约好"，而是<span class="highlight">功率要匹配整机需求，留20%-30%余量</span>。</p>
+        <p><strong>散热系统</strong>——把CPU和显卡产生的热量搬走。两种方式：</p>
+        <ul class="example-list">
+          <li><strong>风冷</strong>——金属散热片+风扇，靠空气流动带走热量（便宜可靠）</li>
+          <li><strong>水冷</strong>——水泵+冷液+冷排+风扇，靠液体循环带走热量（散热更强）</li>
+        </ul>
+        <p>概念边界：电源管"输入"（供电），散热管"输出"（排热），两者共同保证电脑在安全温度范围内运行。</p>
+
+        <div class="diagram">
+          <svg width="480" height="220" viewBox="0 0 480 220">
+            <!-- 电源 -->
+            <rect x="10" y="60" width="100" height="80" rx="6" fill="rgba(239,83,80,0.15)" stroke="var(--accent-color)" stroke-width="2"/>
+            <text x="60" y="90" text-anchor="middle" fill="var(--accent-color)" font-size="13" font-weight="600">电源</text>
+            <text x="60" y="108" text-anchor="middle" fill="var(--text-muted)" font-size="9">220V AC</text>
+            <text x="60" y="124" text-anchor="middle" fill="var(--text-muted)" font-size="9">→ 12V/5V/3.3V DC</text>
+
+            <!-- 各部件 -->
+            <rect x="160" y="40" width="70" height="40" rx="4" fill="rgba(66,165,245,0.15)" stroke="#42a5f5" stroke-width="1"/>
+            <text x="195" y="65" text-anchor="middle" fill="#42a5f5" font-size="11" font-weight="600">CPU</text>
+            <rect x="160" y="95" width="70" height="40" rx="4" fill="rgba(171,71,188,0.15)" stroke="#ab47bc" stroke-width="1"/>
+            <text x="195" y="120" text-anchor="middle" fill="#ab47bc" font-size="11" font-weight="600">显卡</text>
+            <rect x="260" y="40" width="70" height="40" rx="4" fill="rgba(255,152,0,0.15)" stroke="#ff9800" stroke-width="1"/>
+            <text x="295" y="65" text-anchor="middle" fill="#ff9800" font-size="11" font-weight="600">内存</text>
+            <rect x="260" y="95" width="70" height="40" rx="4" fill="rgba(156,204,101,0.15)" stroke="#9ccc65" stroke-width="1"/>
+            <text x="295" y="120" text-anchor="middle" fill="#9ccc65" font-size="11" font-weight="600">硬盘</text>
+
+            <!-- 供电线 -->
+            <line x1="110" y1="85" x2="160" y2="60" stroke="var(--accent-color)" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <line x1="110" y1="95" x2="160" y2="115" stroke="var(--accent-color)" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <line x1="110" y1="85" x2="260" y2="60" stroke="var(--accent-color)" stroke-width="1" stroke-dasharray="4,2"/>
+            <line x1="110" y1="95" x2="260" y2="115" stroke="var(--accent-color)" stroke-width="1" stroke-dasharray="4,2"/>
+            <text x="135" y="55" text-anchor="middle" fill="var(--accent-color)" font-size="8">供电</text>
+
+            <!-- 散热 -->
+            <rect x="370" y="40" width="90" height="95" rx="6" fill="rgba(38,198,218,0.15)" stroke="#26c6da" stroke-width="2"/>
+            <text x="415" y="70" text-anchor="middle" fill="#26c6da" font-size="12" font-weight="600">散热器</text>
+            <text x="415" y="88" text-anchor="middle" fill="var(--text-muted)" font-size="9">风冷/水冷</text>
+            <text x="415" y="106" text-anchor="middle" fill="var(--text-muted)" font-size="9">导热→散出</text>
+            <text x="415" y="124" text-anchor="middle" fill="var(--text-muted)" font-size="9">保持&lt;90°C</text>
+
+            <!-- 热流 -->
+            <line x1="230" y1="60" x2="370" y2="70" stroke="#26c6da" stroke-width="1.5" marker-end="url(#heatArr)"/>
+            <line x1="230" y1="115" x2="370" y2="90" stroke="#26c6da" stroke-width="1.5" marker-end="url(#heatArr)"/>
+            <text x="300" y="50" text-anchor="middle" fill="#26c6da" font-size="8">排热</text>
+
+            <defs><marker id="heatArr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#26c6da"/></marker></defs>
+
+            <!-- 温度标注 -->
+            <text x="240" y="175" text-anchor="middle" fill="var(--text-muted)" font-size="10">CPU满载：65-95°C | 显卡满载：70-85°C | 超过100°C = 降频/关机保护</text>
+          </svg>
+          <div class="caption">电源供电 + 散热排热：电脑的能量输入与输出平衡</div>
+        </div>
+      </div>
+    
+<p>生活锚点：<span class="highlight">人体心脏与汗腺</span>——电源像心脏泵血给全身供电，散热器像汗腺排热保持体温。<span class="highlight">汽车油箱与水箱</span>——电源供能，散热排热，缺一不可。</p>
+</div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">2</span>
+        <span class="dim-title">历史溯源</span>
+        <span class="dim-question">它从哪来？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <div class="story-box">
+          <p>早期电脑功耗很低——ENIAC虽然用18000个真空管，但每个真空管只做开关动作，整体功耗约150kW（以今天的标准看很高，但分散在30吨的机器上，散热靠自然通风就行）。</p>
+          <p>真正的散热危机出现在2000年代。<strong>Pentium 4的Prescott核心功耗突破100W</strong>，发热量急剧上升，Intel的工程师发现：频率越高，晶体管切换越快，漏电流越大，发热呈指数增长。这就是著名的"功耗墙"——<span class="highlight">CPU频率无法继续提升的根本原因不是技术做不到，而是散热扛不住</span>。</p>
+          <p>此后，散热从"可选配件"变成"核心设计"。CPU自带散热器成为标配，塔式风冷、一体水冷、分体水冷依次出现。电源也从AT标准进化到ATX标准，增加了待机供电、多路输出保护等功能。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">3</span>
+        <span class="dim-title">现实矛盾</span>
+        <span class="dim-question">为什么需要它？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p><strong>困境时刻</strong>：CPU满载时发热功率可达200W+，芯片面积只有几平方厘米——相当于在指甲盖上放一个200W灯泡。如果没有散热，<span class="highlight">CPU会在几秒内超过100°C，触发过热保护自动关机</span>。如果保护机制失效，芯片会物理烧毁。</p>
+        <p>供电方面，如果电源功率不足，高负载时电压不稳，电脑会随机重启或蓝屏。如果电源质量差，输出电压波动大，可能损坏硬盘和主板。</p>
+        <p>这就是为什么电源和散热是"保障系统"——它们不直接参与运算，但<span class="highlight">没有它们，一切运算都无法持续</span>。就像人可以短时间不吃饭，但长时间不进食不散热，身体必然崩溃。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">用</div>
+      <span class="group-title">应用组</span>
+      <span class="group-subtitle">迁移</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">4</span>
+        <span class="dim-title">应用场景</span>
+        <span class="dim-question">它能做什么？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <ul class="example-list">
+          <li><strong>选电源</strong>：计算整机功耗（CPU约65-125W + 显卡约150-350W + 其他约50W），电源额定功率比总功耗高20%-30%。例如整机功耗400W，选500-550W电源。不要贪便宜买杂牌电源——劣质电源可能烧毁整台电脑。</li>
+          <li><strong>选散热</strong>：CPU不超频，百元风冷够用；超频或高端CPU，选200元+塔式风冷或一体水冷。机箱风道也很重要——前面进风、后面出风，形成定向气流。</li>
+          <li><strong>故障排查</strong>：电脑随机重启？可能是电源功率不足或散热失效导致过热保护。摸一下CPU散热器，如果烫手说明散热正常（在导热），如果凉说明散热器没装好（没接触上）。</li>
+        </ul>
+        <p><strong>动手验证</strong>：下载HWMonitor或Core Temp软件，观察CPU温度。待机时应在30-50°C，满载时应在65-90°C。如果满载超过95°C，说明散热需要改善。</p>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">5</span>
+        <span class="dim-title">思维延伸</span>
+        <span class="dim-question">它还能怎样？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p>散热问题不只存在于电脑。数据中心（云服务器机房）的散热成本占运营费用的30%-40%，甚至需要建在寒冷地区或水下。电动汽车的电池散热、5G基站的热管理，都是同样的工程挑战。</p>
+        <p><strong>进阶问题</strong>：如果未来芯片功耗能降到现在的1/10（比如用碳纳米管替代硅），散热问题是否就消失了？还是说人类总会把性能推到散热的极限？</p>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">6</span>
+        <span class="dim-title">知识网络</span>
+        <span class="dim-question">它和什么关联？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p><strong>前导知识</strong>：<a href="电脑硬件组成.html" class="map-node linked">电脑硬件组成</a>——电源是六大核心部件之一；<a href="CPU工作原理.html" class="map-node linked">CPU工作原理</a>——CPU是最大发热源。</p>
+        <p><strong>后续知识</strong>：<a href="系统安装与启动.html" class="map-node linked">系统安装与启动</a>——电源给主板供电后，BIOS才能启动。</p>
+        <p><strong>平行知识</strong>：热力学基础——散热本质是热传导（CPU→散热器）+ 热对流（散热器→空气），理解物理原理才能选对散热方案。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">验</div>
+      <span class="group-title">验证组</span>
+      <span class="group-subtitle">确认</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">7</span>
+        <span class="dim-title">验证理解</span>
+        <span class="dim-question">真的懂了吗？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <div class="quiz-container">
+          <div class="quiz-item">
+            <div class="quiz-type">辨析题</div>
+            <div class="quiz-question">小明说"电源功率越大越费电"，这个说法对吗？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">A. 对，1000W电源每小时用1度电，500W只用半度</li>
+              <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">B. 不对，电源功率是"最大输出能力"，实际耗电由整机功耗决定</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">C. 不对，大功率电源反而省电</li>
+            </ul>
+            <div class="quiz-explanation">电源额定功率就像汽车的"最高时速"——最高时速200km/h不代表你一直在200km/h开。电脑整机功耗300W，用500W电源和1000W电源，实际耗电都是300W左右。大功率电源只是"余量更足"，不会多耗电。</div>
+          </div>
+
+          <div class="quiz-item">
+            <div class="quiz-type">实践题</div>
+            <div class="quiz-question">你的电脑玩游戏时突然黑屏重启，最可能的原因是什么？如何排查？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">A. 软件问题，重装系统</li>
+              <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">B. 可能是过热保护或电源不足，先查温度再查电源</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">C. 内存坏了，换内存</li>
+            </ul>
+            <div class="quiz-explanation">玩游戏时CPU和显卡满载，发热最大、功耗最高。突然重启最常见两个原因：1)过热保护——温度超过阈值自动关机保护；2)电源不足——高负载时电压骤降导致重启。排查步骤：先监控温度（看是否过热），再换大功率电源测试。</div>
+          </div>
+
+          <div class="quiz-item">
+            <div class="quiz-type">推理题</div>
+            <div class="quiz-question">为什么CPU散热器要用铜管+铝片，而不是纯铜或纯铝？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">A. 铜导热快（把热量从CPU搬走），铝轻且便宜（做大面积散热片），两者配合最优</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">B. 纯铜太重会压坏CPU</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">C. 铝比铜散热效果更好</li>
+            </ul>
+            <div class="quiz-explanation">铜的导热系数约400W/mK，铝约240W/mK——铜导热更快。但铜密度大（重）、价格高，做大面积散热片不划算。所以用铜管快速导热（把热量从CPU表面搬走），再用铝片大面积散热（和空气接触面积大），这是成本和性能的最优平衡。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section">
+      <div class="map-section-title">前导知识</div>
+      <div class="map-nodes">
+        <a href="电脑硬件组成.html" class="map-node linked">电脑硬件组成</a>
+        <a href="CPU工作原理.html" class="map-node linked">CPU工作原理</a>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-nodes">
+        <span class="map-arrow">→</span>
+        <span class="map-node current">电源与散热</span>
+        <span class="map-arrow">→</span>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-section-title">后续延伸</div>
+      <div class="map-nodes">
+        <a href="系统安装与启动.html" class="map-node linked">系统安装与启动</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">知本 KnowledgeRoot — 知识本质拆解系统</div>
+
+<script>
+function toggleDimension(header) { const body = header.nextElementSibling; const toggle = header.querySelector('.dim-toggle'); if (body.classList.contains('collapsed')) { body.classList.remove('collapsed'); toggle.classList.remove('collapsed'); } else { body.classList.add('collapsed'); toggle.classList.add('collapsed'); } }
+function checkAnswer(optionEl, isCorrect, explanationEl) { const parent = optionEl.parentElement; const allOptions = parent.querySelectorAll('li'); allOptions.forEach(opt => { opt.style.pointerEvents = 'none'; }); if (isCorrect) { optionEl.classList.add('correct'); } else { optionEl.classList.add('wrong'); allOptions.forEach(opt => { if (opt.dataset.correct === 'true') { opt.classList.add('correct'); } }); } if (explanationEl) { explanationEl.classList.add('visible'); } }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 频率副词</title>
+<style>
+:root { --bg-primary: #0f1117; --bg-secondary: #1a1d27; --bg-card: #1e2130; --text-primary: #e8e8ed; --text-secondary: #9ca3af; --text-muted: #6b7280; --border-color: #2d3148; --border-accent: var(--accent-color, #9ccc65); --accent-color: #9ccc65; --accent-glow: rgba(156,204,101,0.12); --radius: 8px; --radius-lg: 12px; --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.8; min-height: 100vh; }
+body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+.header { position: relative; z-index: 1; padding: 40px 24px 24px; max-width: 800px; margin: 0 auto; border-bottom: 1px solid var(--border-color); }
+.header h1 { font-size: 2rem; font-weight: 700; }
+.header h1 .accent { color: var(--accent-color); }
+.header .meta { display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 0.9rem; flex-wrap: wrap; }
+.header .meta .tag { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 12px; border-radius: 20px; font-size: 0.85rem; }
+.main { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px; }
+.group { margin-bottom: 32px; }
+.group-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+.group-header .group-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; background: var(--accent-color); color: var(--bg-primary); }
+.group-header .group-title { font-size: 1.1rem; font-weight: 600; }
+.group-header .group-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-left: auto; }
+.dimension-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s; }
+.dimension-card:hover { border-color: var(--border-accent); }
+.dimension-header { display: flex; align-items: center; padding: 16px 20px; cursor: pointer; user-select: none; gap: 12px; }
+.dimension-header .dim-number { width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
+.dimension-header .dim-title { font-weight: 600; }
+.dimension-header .dim-question { font-size: 0.85rem; color: var(--text-muted); margin-left: 8px; }
+.dimension-header .dim-toggle { margin-left: auto; color: var(--text-muted); font-size: 0.8rem; transition: transform 0.2s; flex-shrink: 0; }
+.dimension-header .dim-toggle.collapsed { transform: rotate(-90deg); }
+.dimension-body { padding: 0 20px 20px; color: var(--text-secondary); line-height: 1.9; }
+.dimension-body.collapsed { display: none; }
+.dimension-body p { margin-bottom: 12px; }
+.dimension-body strong { color: var(--text-primary); }
+.dimension-body .highlight { color: var(--accent-color); font-weight: 500; }
+.map-node { padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+.map-node:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.map-node.current { background: var(--accent-color); color: var(--bg-primary); border-color: var(--accent-color); font-weight: 600; }
+.map-node.pending { border-style: dashed; opacity: 0.7; }
+.map-node.linked { text-decoration: none; color: var(--text-secondary); display: inline-block; }
+.map-node.linked:hover { color: var(--accent-color); border-color: var(--accent-color); text-decoration: none; }
+.knowledge-map { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-top: 32px; }
+.knowledge-map h3 { font-size: 1rem; margin-bottom: 16px; }
+.map-section { margin-top: 12px; }
+.map-section-title { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
+.map-nodes { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.map-arrow { color: var(--text-muted); font-size: 0.9rem; }
+.footer { position: relative; z-index: 1; max-width: 800px; margin: 40px auto 0; padding: 24px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+.diagram { margin: 16px 0; text-align: center; }
+.diagram svg { max-width: 100%; height: auto; }
+.diagram .caption { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; font-style: italic; }
+.quiz-container { margin-top: 8px; }
+.quiz-item { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.quiz-type { display: inline-block; background: var(--accent-color); color: var(--bg-primary); font-size: 0.75rem; font-weight: 600; padding: 2px 10px; border-radius: 10px; margin-bottom: 8px; }
+.quiz-question { font-weight: 600; color: var(--text-primary); margin-bottom: 10px; }
+.quiz-options { list-style: none; padding: 0; }
+.quiz-options li { padding: 8px 14px; margin-bottom: 6px; border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+.quiz-options li:hover { border-color: var(--accent-color); }
+.quiz-options li.correct { background: rgba(76,175,80,0.15); border-color: #4caf50; color: #81c784; }
+.quiz-options li.wrong { background: rgba(244,67,54,0.15); border-color: #f44336; color: #ef9a9a; }
+.quiz-explanation { display: none; margin-top: 8px; padding: 10px; background: var(--bg-card); border-radius: var(--radius); font-size: 0.85rem; color: var(--text-secondary); border-left: 3px solid var(--accent-color); }
+.quiz-explanation.show { display: block; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>知本 · <span class="accent">频率副词</span></h1>
+  <div class="meta"><span class="tag">英语</span><span class="tag">初一</span><span class="tag">人文学科族</span></div>
+</div>
+<div class="main">
+  <div class="group">
+    <div class="group-header"><div class="group-icon">认</div><span class="group-title">认知组</span><span class="group-subtitle">理解</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">1</span><span class="dim-title">定义锚点</span><span class="dim-question">它是什么？</span><span class="dim-toggle">▼</span></div>
+      <div class="dimension-body">
+        <p><strong>频率副词</strong>表示动作发生的频繁程度。从高到低排列：</p>
+        <div class="diagram">
+          <svg viewBox="0 0 520 130" xmlns="http://www.w3.org/2000/svg">
+            <line x1="30" y1="70" x2="490" y2="70" stroke="var(--text-muted)" stroke-width="1.5"/>
+            <rect x="30" y="55" width="8" height="30" rx="2" fill="var(--accent-color)"/>
+            <text x="34" y="50" text-anchor="middle" fill="var(--accent-color)" font-size="8" font-weight="600">always</text>
+            <text x="34" y="100" text-anchor="middle" fill="var(--text-muted)" font-size="8">100%</text>
+            <rect x="110" y="60" width="8" height="25" rx="2" fill="var(--accent-color)" opacity="0.85"/>
+            <text x="114" y="50" text-anchor="middle" fill="var(--accent-color)" font-size="8" font-weight="600">usually</text>
+            <text x="114" y="100" text-anchor="middle" fill="var(--text-muted)" font-size="8">80%</text>
+            <rect x="190" y="65" width="8" height="20" rx="2" fill="var(--accent-color)" opacity="0.7"/>
+            <text x="194" y="50" text-anchor="middle" fill="var(--accent-color)" font-size="8" font-weight="600">often</text>
+            <text x="194" y="100" text-anchor="middle" fill="var(--text-muted)" font-size="8">60%</text>
+            <rect x="270" y="70" width="8" height="15" rx="2" fill="var(--accent-color)" opacity="0.5"/>
+            <text x="274" y="50" text-anchor="middle" fill="var(--accent-color)" font-size="8" font-weight="600">sometimes</text>
+            <text x="274" y="100" text-anchor="middle" fill="var(--text-muted)" font-size="8">40%</text>
+            <rect x="360" y="75" width="8" height="10" rx="2" fill="var(--accent-color)" opacity="0.35"/>
+            <text x="364" y="50" text-anchor="middle" fill="var(--accent-color)" font-size="8" font-weight="600">seldom</text>
+            <text x="364" y="100" text-anchor="middle" fill="var(--text-muted)" font-size="8">20%</text>
+            <rect x="450" y="82" width="8" height="3" rx="1" fill="var(--accent-color)" opacity="0.15"/>
+            <text x="454" y="50" text-anchor="middle" fill="var(--accent-color)" font-size="8" font-weight="600">never</text>
+            <text x="454" y="100" text-anchor="middle" fill="var(--text-muted)" font-size="8">0%</text>
+            <text x="260" y="120" text-anchor="middle" fill="var(--accent-color)" font-size="9" font-weight="600">频率副词 = 模糊概率标尺</text>
+          </svg>
+          <div class="caption">频率副词是从100%到0%的模糊概率标尺，给动作加上"密度信息"</div>
+  
+<p>生活锚点：<span class="highlight">日常习惯</span>——I always brush my teeth. She often reads books. He never eats junk food. 频率副词描述动作发生的频繁程度。</p>      </div>
+        <p>位置规则：在be动词之后（I am always late），在实义动词之前（I always get up early）。</p>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">2</span><span class="dim-title">历史溯源</span><span class="dim-question">它从哪来？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p>always = all + way（所有道路→每一条路→总是）；often来自古英语oft（频繁地）；never = ne + ever（不+曾经→从不）。这些词的构成本身就暗示了频率的"程度"——从"全部"到"没有"的渐变。</p>
+        <div class="diagram">
+          <svg viewBox="0 0 520 90" xmlns="http://www.w3.org/2000/svg">
+            <line x1="40" y1="45" x2="480" y2="45" stroke="var(--text-muted)" stroke-width="1.5"/>
+            <circle cx="120" cy="45" r="6" fill="var(--accent-color)"/>
+            <text x="120" y="30" text-anchor="middle" fill="var(--accent-color)" font-size="9" font-weight="600">古英语</text>
+            <text x="120" y="67" text-anchor="middle" fill="var(--text-muted)" font-size="8">oft / efre</text>
+            <circle cx="260" cy="45" r="6" fill="var(--accent-color)"/>
+            <text x="260" y="30" text-anchor="middle" fill="var(--accent-color)" font-size="9" font-weight="600">中古英语</text>
+            <text x="260" y="67" text-anchor="middle" fill="var(--text-muted)" font-size="8">often / never</text>
+            <circle cx="400" cy="45" r="6" fill="var(--accent-color)"/>
+            <text x="400" y="30" text-anchor="middle" fill="var(--accent-color)" font-size="9" font-weight="600">现代英语</text>
+            <text x="400" y="67" text-anchor="middle" fill="var(--text-muted)" font-size="8">6级频率标尺</text>
+            <text x="260" y="85" text-anchor="middle" fill="var(--text-muted)" font-size="9">频率副词演化：从零散词汇到系统化标尺</text>
+          </svg>
+          <div class="caption">频率副词从古英语的零散词汇发展为现代英语的系统化频率标尺</div>
+        </div>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">3</span><span class="dim-title">现实矛盾</span><span class="dim-question">为什么需要它？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p>"I play basketball"只说了一个事实，但没说多久做一次。<span class="highlight">频率副词给动作加上了"密度信息"</span>——"I often play basketball"和"I never play basketball"虽然语法结构相同，但含义天差地别。</p>
+      </div>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-header"><div class="group-icon">用</div><span class="group-title">应用组</span><span class="group-subtitle">迁移</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">4</span><span class="dim-title">应用场景</span><span class="dim-question">它能做什么？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p>描述生活习惯（I usually get up at 7）、表达喜好频率（I sometimes watch movies）、调查问卷（How often do you exercise?）。</p>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">5</span><span class="dim-title">思维延伸</span><span class="dim-question">它还能怎样？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p>频率副词本质上是"概率"的日常表达。always=概率1，never=概率0，中间的词是模糊概率。数学中的概率论是频率副词的精确版本。</p>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">6</span><span class="dim-title">知识网络</span><span class="dim-question">它和什么关联？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p><strong>前导知识</strong>：<a href="一般现在时.html" class="map-node linked">一般现在时</a>——频率副词通常与一般现在时搭配使用。</p>
+        <p><strong>平行知识</strong>：<a href="现在进行时.html" class="map-node linked">现在进行时</a>——频率副词不用于进行时（不能说I am always eating）。</p>
+      </div>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-header"><div class="group-icon">验</div><span class="group-title">验证组</span><span class="group-subtitle">确认</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">7</span><span class="dim-title">验证理解</span><span class="dim-question">真的懂了吗？</span><span class="dim-toggle">▼</span></div>
+      <div class="dimension-body">
+        <div class="quiz-container">
+          <div class="quiz-item">
+            <div class="quiz-type">辨析</div>
+            <div class="quiz-question">"He is always late" 中 always 的位置为什么在 is 后面而不是前面？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">因为always只能放在句末</li>
+              <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">因为频率副词在be动词之后，在实义动词之前</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">放在哪里都行，没有规则</li>
+            </ul>
+            <div class="quiz-explanation">频率副词位置规则：be动词之后（I am always...），实义动词之前（I always go...）。"He is always late"中is是be动词，所以always在后面。</div>
+    
+<p><strong>困境时刻</strong>：always和often有什么区别？always是100%，often是70%左右。<span class="highlight">频率副词就像刻度尺</span>——always(100%)>usually(80%)>often(70%)>sometimes(30%)>seldom(10%)>never(0%)。选错频率副词，别人对你的理解就偏了。</p>      </div>
+          <div class="quiz-item">
+            <div class="quiz-type">选择</div>
+            <div class="quiz-question">"I sometimes eat pizza" 和 "I always eat pizza" 的区别是什么？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">sometimes比always频率高</li>
+              <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">sometimes约40%，always约100%，频率差距很大</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">没有区别，只是用词不同</li>
+            </ul>
+            <div class="quiz-explanation">sometimes=偶尔（约40%），always=总是（约100%）。一个偶尔吃披萨，一个每顿都吃——频率副词精确地传递了这个差异。</div>
+    
+<div class="story-box"><p>频率副词的排序在语言学中有一个经典研究。语言学家<span class="highlight">Kennedy</span>在1998年通过语料库统计发现，英语中频率副词的使用频率从高到低依次是：always > usually > often > sometimes > seldom > never。这个顺序和人们的主观感受高度一致。</p></div>      </div>
+          <div class="quiz-item">
+            <div class="quiz-type">选择</div>
+            <div class="quiz-question">为什么频率副词通常与一般现在时搭配，而不与进行时搭配？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">因为频率描述的是"习惯/规律"，而进行时描述的是"此刻"</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">因为进行时不能加副词</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">因为频率副词只用于过去</li>
+            </ul>
+            <div class="quiz-explanation">频率副词的本质是描述"多久做一次"——这是习惯和规律，属于一般现在时的范畴。进行时聚焦"此刻正在做"，和"频率"在逻辑上矛盾。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section"><div class="map-section-title">前导知识</div><div class="map-nodes"><a href="一般现在时.html" class="map-node linked">一般现在时</a></div></div>
+    <div class="map-section"><div class="map-nodes"><span class="map-arrow">→</span><span class="map-node current">频率副词</span><span class="map-arrow">→</span></div></div>
+  </div>
+</div>
+<div class="footer">知本 KnowledgeRoot — 知识本质拆解系统</div>
+<script>function toggleDimension(h){const b=h.nextElementSibling;const t=h.querySelector('.dim-toggle');b.classList.toggle('collapsed');t.classList.toggle('collapsed');}
+function checkAnswer(el,isCorrect,explanation){if(el.classList.contains('correct')||el.classList.contains('wrong'))return;el.classList.add(isCorrect?'correct':'wrong');explanation.classList.add('show');}</script>
+</body>
+</html>

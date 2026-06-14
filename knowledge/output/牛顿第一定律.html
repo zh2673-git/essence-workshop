@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 牛顿第一定律</title>
+<style>
+:root { --bg-primary: #0f1117; --bg-secondary: #1a1d27; --bg-card: #1e2130; --text-primary: #e8e8ed; --text-secondary: #9ca3af; --text-muted: #6b7280; --border-color: #2d3148; --border-accent: var(--accent-color, #4caf50); --accent-color: #4caf50; --accent-glow: rgba(76,175,80,0.12); --success: #4caf50; --error: #ef5350; --radius: 8px; --radius-lg: 12px; --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.8; min-height: 100vh; }
+body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+.header { position: relative; z-index: 1; padding: 40px 24px 24px; max-width: 800px; margin: 0 auto; border-bottom: 1px solid var(--border-color); }
+.header h1 { font-size: 2rem; font-weight: 700; }
+.header h1 .accent { color: var(--accent-color); }
+.header .meta { display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 0.9rem; flex-wrap: wrap; }
+.header .meta .tag { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 12px; border-radius: 20px; font-size: 0.85rem; }
+.main { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px; }
+.group { margin-bottom: 32px; }
+.group-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+.group-header .group-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; background: var(--accent-color); color: var(--bg-primary); }
+.group-header .group-title { font-size: 1.1rem; font-weight: 600; }
+.group-header .group-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-left: auto; }
+.dimension-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s; }
+.dimension-card:hover { border-color: var(--border-accent); }
+.dimension-header { display: flex; align-items: center; padding: 16px 20px; cursor: pointer; user-select: none; gap: 12px; }
+.dimension-header .dim-number { width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
+.dimension-header .dim-title { font-weight: 600; }
+.dimension-header .dim-question { font-size: 0.85rem; color: var(--text-muted); margin-left: 8px; }
+.dimension-header .dim-toggle { margin-left: auto; color: var(--text-muted); font-size: 0.8rem; transition: transform 0.2s; flex-shrink: 0; }
+.dimension-header .dim-toggle.collapsed { transform: rotate(-90deg); }
+.dimension-body { padding: 0 20px 20px; color: var(--text-secondary); line-height: 1.9; }
+.dimension-body.collapsed { display: none; }
+.dimension-body p { margin-bottom: 12px; }
+.dimension-body strong { color: var(--text-primary); }
+.dimension-body .highlight { color: var(--accent-color); font-weight: 500; }
+.dimension-body .story-box { background: var(--bg-secondary); border-left: 3px solid var(--accent-color); padding: 16px 20px; border-radius: 0 var(--radius) var(--radius) 0; margin: 12px 0; }
+.dimension-body .example-list { list-style: none; padding: 0; }
+.dimension-body .example-list li { padding: 8px 0 8px 20px; position: relative; }
+.dimension-body .example-list li::before { content: ''; position: absolute; left: 0; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-color); opacity: 0.6; }
+.diagram { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
+.diagram svg { max-width: 100%; height: auto; }
+.diagram svg text { font-family: var(--font-sans); }
+.diagram .caption { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+.quiz-container { padding: 0; }
+.quiz-item { margin-bottom: 16px; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border-color); }
+.quiz-item .quiz-question { font-weight: 600; color: var(--text-primary); margin-bottom: 12px; }
+.quiz-item .quiz-type { font-size: 0.75rem; color: var(--accent-color); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.quiz-options { list-style: none; padding: 0; }
+.quiz-options li { padding: 10px 16px; margin-bottom: 6px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; transition: all 0.2s; color: var(--text-secondary); }
+.quiz-options li:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.quiz-options li.correct { border-color: var(--success); background: rgba(76,175,80,0.1); color: var(--success); }
+.quiz-options li.wrong { border-color: var(--error); background: rgba(239,83,80,0.1); color: var(--error); }
+.quiz-explanation { display: none; margin-top: 12px; padding: 12px 16px; background: var(--bg-card); border-left: 3px solid var(--accent-color); border-radius: 0 var(--radius) var(--radius) 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7; }
+.quiz-explanation.visible { display: block; }
+.map-node { padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+.map-node:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.map-node.current { background: var(--accent-color); color: var(--bg-primary); border-color: var(--accent-color); font-weight: 600; }
+.map-node.pending { border-style: dashed; opacity: 0.7; }
+.map-node.linked { text-decoration: none; color: var(--text-secondary); display: inline-block; }
+.map-node.linked:hover { color: var(--accent-color); border-color: var(--accent-color); text-decoration: none; }
+.knowledge-map { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-top: 32px; }
+.knowledge-map h3 { font-size: 1rem; margin-bottom: 16px; }
+.map-section { margin-top: 12px; }
+.map-section-title { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
+.map-nodes { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.map-arrow { color: var(--text-muted); font-size: 0.9rem; }
+.footer { position: relative; z-index: 1; max-width: 800px; margin: 40px auto 0; padding: 24px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>知本 · <span class="accent">牛顿第一定律</span></h1>
+  <div class="meta"><span class="tag">物理</span><span class="tag">初二</span><span class="tag">形式科学族</span></div>
+</div>
+<div class="main">
+  <div class="group">
+    <div class="group-header"><div class="group-icon">认</div><span class="group-title">认知组</span><span class="group-subtitle">理解</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">1</span><span class="dim-title">定义锚点</span><span class="dim-question">它是什么？</span><span class="dim-toggle">▼</span></div>
+      <div class="dimension-body">
+        <p><strong>牛顿第一定律</strong>（惯性定律）：一切物体在没有受到外力作用时，总保持静止状态或匀速直线运动状态。</p>
+        <p>概念边界：这一定律<span class="highlight">不能通过实验直接验证</span>（因为不存在完全不受力的环境），而是通过推理得出的。它是牛顿力学的逻辑起点，不是从其他定律推导出来的。</p>
+        <!-- 伽利略斜面实验示意图 -->
+        <div class="diagram">
+          <svg viewBox="0 0 480 150" xmlns="http://www.w3.org/2000/svg">
+            <!-- 斜面1：等高 -->
+            <line x1="40" y1="120" x2="140" y2="40" stroke="var(--text-muted)" stroke-width="2"/>
+            <line x1="140" y1="40" x2="140" y2="120" stroke="var(--text-muted)" stroke-width="2"/>
+            <line x1="40" y1="120" x2="140" y2="120" stroke="var(--text-muted)" stroke-width="1"/>
+            <circle cx="90" cy="75" r="6" fill="var(--accent-color)"/>
+            <text x="90" y="30" text-anchor="middle" fill="var(--accent-color)" font-size="10">小球</text>
+            <text x="90" y="140" text-anchor="middle" fill="var(--text-secondary)" font-size="9">等高斜面</text>
+            <text x="90" y="10" text-anchor="middle" fill="var(--success)" font-size="9">滚到等高</text>
+            <!-- 斜面2：较低 -->
+            <line x1="180" y1="120" x2="260" y2="40" stroke="var(--text-muted)" stroke-width="2"/>
+            <line x1="260" y1="40" x2="380" y2="120" stroke="var(--text-muted)" stroke-width="2" stroke-dasharray="6,3"/>
+            <line x1="180" y1="120" x2="380" y2="120" stroke="var(--text-muted)" stroke-width="1"/>
+            <circle cx="220" cy="75" r="6" fill="var(--accent-color)"/>
+            <text x="300" y="30" text-anchor="middle" fill="var(--success)" font-size="9">滚得更远</text>
+            <text x="280" y="140" text-anchor="middle" fill="var(--text-secondary)" font-size="9">较低斜面（摩擦小）</text>
+            <!-- 斜面3：无摩擦 -->
+            <line x1="180" y1="120" x2="260" y2="40" stroke="var(--text-muted)" stroke-width="1" opacity="0.3"/>
+            <line x1="260" y1="40" x2="470" y2="40" stroke="var(--accent-color)" stroke-width="2" stroke-dasharray="8,4"/>
+            <text x="400" y="35" text-anchor="middle" fill="var(--accent-color)" font-size="9" font-weight="600">永远运动!</text>
+            <text x="400" y="55" text-anchor="middle" fill="var(--accent-color)" font-size="8">（无摩擦=匀速直线）</text>
+          </svg>
+          <div class="caption">伽利略斜面实验：摩擦越小→滚得越远→无摩擦则永远运动</div>
+        </div>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">2</span><span class="dim-title">历史溯源</span><span class="dim-question">它从哪来？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <div class="story-box">
+          <p>亚里士多德认为"力是维持运动的原因"——没有力，物体就会停下。这个直觉统治了近2000年。伽利略用斜面实验反驳：小球从斜面滚下后，如果没有摩擦，会一直运动下去。牛顿把伽利略的发现总结为第一定律：<strong>力不是维持运动的原因，而是改变运动的原因</strong>。</p>
+        </div>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">3</span><span class="dim-title">现实矛盾</span><span class="dim-question">为什么需要它？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p><strong>困境时刻</strong>：日常经验告诉你"推一下就动，不推就停"——这似乎支持亚里士多德。但仔细想：不推就停是因为有摩擦力，不是因为没有力。冰面上推一下，物体滑很远才停——摩擦越小，滑得越远。如果摩擦为零呢？<span class="highlight">物体会永远运动下去</span>。牛顿第一定律就是"去掉摩擦"后的真相。</p>
+        <div class="diagram">
+          <svg viewBox="0 0 480 130" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="200" height="110" rx="8" fill="none" stroke="var(--error)" stroke-width="1.5" stroke-dasharray="5,3"/>
+            <text x="110" y="35" text-anchor="middle" fill="var(--error)" font-size="12" font-weight="600">亚里士多德</text>
+            <text x="110" y="58" text-anchor="middle" fill="var(--text-secondary)" font-size="11">"力是维持运动的原因"</text>
+            <text x="110" y="80" text-anchor="middle" fill="var(--text-muted)" font-size="10">不推就停 → 需要力才能动</text>
+            <text x="110" y="100" text-anchor="middle" fill="var(--error)" font-size="9">❌ 被直觉欺骗</text>
+            <line x1="220" y1="65" x2="260" y2="65" stroke="var(--accent-color)" stroke-width="2"/>
+            <polygon points="260,65 252,61 252,69" fill="var(--accent-color)"/>
+            <text x="240" y="55" text-anchor="middle" fill="var(--accent-color)" font-size="9">纠正</text>
+            <rect x="270" y="10" width="200" height="110" rx="8" fill="none" stroke="var(--success)" stroke-width="1.5"/>
+            <text x="370" y="35" text-anchor="middle" fill="var(--success)" font-size="12" font-weight="600">牛顿第一定律</text>
+            <text x="370" y="58" text-anchor="middle" fill="var(--text-secondary)" font-size="11">"力是改变运动的原因"</text>
+            <text x="370" y="80" text-anchor="middle" fill="var(--text-muted)" font-size="10">不推就停 → 是摩擦力让它停</text>
+            <text x="370" y="100" text-anchor="middle" fill="var(--success)" font-size="9">✓ 看清本质</text>
+          </svg>
+          <div class="caption">牛顿第一定律纠正了2000年的直觉错误：力不是维持运动，而是改变运动</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-header"><div class="group-icon">用</div><span class="group-title">应用组</span><span class="group-subtitle">迁移</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">4</span><span class="dim-title">应用场景</span><span class="dim-question">它能做什么？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <ul class="example-list">
+          <li><strong>安全带</strong>——急刹车时人保持原速前进（惯性），安全带提供外力让人减速。</li>
+          <li><strong>卫星运动</strong>——太空中几乎无摩擦，卫星保持匀速运动（被引力弯曲为圆轨道）。</li>
+        </ul>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">5</span><span class="dim-title">思维延伸</span><span class="dim-question">它还能怎样？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p>牛顿第一定律在高速（接近光速）和微观（量子尺度）下不再适用，需要相对论和量子力学修正。但日常世界中，它仍然是运动分析的基础。</p>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">6</span><span class="dim-title">知识网络</span><span class="dim-question">它和什么关联？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p><strong>前导知识</strong>：<a href="惯性定律.html" class="map-node linked">惯性定律</a>——第一定律又叫惯性定律；<a href="质量.html" class="map-node linked">质量</a>——质量是惯性大小的量度。</p>
+        <p><strong>后续知识</strong>：牛顿第二定律（F=ma）、牛顿第三定律（作用力与反作用力）。</p>
+      </div>
+    </div>
+  </div>
+  <!-- 验证组 -->
+  <div class="group">
+    <div class="group-header"><div class="group-icon">验</div><span class="group-title">验证组</span><span class="group-subtitle">确认</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">7</span><span class="dim-title">验证理解</span><span class="dim-question">真的懂了吗？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <div class="quiz-container">
+          <div class="quiz-item">
+            <div class="quiz-type">本质理解</div>
+            <div class="quiz-question">牛顿第一定律能通过实验直接验证吗？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">能，用气垫导轨就可以</li>
+              <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">不能，因为不存在完全不受力的环境，只能通过推理得出</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">能，太空中的实验可以验证</li>
+            </ul>
+            <div class="quiz-explanation">气垫导轨只是"近似"无摩擦，太空中也有微弱引力。牛顿第一定律是理想化推理的结果——伽利略的斜面实验就是通过"摩擦越小→滑得越远"的趋势推理出"无摩擦→永远运动"。它是逻辑推论，不是实验验证。</div>
+          </div>
+          <div class="quiz-item">
+            <div class="quiz-type">概念辨析</div>
+            <div class="quiz-question">"力是维持运动的原因"和"力是改变运动的原因"，哪个对？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">第一个对，没有力物体就停了</li>
+              <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">第二个对，物体本来就会保持运动，力只是改变它</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">两个都对，看具体情况</li>
+            </ul>
+            <div class="quiz-explanation">牛顿第一定律的核心：运动不需要原因，改变运动才需要原因。物体"不推就停"是因为摩擦力在改变它的运动。如果没有摩擦，物体不需要任何力就能永远运动。</div>
+          </div>
+          <div class="quiz-item">
+            <div class="quiz-type">迁移应用</div>
+            <div class="quiz-question">宇航员在空间站中推一下物体，物体会怎样？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">很快停下来，因为没有力维持</li>
+              <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">以恒定速度直线运动，直到碰到舱壁（微重力下近似无摩擦）</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">加速运动，因为太空中没有阻力</li>
+            </ul>
+            <div class="quiz-explanation">空间站中近似失重、近似无摩擦，推一下物体后，物体按牛顿第一定律保持匀速直线运动，直到碰到舱壁（外力）才改变运动状态。这就是第一定律在太空中的直观体现。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section"><div class="map-section-title">前导知识</div><div class="map-nodes"><a href="惯性定律.html" class="map-node linked">惯性定律</a><a href="质量.html" class="map-node linked">质量</a></div></div>
+    <div class="map-section"><div class="map-nodes"><span class="map-arrow">→</span><span class="map-node current">牛顿第一定律</span><span class="map-arrow">→</span></div></div>
+    <div class="map-section"><div class="map-section-title">后续延伸</div><div class="map-nodes"><span class="map-node pending">牛顿第二定律</span><span class="map-node pending">牛顿第三定律</span></div></div>
+  </div>
+</div>
+<div class="footer">知本 KnowledgeRoot — 知识本质拆解系统</div>
+<script>
+function toggleDimension(h){const b=h.nextElementSibling;const t=h.querySelector('.dim-toggle');b.classList.toggle('collapsed');t.classList.toggle('collapsed');}
+function checkAnswer(el,correct,expl){const p=el.parentElement;const opts=p.querySelectorAll('li');opts.forEach(o=>{o.style.pointerEvents='none';});if(correct){el.classList.add('correct');}else{el.classList.add('wrong');opts.forEach(o=>{if(o.dataset.correct==='true')o.classList.add('correct');});}if(expl)expl.classList.add('visible');}
+</script>
+</body>
+</html>
