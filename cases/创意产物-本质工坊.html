@@ -157,10 +157,10 @@
         .layer h3 { margin-bottom: 0.5rem; }
         .layer p { color: var(--text-muted); font-size: 0.9rem; }
 
-        /* 案例展示 - 2x2网格 */
+        /* 案例展示 - 自适应网格 */
         .case-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 2rem;
         }
         .case-card {
@@ -359,7 +359,7 @@
         <div class="stat"><div class="stat-num">7</div><div class="stat-label">独立场景</div></div>
         <div class="stat"><div class="stat-num">6</div><div class="stat-label">输出管线</div></div>
         <div class="stat"><div class="stat-num">11</div><div class="stat-label">已蒸馏Skill</div></div>
-        <div class="stat"><div class="stat-num">4</div><div class="stat-label">验证案例</div></div>
+        <div class="stat"><div class="stat-num">5</div><div class="stat-label">验证案例</div></div>
     </div>
 </div>
 
@@ -493,7 +493,7 @@
 
 <!-- 四个验证案例 -->
 <section>
-    <div class="section-title">四个真实验证案例</div>
+    <div class="section-title">五个真实验证案例</div>
     <div class="section-sub">不是概念，是已经跑通的生产力验证</div>
     <div class="case-container">
         <!-- 案例1：PI-Agent -->
@@ -620,6 +620,34 @@
                 <div class="metric"><div class="metric-val">0摩擦</div><div class="metric-label">知识入库</div></div>
             </div>
             <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/github-to-obsidian.md" target="_blank">📄 在GitHub查看完整案例 →</a>
+        </div>
+
+        <!-- 案例5：K12知识图谱 -->
+        <div class="case-card">
+            <h3>案例5：知本 —— K12知识拆解与知识图谱</h3>
+            <div class="case-tag">场景A2 · 知识拆解</div>
+            <div class="case-desc">用七维框架拆解K12知识点，自动生成交互式HTML + 全科知识图谱。150+知识点覆盖小学到高中，让知识之间的隐含关联显性化。</div>
+            <img class="case-img" src="images/knowledge-graph.png" alt="知识图谱总览"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="case-visual" style="display:none">
+                <div style="text-align:center;margin-bottom:0.4rem;font-size:0.75rem;color:var(--text-muted)">七维拆解 × 知识图谱</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;font-size:0.65rem;margin-bottom:0.6rem">
+                    <div style="padding:0.3rem 0.5rem;background:rgba(108,92,231,0.1);border-radius:4px;text-align:center">定义锚点</div>
+                    <div style="padding:0.3rem 0.5rem;background:rgba(108,92,231,0.1);border-radius:4px;text-align:center">历史溯源</div>
+                    <div style="padding:0.3rem 0.5rem;background:rgba(0,206,201,0.1);border-radius:4px;text-align:center">现实矛盾</div>
+                    <div style="padding:0.3rem 0.5rem;background:rgba(0,206,201,0.1);border-radius:4px;text-align:center">应用场景</div>
+                    <div style="padding:0.3rem 0.5rem;background:rgba(253,121,168,0.1);border-radius:4px;text-align:center">知识网络</div>
+                    <div style="padding:0.3rem 0.5rem;background:rgba(253,121,168,0.1);border-radius:4px;text-align:center">思维延伸</div>
+                </div>
+                <div style="text-align:center;font-size:0.6rem;color:var(--text-muted)">小学 → 初中 → 高中 · 全科关联图谱</div>
+            </div>
+            <div class="case-metrics">
+                <div class="metric"><div class="metric-val">150+</div><div class="metric-label">知识点HTML</div></div>
+                <div class="metric"><div class="metric-val">3学段</div><div class="metric-label">小初高覆盖</div></div>
+                <div class="metric"><div class="metric-val">7维</div><div class="metric-label">拆解框架</div></div>
+                <div class="metric"><div class="metric-val">5科</div><div class="metric-label">学科覆盖</div></div>
+            </div>
+            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/k12-knowledge-graph.md" target="_blank">📄 在GitHub查看完整案例 →</a>
         </div>
     </div>
 </section>
