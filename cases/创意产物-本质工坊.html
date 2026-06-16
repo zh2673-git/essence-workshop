@@ -157,72 +157,96 @@
         .layer h3 { margin-bottom: 0.5rem; }
         .layer p { color: var(--text-muted); font-size: 0.9rem; }
 
-        /* 案例展示 - 自适应网格 */
+        /* 案例展示 - 3+2紧凑网格 */
         .case-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.2rem;
         }
         .case-card {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.8rem;
+            border-radius: 14px;
+            padding: 1.4rem;
             display: flex;
             flex-direction: column;
+            transition: border-color 0.3s, transform 0.3s;
         }
+        .case-card:hover { border-color: var(--primary); transform: translateY(-2px); }
         .case-card h3 {
-            font-size: 1.15rem;
-            margin-bottom: 0.8rem;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
             color: var(--accent);
         }
         .case-card .case-tag {
             display: inline-block;
-            padding: 0.2rem 0.8rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            margin-bottom: 0.8rem;
+            padding: 0.15rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-bottom: 0.5rem;
             background: rgba(0,206,201,0.15);
             color: var(--accent);
         }
         .case-card .case-desc {
-            font-size: 0.9rem;
+            font-size: 0.82rem;
             color: var(--text-muted);
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem;
             flex: 1;
+            line-height: 1.5;
         }
         .case-img {
             width: 100%;
-            border-radius: 10px;
-            margin-bottom: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.8rem;
             border: 1px solid var(--border);
             background: rgba(0,0,0,0.3);
+            max-height: 160px;
+            object-fit: cover;
         }
         .case-visual {
             width: 100%;
-            border-radius: 10px;
-            margin-bottom: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.8rem;
             border: 1px solid var(--border);
             background: rgba(0,0,0,0.3);
-            padding: 1.2rem;
-            min-height: 140px;
+            padding: 0.8rem;
+            min-height: 80px;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
         .case-metrics {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.8rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.4rem;
         }
         .metric {
             text-align: center;
-            padding: 0.6rem;
+            padding: 0.4rem 0.2rem;
             background: rgba(255,255,255,0.03);
-            border-radius: 8px;
+            border-radius: 6px;
         }
-        .metric-val { font-size: 1.3rem; font-weight: 700; color: var(--primary-light); }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--primary-light); }
+        .metric-label { font-size: 0.65rem; color: var(--text-muted); }
+
+        /* 案例GitHub链接 */
+        .case-github {
+            display: inline-block; margin-top: 0.6rem;
+            font-size: 0.7rem; color: var(--primary-light);
+            text-decoration: none; opacity: 0.7; transition: opacity 0.2s;
+        }
+        .case-github:hover { opacity: 1; }
+
+        /* 底部2卡片居中 */
+        .case-row-bottom {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+            margin-top: 1.2rem;
+            max-width: 66.666%;
+            margin-left: auto;
+            margin-right: auto;
+        }
 
         /* Ratchet Loop 可视化 */
         .ratchet-visual {
@@ -343,6 +367,7 @@
 
         @media (max-width: 768px) {
             .case-container { grid-template-columns: 1fr; }
+            .case-row-bottom { grid-template-columns: 1fr; max-width: 100%; }
             .hero-stats { gap: 1.5rem; }
         }
     </style>
@@ -491,34 +516,33 @@
     </div>
 </section>
 
-<!-- 四个验证案例 -->
+<!-- 五个验证案例 -->
 <section>
     <div class="section-title">五个真实验证案例</div>
     <div class="section-sub">不是概念，是已经跑通的生产力验证</div>
+    <!-- 上排3个 -->
     <div class="case-container">
         <!-- 案例1：PI-Agent -->
         <div class="case-card">
-            <h3>案例1：PI-Agent从0到1迭代开发</h3>
+            <h3>案例1：PI-Agent迭代开发</h3>
             <div class="case-tag">场景C2 · 迭代开发</div>
-            <div class="case-desc">用本质工坊的Ratchet Loop，从零构建基于PI极简架构的本地小模型编码Agent。6轮迭代，0次回退，验证"增强型极简"策略。</div>
+            <div class="case-desc">用Ratchet Loop从零构建本地小模型编码Agent。6轮迭代，0次回退，4b模型3.5倍性能提升。</div>
             <img class="case-img" src="images/pi-agent-iteration-chart.jpg" alt="PI-Agent迭代进度图"
                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
             <div class="case-visual" style="display:none">
-                <div style="text-align:center;margin-bottom:0.4rem;font-size:0.75rem;color:var(--text-muted)">Ratchet Loop 迭代进度</div>
                 <div class="ratchet-visual">
-                    <div class="ratchet-step"><div class="ratchet-circle pass">R1</div><div class="ratchet-label">最小Loop</div></div>
+                    <div class="ratchet-step"><div class="ratchet-circle pass">R1</div></div>
                     <div class="ratchet-connector">→</div>
-                    <div class="ratchet-step"><div class="ratchet-circle pass">R2</div><div class="ratchet-label">工具调用</div></div>
+                    <div class="ratchet-step"><div class="ratchet-circle pass">R2</div></div>
                     <div class="ratchet-connector">→</div>
-                    <div class="ratchet-step"><div class="ratchet-circle pass">R3</div><div class="ratchet-label">多工具</div></div>
+                    <div class="ratchet-step"><div class="ratchet-circle pass">R3</div></div>
                     <div class="ratchet-connector">→</div>
-                    <div class="ratchet-step"><div class="ratchet-circle pass">R4</div><div class="ratchet-label">格式增强</div></div>
+                    <div class="ratchet-step"><div class="ratchet-circle pass">R4</div></div>
                     <div class="ratchet-connector">→</div>
-                    <div class="ratchet-step"><div class="ratchet-circle pass">R5</div><div class="ratchet-label">Guardrail</div></div>
+                    <div class="ratchet-step"><div class="ratchet-circle pass">R5</div></div>
                     <div class="ratchet-connector">→</div>
-                    <div class="ratchet-step"><div class="ratchet-circle pass">R6</div><div class="ratchet-label">完整Agent</div></div>
+                    <div class="ratchet-step"><div class="ratchet-circle pass">R6</div></div>
                 </div>
-                <div style="text-align:center;margin-top:0.5rem;font-size:0.65rem;color:var(--accent)">✅ 全部通过 · 0次回退</div>
             </div>
             <div class="case-metrics">
                 <div class="metric"><div class="metric-val">6</div><div class="metric-label">迭代轮次</div></div>
@@ -526,128 +550,101 @@
                 <div class="metric"><div class="metric-val">3.5x</div><div class="metric-label">性能提升</div></div>
                 <div class="metric"><div class="metric-val">27/27</div><div class="metric-label">测试通过</div></div>
             </div>
-            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/pi-agent-iteration.md" target="_blank">📄 在GitHub查看完整案例 →</a>
+            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/pi-agent-iteration.md" target="_blank">📄 查看完整案例 →</a>
         </div>
 
         <!-- 案例2：公众号 -->
         <div class="case-card">
-            <h3>案例2：公众号zh2673自动化运营</h3>
+            <h3>案例2：公众号自动化运营</h3>
             <div class="case-tag">场景E + B2 · 内容输出+蒸馏</div>
-            <div class="case-desc">用本质工坊主理公众号，实现选题→生成文章→配图→推送→检查全自动化。一个月内出现爆款，涨粉近600。</div>
+            <div class="case-desc">选题→生成文章→配图→推送→检查全自动化。一个月内出现爆款，单篇2w+阅读，涨粉近600。</div>
             <img class="case-img" src="images/wechat-viral-article.jpg" alt="公众号爆款文章"
                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
             <div class="case-visual" style="display:none">
-                <div style="text-align:center;margin-bottom:0.4rem;font-size:0.75rem;color:var(--text-muted)">爆款效应</div>
-                <div style="display:flex;gap:1.5rem;align-items:flex-end;justify-content:center;height:80px">
-                    <div style="text-align:center"><div style="color:var(--accent2);font-weight:700;font-size:0.8rem">2w+</div><div style="width:40px;height:60px;background:linear-gradient(180deg,var(--accent2),rgba(253,121,168,0.3));border-radius:4px 4px 0 0"></div><div style="font-size:0.6rem;color:var(--text-muted)">爆款文</div></div>
-                    <div style="text-align:center"><div style="color:var(--primary-light);font-weight:700;font-size:0.8rem">6k+</div><div style="width:40px;height:30px;background:linear-gradient(180deg,var(--primary-light),rgba(162,155,254,0.3));border-radius:4px 4px 0 0"></div><div style="font-size:0.6rem;color:var(--text-muted)">次爆款</div></div>
-                    <div style="text-align:center"><div style="color:var(--accent);font-weight:700;font-size:0.8rem">+600</div><div style="width:40px;height:20px;background:linear-gradient(180deg,var(--accent),rgba(0,206,201,0.3));border-radius:4px 4px 0 0"></div><div style="font-size:0.6rem;color:var(--text-muted)">涨粉</div></div>
+                <div style="display:flex;gap:1rem;align-items:flex-end;justify-content:center;height:60px">
+                    <div style="text-align:center"><div style="color:var(--accent2);font-weight:700;font-size:0.75rem">2w+</div><div style="width:30px;height:45px;background:linear-gradient(180deg,var(--accent2),rgba(253,121,168,0.3));border-radius:3px 3px 0 0"></div></div>
+                    <div style="text-align:center"><div style="color:var(--primary-light);font-weight:700;font-size:0.75rem">6k+</div><div style="width:30px;height:22px;background:linear-gradient(180deg,var(--primary-light),rgba(162,155,254,0.3));border-radius:3px 3px 0 0"></div></div>
+                    <div style="text-align:center"><div style="color:var(--accent);font-weight:700;font-size:0.75rem">+600</div><div style="width:30px;height:15px;background:linear-gradient(180deg,var(--accent),rgba(0,206,201,0.3));border-radius:3px 3px 0 0"></div></div>
                 </div>
             </div>
             <div class="case-metrics">
-                <div class="metric"><div class="metric-val">1个月</div><div class="metric-label">运营周期</div></div>
                 <div class="metric"><div class="metric-val">全自动</div><div class="metric-label">内容生产</div></div>
-                <div class="metric"><div class="metric-val">2w+</div><div class="metric-label">单篇最高阅读</div></div>
-                <div class="metric"><div class="metric-val">+600</div><div class="metric-label">涨粉(含长尾)</div></div>
+                <div class="metric"><div class="metric-val">2w+</div><div class="metric-label">单篇最高</div></div>
+                <div class="metric"><div class="metric-val">+600</div><div class="metric-label">涨粉</div></div>
+                <div class="metric"><div class="metric-val">1月</div><div class="metric-label">运营周期</div></div>
             </div>
-            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/wechat-zh2673.md" target="_blank">📄 在GitHub查看完整案例 →</a>
+            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/wechat-zh2673.md" target="_blank">📄 查看完整案例 →</a>
         </div>
 
         <!-- 案例3：DataDone-RE -->
         <div class="case-card">
-            <h3>案例3：DataDone-RE 本质探索驱动重构</h3>
+            <h3>案例3：DataDone-RE本质驱动重构</h3>
             <div class="case-tag">场景C · 本质探索驱动</div>
-            <div class="case-desc">用本质探索方法论，从纯逻辑推理推导出六层递进分析引擎，完成多源数据分析系统全面重构。旧版133KB单文件拆解为四层架构。</div>
+            <div class="case-desc">从纯逻辑推理推导出六层递进分析引擎。旧版133KB单文件拆解为四层架构，11表Excel工作表。</div>
             <div class="case-visual">
-                <div style="text-align:center;margin-bottom:0.4rem;font-size:0.75rem;color:var(--text-muted)">六层递进分析逻辑</div>
                 <div class="datadone-layers">
-                    <div class="dd-layer">L1 自我画像 — 数据全景扫描</div>
-                    <div class="dd-arrow">↓ 没有外部参照</div>
-                    <div class="dd-layer">L2 自我基线 — 历史行为参照系</div>
-                    <div class="dd-arrow">↓ 有了基线才能判定异常</div>
-                    <div class="dd-layer">L3 异常识别 — σ偏离度检测</div>
-                    <div class="dd-arrow">↓ 异常组合指向特定模式</div>
-                    <div class="dd-layer">L4 行为模式 — 周期性/中转/规避</div>
-                    <div class="dd-arrow">↓ 多源交叉验证构建因果</div>
-                    <div class="dd-layer">L5 时序因果链 — 通话→资金关联</div>
-                    <div class="dd-arrow">↓ 决策者需快速判断</div>
-                    <div class="dd-layer">L6 风险研判 — 四维评分+调查建议</div>
+                    <div class="dd-layer">L1 自我画像 → L2 自我基线 → L3 异常识别</div>
+                    <div class="dd-layer">L4 行为模式 → L5 时序因果链 → L6 风险研判</div>
                 </div>
             </div>
             <div class="case-metrics">
-                <div class="metric"><div class="metric-val">4源</div><div class="metric-label">银行/微信/支付宝/话单</div></div>
-                <div class="metric"><div class="metric-val">6层</div><div class="metric-label">递进分析引擎</div></div>
+                <div class="metric"><div class="metric-val">4源</div><div class="metric-label">数据源</div></div>
+                <div class="metric"><div class="metric-val">6层</div><div class="metric-label">递进引擎</div></div>
                 <div class="metric"><div class="metric-val">11表</div><div class="metric-label">Excel工作表</div></div>
                 <div class="metric"><div class="metric-val">4层</div><div class="metric-label">架构重构</div></div>
             </div>
-            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/datadone-re.md" target="_blank">📄 在GitHub查看完整案例 →</a>
+            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/datadone-re.md" target="_blank">📄 查看完整案例 →</a>
         </div>
-
+    </div>
+    <!-- 下排2个居中 -->
+    <div class="case-row-bottom">
         <!-- 案例4：GitHub→Obsidian -->
         <div class="case-card">
-            <h3>案例4：GitHub项目解析 → Obsidian笔记</h3>
+            <h3>案例4：GitHub项目→Obsidian笔记</h3>
             <div class="case-tag">场景D + E · 项目解析+笔记输出</div>
-            <div class="case-desc">解析任意GitHub项目，自动生成结构化Obsidian笔记。双向链接+标签体系，让项目知识可检索、可关联、可复用。</div>
+            <div class="case-desc">解析任意GitHub项目，自动生成结构化Obsidian笔记。双向链接+标签体系，知识可检索、可关联、可复用。</div>
             <div class="case-visual">
-                <div style="text-align:center;margin-bottom:0.4rem;font-size:0.75rem;color:var(--text-muted)">解析工作流</div>
                 <div class="gh-obsidian-flow">
-                    <div class="gh-step s1">
-                        <div class="gh-step-icon">📂</div>
-                        <div class="gh-step-label">GitHub项目</div>
-                    </div>
+                    <div class="gh-step s1"><div class="gh-step-icon">📂</div><div class="gh-step-label">GitHub项目</div></div>
                     <div class="gh-arrow">→</div>
-                    <div class="gh-step s2">
-                        <div class="gh-step-icon">🔬</div>
-                        <div class="gh-step-label">场景D逆向分析</div>
-                    </div>
+                    <div class="gh-step s2"><div class="gh-step-icon">🔬</div><div class="gh-step-label">场景D逆向分析</div></div>
                     <div class="gh-arrow">→</div>
-                    <div class="gh-step s3">
-                        <div class="gh-step-icon">📝</div>
-                        <div class="gh-step-label">Obsidian笔记</div>
-                    </div>
-                </div>
-                <div style="margin-top:0.8rem;display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;font-size:0.65rem">
-                    <div style="padding:0.3rem 0.5rem;background:rgba(108,92,231,0.1);border-radius:4px;text-align:center">概览.md</div>
-                    <div style="padding:0.3rem 0.5rem;background:rgba(108,92,231,0.1);border-radius:4px;text-align:center">架构决策.md</div>
-                    <div style="padding:0.3rem 0.5rem;background:rgba(0,206,201,0.1);border-radius:4px;text-align:center">模块详解.md</div>
-                    <div style="padding:0.3rem 0.5rem;background:rgba(0,206,201,0.1);border-radius:4px;text-align:center">关键洞察.md</div>
+                    <div class="gh-step s3"><div class="gh-step-icon">📝</div><div class="gh-step-label">Obsidian笔记</div></div>
                 </div>
             </div>
             <div class="case-metrics">
                 <div class="metric"><div class="metric-val">任意</div><div class="metric-label">GitHub项目</div></div>
                 <div class="metric"><div class="metric-val">双向</div><div class="metric-label">链接关联</div></div>
-                <div class="metric"><div class="metric-val">10x</div><div class="metric-label">解析效率提升</div></div>
+                <div class="metric"><div class="metric-val">10x</div><div class="metric-label">效率提升</div></div>
                 <div class="metric"><div class="metric-val">0摩擦</div><div class="metric-label">知识入库</div></div>
             </div>
-            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/github-to-obsidian.md" target="_blank">📄 在GitHub查看完整案例 →</a>
+            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/github-to-obsidian.md" target="_blank">📄 查看完整案例 →</a>
         </div>
 
         <!-- 案例5：K12知识图谱 -->
         <div class="case-card">
-            <h3>案例5：知本 —— K12知识拆解与知识图谱</h3>
+            <h3>案例5：知本——K12知识拆解与图谱</h3>
             <div class="case-tag">场景A2 · 知识拆解</div>
-            <div class="case-desc">用七维框架拆解K12知识点，自动生成交互式HTML + 全科知识图谱。150+知识点覆盖小学到高中，让知识之间的隐含关联显性化。</div>
+            <div class="case-desc">七维框架拆解K12知识点，自动生成交互式HTML+全科知识图谱。150+知识点覆盖小初高5学科。</div>
             <img class="case-img" src="images/knowledge-graph.png" alt="知识图谱总览"
                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
             <div class="case-visual" style="display:none">
-                <div style="text-align:center;margin-bottom:0.4rem;font-size:0.75rem;color:var(--text-muted)">七维拆解 × 知识图谱</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;font-size:0.65rem;margin-bottom:0.6rem">
-                    <div style="padding:0.3rem 0.5rem;background:rgba(108,92,231,0.1);border-radius:4px;text-align:center">定义锚点</div>
-                    <div style="padding:0.3rem 0.5rem;background:rgba(108,92,231,0.1);border-radius:4px;text-align:center">历史溯源</div>
-                    <div style="padding:0.3rem 0.5rem;background:rgba(0,206,201,0.1);border-radius:4px;text-align:center">现实矛盾</div>
-                    <div style="padding:0.3rem 0.5rem;background:rgba(0,206,201,0.1);border-radius:4px;text-align:center">应用场景</div>
-                    <div style="padding:0.3rem 0.5rem;background:rgba(253,121,168,0.1);border-radius:4px;text-align:center">知识网络</div>
-                    <div style="padding:0.3rem 0.5rem;background:rgba(253,121,168,0.1);border-radius:4px;text-align:center">思维延伸</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.3rem;font-size:0.6rem">
+                    <div style="padding:0.2rem 0.4rem;background:rgba(108,92,231,0.1);border-radius:3px;text-align:center">定义锚点</div>
+                    <div style="padding:0.2rem 0.4rem;background:rgba(108,92,231,0.1);border-radius:3px;text-align:center">历史溯源</div>
+                    <div style="padding:0.2rem 0.4rem;background:rgba(0,206,201,0.1);border-radius:3px;text-align:center">现实矛盾</div>
+                    <div style="padding:0.2rem 0.4rem;background:rgba(0,206,201,0.1);border-radius:3px;text-align:center">应用场景</div>
+                    <div style="padding:0.2rem 0.4rem;background:rgba(253,121,168,0.1);border-radius:3px;text-align:center">知识网络</div>
+                    <div style="padding:0.2rem 0.4rem;background:rgba(253,121,168,0.1);border-radius:3px;text-align:center">思维延伸</div>
                 </div>
-                <div style="text-align:center;font-size:0.6rem;color:var(--text-muted)">小学 → 初中 → 高中 · 全科关联图谱</div>
             </div>
             <div class="case-metrics">
                 <div class="metric"><div class="metric-val">150+</div><div class="metric-label">知识点HTML</div></div>
-                <div class="metric"><div class="metric-val">3学段</div><div class="metric-label">小初高覆盖</div></div>
+                <div class="metric"><div class="metric-val">3学段</div><div class="metric-label">小初高</div></div>
                 <div class="metric"><div class="metric-val">7维</div><div class="metric-label">拆解框架</div></div>
                 <div class="metric"><div class="metric-val">5科</div><div class="metric-label">学科覆盖</div></div>
             </div>
-            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/k12-knowledge-graph.md" target="_blank">📄 在GitHub查看完整案例 →</a>
+            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/k12-knowledge-graph.md" target="_blank">📄 查看完整案例 →</a>
         </div>
     </div>
 </section>
