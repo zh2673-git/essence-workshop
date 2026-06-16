@@ -1,33 +1,4 @@
 {
-  "meta": {
-    "version": "2.0",
-    "updated_at": "2026-06-14",
-    "jiangsu_k12_math": {
-      "textbooks": {
-        "小学": "苏教版（江苏凤凰教育出版社）",
-        "初中": "苏科版（江苏科学技术出版社）",
-        "高中": "人教A版（人民教育出版社，2019版）"
-      },
-      "domains": {
-        "数与代数": {
-          "color": "#4fc3f7",
-          "description": "数的认识、运算、方程、函数、不等式"
-        },
-        "图形与几何": {
-          "color": "#26c6da",
-          "description": "图形认识、测量、变换、坐标、几何证明"
-        },
-        "统计与概率": {
-          "color": "#ffca28",
-          "description": "数据收集整理、统计图表、概率"
-        },
-        "综合与实践": {
-          "color": "#81c784",
-          "description": "跨学科综合应用、数学活动"
-        }
-      }
-    }
-  },
   "nodes": {
     "负数": {
       "id": "negative-number",
@@ -59,17 +30,6 @@
       "grade": 8,
       "paradigm_family": "formal_science",
       "html_file": "output/初中/物理/惯性.html",
-      "generated_at": "2026-06-11",
-      "domain": "数与代数"
-    },
-    "一般现在时": {
-      "id": "simple-present-tense",
-      "name": "一般现在时",
-      "subject": "english",
-      "phase": "初中",
-      "grade": 7,
-      "paradigm_family": "humanities",
-      "html_file": "output/初中/英语/一般现在时.html",
       "generated_at": "2026-06-11",
       "domain": "数与代数"
     },
@@ -327,39 +287,6 @@
       "grade": 8,
       "paradigm_family": "formal_science",
       "html_file": "output/初中/物理/空气动力学.html",
-      "generated_at": "2026-06-11",
-      "domain": "数与代数"
-    },
-    "现在进行时": {
-      "id": "present-continuous-tense",
-      "name": "现在进行时",
-      "subject": "english",
-      "phase": "初中",
-      "grade": 7,
-      "paradigm_family": "humanities",
-      "html_file": "output/初中/英语/现在进行时.html",
-      "generated_at": "2026-06-11",
-      "domain": "数与代数"
-    },
-    "一般过去时": {
-      "id": "simple-past-tense",
-      "name": "一般过去时",
-      "subject": "english",
-      "phase": "初中",
-      "grade": 7,
-      "paradigm_family": "humanities",
-      "html_file": "output/初中/英语/一般过去时.html",
-      "generated_at": "2026-06-11",
-      "domain": "数与代数"
-    },
-    "频率副词": {
-      "id": "adverbs-of-frequency",
-      "name": "频率副词",
-      "subject": "english",
-      "phase": "初中",
-      "grade": 7,
-      "paradigm_family": "humanities",
-      "html_file": "output/初中/英语/频率副词.html",
       "generated_at": "2026-06-11",
       "domain": "数与代数"
     },
@@ -1895,6 +1822,1014 @@
       "domain": "统计与概率",
       "html_file": "output/高中/统计与概率/成对数据统计分析.html",
       "generated_at": "2026-06-14"
+    },
+    "问候与自我介绍": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 3,
+      "domain": "功能意念",
+      "book": "3A",
+      "unit": "U1-U2",
+      "html_file": "小学/英语/问候与自我介绍.html"
+    },
+    "字母与发音": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 3,
+      "domain": "语音知识",
+      "book": "3A",
+      "unit": "U1-U8",
+      "html_file": "小学/英语/字母与发音.html"
+    },
+    "家庭成员词汇": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 3,
+      "domain": "词汇体系",
+      "book": "3A",
+      "unit": "U4",
+      "html_file": "小学/英语/家庭成员词汇.html"
+    },
+    "颜色词汇": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 3,
+      "domain": "词汇体系",
+      "book": "3A",
+      "unit": "U6",
+      "html_file": "小学/英语/颜色词汇.html"
+    },
+    "食物词汇": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 3,
+      "domain": "词汇体系",
+      "book": "3A",
+      "unit": "U7",
+      "html_file": "小学/英语/食物词汇.html"
+    },
+    "祈使句": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 3,
+      "domain": "语法体系",
+      "book": "3B",
+      "unit": "U1-U2",
+      "html_file": "小学/英语/祈使句.html"
+    },
+    "方位介词": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 3,
+      "domain": "语法体系",
+      "book": "3B",
+      "unit": "U4",
+      "html_file": "小学/英语/方位介词.html"
+    },
+    "数字1-20": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 3,
+      "domain": "词汇体系",
+      "book": "3B",
+      "unit": "U5-U6",
+      "html_file": "小学/英语/数字1-20.html"
+    },
+    "动物词汇": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 3,
+      "domain": "词汇体系",
+      "book": "3B",
+      "unit": "U7",
+      "html_file": "小学/英语/动物词汇.html"
+    },
+    "人称代词": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 3,
+      "domain": "语法体系",
+      "book": "3A-3B",
+      "unit": "U3-U8",
+      "html_file": "小学/英语/人称代词.html"
+    },
+    "be动词": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 4,
+      "domain": "语法体系",
+      "book": "4A",
+      "unit": "U1",
+      "html_file": "小学/英语/be动词.html"
+    },
+    "名词": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 4,
+      "domain": "语法体系",
+      "book": "4A",
+      "unit": "U1-U2",
+      "html_file": "小学/英语/名词.html"
+    },
+    "形容词": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 4,
+      "domain": "语法体系",
+      "book": "4A",
+      "unit": "U1",
+      "html_file": "小学/英语/形容词.html"
+    },
+    "介词": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 4,
+      "domain": "语法体系",
+      "book": "4A",
+      "unit": "U3-U4",
+      "html_file": "小学/英语/介词.html"
+    },
+    "一般现在时": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 4,
+      "domain": "语法体系",
+      "book": "4A",
+      "unit": "U1-U4",
+      "html_file": "小学/英语/一般现在时.html"
+    },
+    "可数名词与不可数名词": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 4,
+      "domain": "语法体系",
+      "book": "4B",
+      "unit": "U2",
+      "html_file": "小学/英语/可数名词与不可数名词.html"
+    },
+    "some与any": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 4,
+      "domain": "语法体系",
+      "book": "4B",
+      "unit": "U2",
+      "html_file": "小学/英语/some与any.html"
+    },
+    "特殊疑问句": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 4,
+      "domain": "语法体系",
+      "book": "4B",
+      "unit": "U3-U4",
+      "html_file": "小学/英语/特殊疑问句.html"
+    },
+    "时间介词": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 4,
+      "domain": "语法体系",
+      "book": "4B",
+      "unit": "U5-U6",
+      "html_file": "小学/英语/时间介词.html"
+    },
+    "频度副词": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 4,
+      "domain": "语法体系",
+      "book": "4B",
+      "unit": "U5",
+      "html_file": "小学/英语/频度副词.html"
+    },
+    "现在进行时": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 5,
+      "domain": "语法体系",
+      "book": "5A",
+      "unit": "U2-U3",
+      "html_file": "小学/英语/现在进行时.html"
+    },
+    "there be结构": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 5,
+      "domain": "语法体系",
+      "book": "5A",
+      "unit": "U1",
+      "html_file": "小学/英语/there be结构.html"
+    },
+    "一般过去时": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 5,
+      "domain": "语法体系",
+      "book": "5A",
+      "unit": "U5-U6",
+      "html_file": "小学/英语/一般过去时.html"
+    },
+    "物主代词": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 5,
+      "domain": "语法体系",
+      "book": "5A",
+      "unit": "U4",
+      "html_file": "小学/英语/物主代词.html"
+    },
+    "自然拼读": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 5,
+      "domain": "语音知识",
+      "book": "5A",
+      "unit": "U1-U8",
+      "html_file": "小学/英语/自然拼读.html"
+    },
+    "一般将来时": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 5,
+      "domain": "语法体系",
+      "book": "5B",
+      "unit": "U5-U6",
+      "html_file": "小学/英语/一般将来时.html"
+    },
+    "情态动词": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 5,
+      "domain": "语法体系",
+      "book": "5B",
+      "unit": "U2-U3",
+      "html_file": "小学/英语/情态动词.html"
+    },
+    "名词所有格": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 5,
+      "domain": "语法体系",
+      "book": "5B",
+      "unit": "U1",
+      "html_file": "小学/英语/名词所有格.html"
+    },
+    "序数词": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 5,
+      "domain": "词汇体系",
+      "book": "5B",
+      "unit": "U3-U4",
+      "html_file": "小学/英语/序数词.html"
+    },
+    "if条件状语从句": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 5,
+      "domain": "语法体系",
+      "book": "5B",
+      "unit": "U5",
+      "html_file": "小学/英语/if条件状语从句.html"
+    },
+    "一般过去时深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7A",
+      "unit": "U8",
+      "html_file": "初中/英语/一般过去时深化.html"
+    },
+    "过去进行时": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 6,
+      "domain": "语法体系",
+      "book": "6A",
+      "unit": "U5",
+      "html_file": "小学/英语/过去进行时.html"
+    },
+    "感叹句": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 6,
+      "domain": "语法体系",
+      "book": "6A",
+      "unit": "U6",
+      "html_file": "小学/英语/感叹句.html"
+    },
+    "副词": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 6,
+      "domain": "语法体系",
+      "book": "6A",
+      "unit": "U3-U4",
+      "html_file": "小学/英语/副词.html"
+    },
+    "形容词比较级与最高级": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 6,
+      "domain": "语法体系",
+      "book": "6B",
+      "unit": "U1-U2",
+      "html_file": "小学/英语/形容词比较级与最高级.html"
+    },
+    "动词不定式初步": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 6,
+      "domain": "语法体系",
+      "book": "6B",
+      "unit": "U3",
+      "html_file": "小学/英语/动词不定式初步.html"
+    },
+    "构词法初步": {
+      "subject": "english",
+      "phase": "小学",
+      "grade": 6,
+      "domain": "词汇体系",
+      "book": "6B",
+      "unit": "U5-U6",
+      "html_file": "小学/英语/构词法初步.html"
+    },
+    "动词be的一般现在时": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7A",
+      "unit": "U1",
+      "html_file": "初中/英语/动词be的一般现在时.html"
+    },
+    "行为动词的一般现在时": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7A",
+      "unit": "U2",
+      "html_file": "初中/英语/行为动词的一般现在时.html"
+    },
+    "人称代词深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7A",
+      "unit": "U3",
+      "html_file": "初中/英语/人称代词深化.html"
+    },
+    "时间介词深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7A",
+      "unit": "U4",
+      "html_file": "初中/英语/时间介词深化.html"
+    },
+    "频度副词深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7A",
+      "unit": "U4",
+      "html_file": "初中/英语/频度副词深化.html"
+    },
+    "特殊疑问句深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7A",
+      "unit": "U5",
+      "html_file": "初中/英语/特殊疑问句深化.html"
+    },
+    "可数名词与不可数名词深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7A",
+      "unit": "U6",
+      "html_file": "初中/英语/可数名词与不可数名词深化.html"
+    },
+    "some与any深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7A",
+      "unit": "U6",
+      "html_file": "初中/英语/some与any深化.html"
+    },
+    "there be结构深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7A",
+      "unit": "U6",
+      "html_file": "初中/英语/there be结构深化.html"
+    },
+    "一般将来时深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7A",
+      "unit": "U7",
+      "html_file": "初中/英语/一般将来时深化.html"
+    },
+    "冠词": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7B",
+      "unit": "U1",
+      "html_file": "初中/英语/冠词.html"
+    },
+    "专有名词与并列连词": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7B",
+      "unit": "U2",
+      "html_file": "初中/英语/专有名词与并列连词.html"
+    },
+    "反身代词": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7B",
+      "unit": "U3",
+      "html_file": "初中/英语/反身代词.html"
+    },
+    "方位介词深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7B",
+      "unit": "U4",
+      "html_file": "初中/英语/方位介词深化.html"
+    },
+    "现在进行时深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7B",
+      "unit": "U5",
+      "html_file": "初中/英语/现在进行时深化.html"
+    },
+    "数词": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7B",
+      "unit": "U6",
+      "html_file": "初中/英语/数词.html"
+    },
+    "情态动词深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8A",
+      "unit": "U8",
+      "html_file": "初中/英语/情态动词深化.html"
+    },
+    "祈使句与感叹句": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7B",
+      "unit": "U8",
+      "html_file": "初中/英语/祈使句与感叹句.html"
+    },
+    "时间状语从句": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7B",
+      "unit": "U8",
+      "html_file": "初中/英语/时间状语从句.html"
+    },
+    "不定代词": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8A",
+      "unit": "U1",
+      "html_file": "初中/英语/不定代词.html"
+    },
+    "数词深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8A",
+      "unit": "U2",
+      "html_file": "初中/英语/数词深化.html"
+    },
+    "形容词比较级与最高级深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8A",
+      "unit": "U3",
+      "html_file": "初中/英语/形容词比较级与最高级深化.html"
+    },
+    "现在完成时": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8A",
+      "unit": "U5-U6",
+      "html_file": "初中/英语/现在完成时.html"
+    },
+    "现在完成时与一般过去时对比": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8A",
+      "unit": "U6",
+      "html_file": "初中/英语/现在完成时与一般过去时对比.html"
+    },
+    "条件状语从句": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8A",
+      "unit": "U7",
+      "html_file": "初中/英语/条件状语从句.html"
+    },
+    "动词不定式": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8B",
+      "unit": "U1",
+      "html_file": "初中/英语/动词不定式.html"
+    },
+    "动名词": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8B",
+      "unit": "U2",
+      "html_file": "初中/英语/动名词.html"
+    },
+    "被动语态": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8B",
+      "unit": "U3-U4",
+      "html_file": "初中/英语/被动语态.html"
+    },
+    "形容词句型": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8B",
+      "unit": "U5",
+      "html_file": "初中/英语/形容词句型.html"
+    },
+    "副词深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8B",
+      "unit": "U6",
+      "html_file": "初中/英语/副词深化.html"
+    },
+    "原因状语从句": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8B",
+      "unit": "U7",
+      "html_file": "初中/英语/原因状语从句.html"
+    },
+    "过去进行时深化": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8B",
+      "unit": "U8",
+      "html_file": "初中/英语/过去进行时深化.html"
+    },
+    "反意疑问句": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 9,
+      "domain": "语法体系",
+      "book": "9A",
+      "unit": "U1",
+      "html_file": "初中/英语/反意疑问句.html"
+    },
+    "系动词": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 9,
+      "domain": "语法体系",
+      "book": "9A",
+      "unit": "U2",
+      "html_file": "初中/英语/系动词.html"
+    },
+    "宾语从句": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 9,
+      "domain": "语法体系",
+      "book": "9A",
+      "unit": "U3",
+      "html_file": "初中/英语/宾语从句.html"
+    },
+    "句子成分与基本句型": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 9,
+      "domain": "语法体系",
+      "book": "9A",
+      "unit": "U4",
+      "html_file": "初中/英语/句子成分与基本句型.html"
+    },
+    "让步状语从句": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 9,
+      "domain": "语法体系",
+      "book": "9A",
+      "unit": "U5",
+      "html_file": "初中/英语/让步状语从句.html"
+    },
+    "定语从句": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 9,
+      "domain": "语法体系",
+      "book": "9A",
+      "unit": "U7",
+      "html_file": "初中/英语/定语从句.html"
+    },
+    "介词短语": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 9,
+      "domain": "语法体系",
+      "book": "9A",
+      "unit": "U8",
+      "html_file": "初中/英语/介词短语.html"
+    },
+    "结果状语从句": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 9,
+      "domain": "语法体系",
+      "book": "9B",
+      "unit": "U1",
+      "html_file": "初中/英语/结果状语从句.html"
+    },
+    "目的状语从句": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 9,
+      "domain": "语法体系",
+      "book": "9B",
+      "unit": "U2",
+      "html_file": "初中/英语/目的状语从句.html"
+    },
+    "it的用法": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 9,
+      "domain": "语法体系",
+      "book": "9B",
+      "unit": "U3",
+      "html_file": "初中/英语/it的用法.html"
+    },
+    "并列句": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 9,
+      "domain": "语法体系",
+      "book": "9B",
+      "unit": "U4",
+      "html_file": "初中/英语/并列句.html"
+    },
+    "简单句五种基本句型": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 10,
+      "domain": "语法体系",
+      "book": "必修1",
+      "unit": "U1",
+      "html_file": "高中/英语/简单句五种基本句型.html"
+    },
+    "时态综合": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 10,
+      "domain": "语法体系",
+      "book": "必修1",
+      "unit": "U2",
+      "html_file": "高中/英语/时态综合.html"
+    },
+    "定语从句深化": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 10,
+      "domain": "语法体系",
+      "book": "必修1",
+      "unit": "U3",
+      "html_file": "高中/英语/定语从句深化.html"
+    },
+    "非限制性定语从句": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 10,
+      "domain": "语法体系",
+      "book": "必修1",
+      "unit": "U3",
+      "html_file": "高中/英语/非限制性定语从句.html"
+    },
+    "被动语态深化": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 10,
+      "domain": "语法体系",
+      "book": "必修2",
+      "unit": "U1",
+      "html_file": "高中/英语/被动语态深化.html"
+    },
+    "非谓语动词": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 10,
+      "domain": "语法体系",
+      "book": "必修2",
+      "unit": "U2",
+      "html_file": "高中/英语/非谓语动词.html"
+    },
+    "名词性从句": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 10,
+      "domain": "语法体系",
+      "book": "必修2",
+      "unit": "U3",
+      "html_file": "高中/英语/名词性从句.html"
+    },
+    "虚拟语气": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 10,
+      "domain": "语法体系",
+      "book": "必修2",
+      "unit": "U4",
+      "html_file": "高中/英语/虚拟语气.html"
+    },
+    "强调句型": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 10,
+      "domain": "语法体系",
+      "book": "必修3",
+      "unit": "U1",
+      "html_file": "高中/英语/强调句型.html"
+    },
+    "倒装句": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 10,
+      "domain": "语法体系",
+      "book": "必修3",
+      "unit": "U2",
+      "html_file": "高中/英语/倒装句.html"
+    },
+    "间接引语": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 10,
+      "domain": "语法体系",
+      "book": "必修3",
+      "unit": "U3",
+      "html_file": "高中/英语/间接引语.html"
+    },
+    "主谓一致": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 10,
+      "domain": "语法体系",
+      "book": "必修3",
+      "unit": "U4",
+      "html_file": "高中/英语/主谓一致.html"
+    },
+    "非谓语动词深化": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 11,
+      "domain": "语法体系",
+      "book": "选择性必修1",
+      "unit": "U1",
+      "html_file": "高中/英语/非谓语动词深化.html"
+    },
+    "状语从句深化": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 11,
+      "domain": "语法体系",
+      "book": "选择性必修1",
+      "unit": "U2",
+      "html_file": "高中/英语/状语从句深化.html"
+    },
+    "构词法": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 11,
+      "domain": "词汇体系",
+      "book": "选择性必修1",
+      "unit": "U3",
+      "html_file": "高中/英语/构词法.html"
+    },
+    "省略与替代": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 11,
+      "domain": "语法体系",
+      "book": "选择性必修1",
+      "unit": "U4",
+      "html_file": "高中/英语/省略与替代.html"
+    },
+    "时态深化": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 11,
+      "domain": "语法体系",
+      "book": "选择性必修2",
+      "unit": "U1",
+      "html_file": "高中/英语/时态深化.html"
+    },
+    "过去完成时": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 11,
+      "domain": "语法体系",
+      "book": "选择性必修2",
+      "unit": "U2",
+      "html_file": "高中/英语/过去完成时.html"
+    },
+    "将来完成时": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 11,
+      "domain": "语法体系",
+      "book": "选择性必修2",
+      "unit": "U3",
+      "html_file": "高中/英语/将来完成时.html"
+    },
+    "with复合结构": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 11,
+      "domain": "语法体系",
+      "book": "选择性必修2",
+      "unit": "U4",
+      "html_file": "高中/英语/with复合结构.html"
+    },
+    "独立主格结构": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 12,
+      "domain": "语法体系",
+      "book": "选择性必修3",
+      "unit": "U1",
+      "html_file": "高中/英语/独立主格结构.html"
+    },
+    "分裂句": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 12,
+      "domain": "语法体系",
+      "book": "选择性必修3",
+      "unit": "U2",
+      "html_file": "高中/英语/分裂句.html"
+    },
+    "虚拟语气深化": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 12,
+      "domain": "语法体系",
+      "book": "选择性必修3",
+      "unit": "U3",
+      "html_file": "高中/英语/虚拟语气深化.html"
+    },
+    "学术写作": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 12,
+      "domain": "语言技能",
+      "book": "选择性必修3",
+      "unit": "U4",
+      "html_file": "高中/英语/学术写作.html"
+    },
+    "文学鉴赏": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 12,
+      "domain": "语言技能",
+      "book": "选择性必修4",
+      "unit": "U1",
+      "html_file": "高中/英语/文学鉴赏.html"
+    },
+    "翻译技巧": {
+      "subject": "english",
+      "phase": "高中",
+      "grade": 12,
+      "domain": "语言技能",
+      "book": "选择性必修4",
+      "unit": "U2",
+      "html_file": "高中/英语/翻译技巧.html"
+    },
+    "英语国家礼仪": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "文化知识",
+      "book": "7A-7B",
+      "unit": "跨单元",
+      "html_file": "初中/英语/英语国家礼仪.html"
+    },
+    "阅读理解策略": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语言技能",
+      "book": "8A-8B",
+      "unit": "跨单元",
+      "html_file": "初中/英语/阅读理解策略.html"
+    },
+    "写作技能": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语言技能",
+      "book": "8A-8B",
+      "unit": "跨单元",
+      "html_file": "初中/英语/写作技能.html"
+    },
+    "直接引语与间接引语": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 9,
+      "domain": "语法体系",
+      "book": "9A",
+      "unit": "U3",
+      "html_file": "初中/英语/直接引语与间接引语.html"
+    },
+    "连词": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 8,
+      "domain": "语法体系",
+      "book": "8A",
+      "unit": "U2",
+      "html_file": "初中/英语/连词.html"
+    },
+    "简单句五种基本句型_初中": {
+      "subject": "english",
+      "phase": "初中",
+      "grade": 7,
+      "domain": "语法体系",
+      "book": "7A",
+      "unit": "U1",
+      "html_file": "初中/英语/简单句五种基本句型_初中.html"
     }
   },
   "edges": [
@@ -1955,36 +2890,6 @@
     {
       "from": "惯性",
       "to": "惯性定律",
-      "type": "parallel",
-      "label": "平行"
-    },
-    {
-      "from": "动词原形",
-      "to": "一般现在时",
-      "type": "prerequisite",
-      "label": "前导"
-    },
-    {
-      "from": "第三人称单数",
-      "to": "一般现在时",
-      "type": "prerequisite",
-      "label": "前导"
-    },
-    {
-      "from": "一般现在时",
-      "to": "现在进行时",
-      "type": "subsequent",
-      "label": "后续"
-    },
-    {
-      "from": "一般现在时",
-      "to": "一般过去时",
-      "type": "subsequent",
-      "label": "后续"
-    },
-    {
-      "from": "一般现在时",
-      "to": "频率副词",
       "type": "parallel",
       "label": "平行"
     },
@@ -2281,18 +3186,6 @@
       "to": "空气动力学",
       "type": "subsequent",
       "label": "后续"
-    },
-    {
-      "from": "现在进行时",
-      "to": "一般过去时",
-      "type": "parallel",
-      "label": "平行"
-    },
-    {
-      "from": "频率副词",
-      "to": "一般现在时",
-      "type": "prerequisite",
-      "label": "前导"
     },
     {
       "from": "认识多位数",
@@ -3223,6 +4116,921 @@
       "to": "圆锥曲线的方程",
       "type": "prerequisite",
       "label": "前导"
+    },
+    {
+      "type": "subsequent",
+      "from": "问候与自我介绍",
+      "to": "人称代词"
+    },
+    {
+      "type": "subsequent",
+      "from": "问候与自我介绍",
+      "to": "be动词"
+    },
+    {
+      "type": "subsequent",
+      "from": "字母与发音",
+      "to": "自然拼读"
+    },
+    {
+      "type": "prerequisite",
+      "from": "名词",
+      "to": "家庭成员词汇"
+    },
+    {
+      "type": "subsequent",
+      "from": "家庭成员词汇",
+      "to": "人称代词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "形容词",
+      "to": "颜色词汇"
+    },
+    {
+      "type": "subsequent",
+      "from": "颜色词汇",
+      "to": "形容词比较级与最高级"
+    },
+    {
+      "type": "prerequisite",
+      "from": "名词",
+      "to": "食物词汇"
+    },
+    {
+      "type": "subsequent",
+      "from": "食物词汇",
+      "to": "可数名词与不可数名词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "be动词",
+      "to": "祈使句"
+    },
+    {
+      "type": "subsequent",
+      "from": "祈使句",
+      "to": "情态动词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "介词",
+      "to": "方位介词"
+    },
+    {
+      "type": "subsequent",
+      "from": "方位介词",
+      "to": "时间介词"
+    },
+    {
+      "type": "subsequent",
+      "from": "数字1-20",
+      "to": "数词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "名词",
+      "to": "动物词汇"
+    },
+    {
+      "type": "prerequisite",
+      "from": "be动词",
+      "to": "人称代词"
+    },
+    {
+      "type": "subsequent",
+      "from": "人称代词",
+      "to": "物主代词"
+    },
+    {
+      "type": "subsequent",
+      "from": "人称代词",
+      "to": "反身代词"
+    },
+    {
+      "type": "subsequent",
+      "from": "be动词",
+      "to": "一般现在时"
+    },
+    {
+      "type": "subsequent",
+      "from": "be动词",
+      "to": "祈使句"
+    },
+    {
+      "type": "subsequent",
+      "from": "名词",
+      "to": "可数名词与不可数名词"
+    },
+    {
+      "type": "subsequent",
+      "from": "名词",
+      "to": "名词所有格"
+    },
+    {
+      "type": "subsequent",
+      "from": "形容词",
+      "to": "形容词比较级与最高级"
+    },
+    {
+      "type": "subsequent",
+      "from": "介词",
+      "to": "方位介词"
+    },
+    {
+      "type": "subsequent",
+      "from": "介词",
+      "to": "时间介词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "be动词",
+      "to": "一般现在时"
+    },
+    {
+      "type": "subsequent",
+      "from": "一般现在时",
+      "to": "一般过去时"
+    },
+    {
+      "type": "subsequent",
+      "from": "一般现在时",
+      "to": "现在进行时"
+    },
+    {
+      "type": "prerequisite",
+      "from": "名词",
+      "to": "可数名词与不可数名词"
+    },
+    {
+      "type": "subsequent",
+      "from": "可数名词与不可数名词",
+      "to": "some与any"
+    },
+    {
+      "type": "prerequisite",
+      "from": "可数名词与不可数名词",
+      "to": "some与any"
+    },
+    {
+      "type": "subsequent",
+      "from": "some与any",
+      "to": "不定代词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般现在时",
+      "to": "特殊疑问句"
+    },
+    {
+      "type": "subsequent",
+      "from": "特殊疑问句",
+      "to": "宾语从句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "介词",
+      "to": "时间介词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般现在时",
+      "to": "频度副词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般现在时",
+      "to": "现在进行时"
+    },
+    {
+      "type": "prerequisite",
+      "from": "be动词",
+      "to": "现在进行时"
+    },
+    {
+      "type": "subsequent",
+      "from": "现在进行时",
+      "to": "过去进行时"
+    },
+    {
+      "type": "prerequisite",
+      "from": "be动词",
+      "to": "there be结构"
+    },
+    {
+      "type": "prerequisite",
+      "from": "名词",
+      "to": "there be结构"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般现在时",
+      "to": "一般过去时"
+    },
+    {
+      "type": "subsequent",
+      "from": "一般过去时",
+      "to": "现在完成时"
+    },
+    {
+      "type": "prerequisite",
+      "from": "人称代词",
+      "to": "物主代词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "字母与发音",
+      "to": "自然拼读"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般现在时",
+      "to": "一般将来时"
+    },
+    {
+      "type": "subsequent",
+      "from": "一般将来时",
+      "to": "if条件状语从句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "祈使句",
+      "to": "情态动词"
+    },
+    {
+      "type": "subsequent",
+      "from": "情态动词",
+      "to": "被动语态"
+    },
+    {
+      "type": "prerequisite",
+      "from": "名词",
+      "to": "名词所有格"
+    },
+    {
+      "type": "prerequisite",
+      "from": "数字1-20",
+      "to": "序数词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般将来时",
+      "to": "if条件状语从句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般过去时",
+      "to": "一般过去时深化"
+    },
+    {
+      "type": "subsequent",
+      "from": "一般过去时深化",
+      "to": "现在完成时"
+    },
+    {
+      "type": "prerequisite",
+      "from": "现在进行时",
+      "to": "过去进行时"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般过去时",
+      "to": "过去进行时"
+    },
+    {
+      "type": "prerequisite",
+      "from": "形容词",
+      "to": "感叹句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "副词",
+      "to": "感叹句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "形容词",
+      "to": "副词"
+    },
+    {
+      "type": "subsequent",
+      "from": "副词",
+      "to": "频度副词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "形容词",
+      "to": "形容词比较级与最高级"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般现在时",
+      "to": "动词不定式初步"
+    },
+    {
+      "type": "subsequent",
+      "from": "动词不定式初步",
+      "to": "动词不定式"
+    },
+    {
+      "type": "prerequisite",
+      "from": "名词",
+      "to": "构词法初步"
+    },
+    {
+      "type": "prerequisite",
+      "from": "形容词",
+      "to": "构词法初步"
+    },
+    {
+      "type": "subsequent",
+      "from": "构词法初步",
+      "to": "构词法"
+    },
+    {
+      "type": "prerequisite",
+      "from": "be动词",
+      "to": "动词be的一般现在时"
+    },
+    {
+      "type": "subsequent",
+      "from": "动词be的一般现在时",
+      "to": "行为动词的一般现在时"
+    },
+    {
+      "type": "prerequisite",
+      "from": "动词be的一般现在时",
+      "to": "行为动词的一般现在时"
+    },
+    {
+      "type": "prerequisite",
+      "from": "人称代词",
+      "to": "人称代词深化"
+    },
+    {
+      "type": "subsequent",
+      "from": "人称代词深化",
+      "to": "反身代词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "时间介词",
+      "to": "时间介词深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "频度副词",
+      "to": "频度副词深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "特殊疑问句",
+      "to": "特殊疑问句深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "可数名词与不可数名词",
+      "to": "可数名词与不可数名词深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "some与any",
+      "to": "some与any深化"
+    },
+    {
+      "type": "subsequent",
+      "from": "some与any深化",
+      "to": "不定代词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "there be结构",
+      "to": "there be结构深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般将来时",
+      "to": "一般将来时深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般过去时深化",
+      "to": "一般过去时深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "名词",
+      "to": "冠词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "名词",
+      "to": "专有名词与并列连词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "连词",
+      "to": "专有名词与并列连词"
+    },
+    {
+      "type": "subsequent",
+      "from": "专有名词与并列连词",
+      "to": "并列句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "人称代词深化",
+      "to": "反身代词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "方位介词",
+      "to": "方位介词深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "现在进行时",
+      "to": "现在进行时深化"
+    },
+    {
+      "type": "subsequent",
+      "from": "现在进行时深化",
+      "to": "过去进行时深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "数字1-20",
+      "to": "数词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "序数词",
+      "to": "数词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "情态动词",
+      "to": "情态动词深化"
+    },
+    {
+      "type": "subsequent",
+      "from": "情态动词深化",
+      "to": "虚拟语气"
+    },
+    {
+      "type": "prerequisite",
+      "from": "祈使句",
+      "to": "祈使句与感叹句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "感叹句",
+      "to": "祈使句与感叹句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "if条件状语从句",
+      "to": "时间状语从句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "some与any深化",
+      "to": "不定代词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "数词",
+      "to": "数词深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "形容词比较级与最高级",
+      "to": "形容词比较级与最高级深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般过去时深化",
+      "to": "现在完成时"
+    },
+    {
+      "type": "subsequent",
+      "from": "现在完成时",
+      "to": "现在完成时与一般过去时对比"
+    },
+    {
+      "type": "prerequisite",
+      "from": "现在完成时",
+      "to": "现在完成时与一般过去时对比"
+    },
+    {
+      "type": "prerequisite",
+      "from": "if条件状语从句",
+      "to": "条件状语从句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "情态动词深化",
+      "to": "情态动词深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "动词不定式初步",
+      "to": "动词不定式"
+    },
+    {
+      "type": "subsequent",
+      "from": "动词不定式",
+      "to": "非谓语动词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "动词不定式",
+      "to": "动名词"
+    },
+    {
+      "type": "subsequent",
+      "from": "动名词",
+      "to": "非谓语动词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般过去时深化",
+      "to": "被动语态"
+    },
+    {
+      "type": "prerequisite",
+      "from": "情态动词",
+      "to": "被动语态"
+    },
+    {
+      "type": "subsequent",
+      "from": "被动语态",
+      "to": "被动语态深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "形容词比较级与最高级深化",
+      "to": "形容词句型"
+    },
+    {
+      "type": "prerequisite",
+      "from": "副词",
+      "to": "副词深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "过去进行时",
+      "to": "过去进行时深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "现在进行时深化",
+      "to": "过去进行时深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般现在时",
+      "to": "反意疑问句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "情态动词深化",
+      "to": "反意疑问句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "be动词",
+      "to": "系动词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "特殊疑问句深化",
+      "to": "宾语从句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般过去时深化",
+      "to": "宾语从句"
+    },
+    {
+      "type": "subsequent",
+      "from": "宾语从句",
+      "to": "间接引语"
+    },
+    {
+      "type": "prerequisite",
+      "from": "简单句五种基本句型",
+      "to": "句子成分与基本句型"
+    },
+    {
+      "type": "prerequisite",
+      "from": "宾语从句",
+      "to": "定语从句"
+    },
+    {
+      "type": "subsequent",
+      "from": "定语从句",
+      "to": "定语从句深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "介词",
+      "to": "介词短语"
+    },
+    {
+      "type": "prerequisite",
+      "from": "人称代词深化",
+      "to": "it的用法"
+    },
+    {
+      "type": "subsequent",
+      "from": "it的用法",
+      "to": "强调句型"
+    },
+    {
+      "type": "prerequisite",
+      "from": "连词",
+      "to": "并列句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "简单句五种基本句型",
+      "to": "并列句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "句子成分与基本句型",
+      "to": "简单句五种基本句型"
+    },
+    {
+      "type": "subsequent",
+      "from": "简单句五种基本句型",
+      "to": "并列句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般现在时",
+      "to": "时态综合"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般过去时",
+      "to": "时态综合"
+    },
+    {
+      "type": "prerequisite",
+      "from": "现在完成时",
+      "to": "时态综合"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般将来时",
+      "to": "时态综合"
+    },
+    {
+      "type": "subsequent",
+      "from": "时态综合",
+      "to": "时态深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "定语从句",
+      "to": "定语从句深化"
+    },
+    {
+      "type": "subsequent",
+      "from": "定语从句深化",
+      "to": "非限制性定语从句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "定语从句深化",
+      "to": "非限制性定语从句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "被动语态",
+      "to": "被动语态深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "动词不定式",
+      "to": "非谓语动词"
+    },
+    {
+      "type": "prerequisite",
+      "from": "动名词",
+      "to": "非谓语动词"
+    },
+    {
+      "type": "subsequent",
+      "from": "非谓语动词",
+      "to": "非谓语动词深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "宾语从句",
+      "to": "名词性从句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "情态动词深化",
+      "to": "虚拟语气"
+    },
+    {
+      "type": "prerequisite",
+      "from": "if条件状语从句",
+      "to": "虚拟语气"
+    },
+    {
+      "type": "prerequisite",
+      "from": "it的用法",
+      "to": "强调句型"
+    },
+    {
+      "type": "prerequisite",
+      "from": "句子成分与基本句型",
+      "to": "倒装句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "宾语从句",
+      "to": "间接引语"
+    },
+    {
+      "type": "prerequisite",
+      "from": "直接引语与间接引语",
+      "to": "间接引语"
+    },
+    {
+      "type": "prerequisite",
+      "from": "名词",
+      "to": "主谓一致"
+    },
+    {
+      "type": "prerequisite",
+      "from": "非谓语动词",
+      "to": "非谓语动词深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "让步状语从句",
+      "to": "状语从句深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "原因状语从句",
+      "to": "状语从句深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "构词法初步",
+      "to": "构词法"
+    },
+    {
+      "type": "prerequisite",
+      "from": "简单句五种基本句型",
+      "to": "省略与替代"
+    },
+    {
+      "type": "prerequisite",
+      "from": "时态综合",
+      "to": "时态深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "现在完成时",
+      "to": "过去完成时"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般过去时深化",
+      "to": "过去完成时"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般将来时深化",
+      "to": "将来完成时"
+    },
+    {
+      "type": "prerequisite",
+      "from": "现在完成时",
+      "to": "将来完成时"
+    },
+    {
+      "type": "prerequisite",
+      "from": "介词",
+      "to": "with复合结构"
+    },
+    {
+      "type": "prerequisite",
+      "from": "非谓语动词",
+      "to": "with复合结构"
+    },
+    {
+      "type": "prerequisite",
+      "from": "with复合结构",
+      "to": "独立主格结构"
+    },
+    {
+      "type": "prerequisite",
+      "from": "非谓语动词深化",
+      "to": "独立主格结构"
+    },
+    {
+      "type": "prerequisite",
+      "from": "强调句型",
+      "to": "分裂句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "虚拟语气",
+      "to": "虚拟语气深化"
+    },
+    {
+      "type": "prerequisite",
+      "from": "写作技能",
+      "to": "学术写作"
+    },
+    {
+      "type": "prerequisite",
+      "from": "阅读理解策略",
+      "to": "文学鉴赏"
+    },
+    {
+      "type": "prerequisite",
+      "from": "写作技能",
+      "to": "翻译技巧"
+    },
+    {
+      "type": "prerequisite",
+      "from": "构词法",
+      "to": "翻译技巧"
+    },
+    {
+      "type": "prerequisite",
+      "from": "问候与自我介绍",
+      "to": "英语国家礼仪"
+    },
+    {
+      "type": "prerequisite",
+      "from": "构词法初步",
+      "to": "阅读理解策略"
+    },
+    {
+      "type": "subsequent",
+      "from": "阅读理解策略",
+      "to": "文学鉴赏"
+    },
+    {
+      "type": "prerequisite",
+      "from": "简单句五种基本句型",
+      "to": "写作技能"
+    },
+    {
+      "type": "subsequent",
+      "from": "写作技能",
+      "to": "学术写作"
+    },
+    {
+      "type": "prerequisite",
+      "from": "宾语从句",
+      "to": "直接引语与间接引语"
+    },
+    {
+      "type": "prerequisite",
+      "from": "一般过去时深化",
+      "to": "直接引语与间接引语"
+    },
+    {
+      "type": "subsequent",
+      "from": "直接引语与间接引语",
+      "to": "间接引语"
+    },
+    {
+      "type": "prerequisite",
+      "from": "并列句",
+      "to": "连词"
+    },
+    {
+      "type": "subsequent",
+      "from": "连词",
+      "to": "并列句"
+    },
+    {
+      "type": "prerequisite",
+      "from": "be动词",
+      "to": "简单句五种基本句型_初中"
+    },
+    {
+      "type": "subsequent",
+      "from": "简单句五种基本句型_初中",
+      "to": "并列句"
+    },
+    {
+      "type": "subsequent",
+      "from": "简单句五种基本句型_初中",
+      "to": "宾语从句"
     }
   ]
 }

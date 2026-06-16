@@ -113,7 +113,8 @@
 ├── 视频号管线 → 步骤V1~V5（见「视频号管线」章节）
 ├── HTML交互管线 → 步骤H1~H5（见「HTML交互管线」章节）
 ├── 演示管线 → 步骤S1~S4（见「演示管线」章节）
-└── PPT管线 → 步骤P1~P4（见「PPT管线」章节）
+├── PPT管线 → 步骤P1~P4（见「PPT管线」章节）
+└── Notebook管线 → 步骤N1~N4（见「Notebook管线」章节）
 ```
 
 ### 管线选择决策树
@@ -125,6 +126,7 @@
 ├── 「HTML交互」「交互页面」「交互式」→ HTML交互管线
 ├── 「演示」「slides」「Reveal」→ 演示管线
 ├── 「PPT」「PowerPoint」→ PPT管线
+├── 「notebook」「教学课件」「教学notebook」→ Notebook管线
 └── 未指定 → 询问用户选择管线
 ```
 
@@ -290,14 +292,14 @@ data/
 
 ### 管线能力对比
 
-| 能力 | 公众号 | 视频号 | HTML交互 | 演示 | PPT |
-|------|-------|-------|---------|------|-----|
-| 文本 | ✅受限HTML | ✅卡片文字 | ✅完整 | ✅幻灯片 | ✅文本框 |
-| 图形 | PNG内联 | Canvas帧 | SVG直接 | SVG嵌入 | PNG嵌入 |
-| 动画 | GIF | 视频帧 | CSS/SVG/JS | CSS/SVG | 关键帧截图 |
-| 交互 | ❌ | ❌ | ✅完整 | ❌ | ❌ |
-| 音频 | ❌ | ✅TTS+BGM | ✅可嵌入 | ❌ | ❌ |
-| 输出格式 | 微信HTML | MP4 | HTML | Reveal.js | .pptx |
+| 能力 | 公众号 | 视频号 | HTML交互 | 演示 | PPT | Notebook |
+|------|-------|-------|---------|------|-----|----------|
+| 文本 | ✅受限HTML | ✅卡片文字 | ✅完整 | ✅幻灯片 | ✅文本框 | ✅Markdown cell |
+| 图形 | PNG内联 | Canvas帧 | SVG直接 | SVG嵌入 | PNG嵌入 | PNG/SVG内联 |
+| 动画 | GIF | 视频帧 | CSS/SVG/JS | CSS/SVG | 关键帧截图 | ❌ |
+| 交互 | ❌ | ❌ | ✅完整 | ❌ | ❌ | ✅Code cell可运行 |
+| 音频 | ❌ | ✅TTS+BGM | ✅可嵌入 | ❌ | ❌ | ❌ |
+| 输出格式 | 微信HTML | MP4 | HTML | Reveal.js | .pptx | .ipynb |
 
 ---
 
@@ -820,6 +822,84 @@ python -m scripts.shared.article_to_video --url "https://mp.weixin.qq.com/s/xxx"
 10. **文件存放**：元素资产保存在 `output/elements/`，管线输出保存在 `output/{管线名}/`
 11. **避免 AI 味**：严格遵循写作风格规范中的禁用表达列表
 12. **管线切换**：用户可在同一内容上切换管线，元素层资产复用
+
+---
+
+## Notebook管线
+
+> 详见 [references/pipeline-notebook.md](references/pipeline-notebook.md)
+
+将任意场景产出转化为可交互的教学/演示 Jupyter Notebook。
+
+### 适用场景
+
+| 来源场景 | notebook内容 | 举例 |
+|---------|------------|------|
+| A 知识探索 | 概念推导过程，可交互验证 | "探索Transformer注意力机制" |
+| A2 知识拆解 | 知识点逐步拆解，学生可运行 | "拆解二次方程" |
+| B 蒸馏 | 某人思维方法的可执行演示 | "蒸馏费曼的学习方法" |
+| C 项目开发 | 从0到1构建过程，每步可运行 | "从0到1构建Agent" |
+| D 项目解析 | 逆向分析过程，逐模块解读 | "分析Flask源码" |
+
+### 步骤N1：内容结构化
+
+将源内容拆解为 notebook 的 cell 序列：
+
+1. 读取源内容（设计文档、代码、测试报告等）
+2. 按"概念→原理→实现→验证"的教学逻辑重新组织
+3. 确定每个 cell 的类型：
+   - **Markdown cell**：概念解释、设计原理、架构说明
+   - **Code cell**：可运行的代码片段（从 src/ 提取）
+   - **Output cell**：代码运行结果（实际执行填充）
+
+### 步骤N2：代码提取与适配
+
+从项目代码中提取可独立运行的代码片段：
+
+1. 从 `src/` 中提取核心模块代码
+2. 从 `core/` 中提取必要的依赖（配置、工具函数）
+3. 确保每个 Code cell 可独立运行（补全 import、初始化）
+4. 按教学顺序排列：基础 → 组合 → 完整系统
+
+**提取规则**：
+- 每个 Code cell 只做一件事
+- 前置 cell 的变量后续 cell 可直接使用
+- 关键步骤后必须验证（print/assert）
+- 保留核心逻辑，删除非教学代码（日志、边界处理等）
+
+### 步骤N3：notebook 组装
+
+按模板组装 .ipynb 文件：
+
+```json
+{
+  "cells": [
+    {"cell_type": "markdown", "source": ["# 标题\n概述"]},
+    {"cell_type": "markdown", "source": ["## 1. 概念"]},
+    {"cell_type": "code", "source": ["# 核心代码"]},
+    {"cell_type": "markdown", "source": ["## 2. 验证"]},
+    {"cell_type": "code", "source": ["# 测试代码"]}
+  ],
+  "metadata": {
+    "kernelspec": {"language": "python", "name": "python3"}
+  }
+}
+```
+
+### 步骤N4：执行验证
+
+1. 运行所有 Code cell，确保无报错
+2. 检查 Output cell 内容是否正确
+3. 验证教学顺序：读者从头到尾逐 cell 运行，能否理解完整构建过程
+4. 输出 .ipynb 文件
+
+### notebook 设计原则
+
+- **渐进式**：每个 cell 建立在前一个之上，读者可以看到系统逐步构建的过程
+- **可运行**：每个 Code cell 都能独立运行（或依赖前序 cell）
+- **有验证**：关键步骤后有 assert/print 确认正确性
+- **有解释**：Markdown cell 解释"为什么这样做"，不只是"做了什么"
+- **可修改**：读者可以修改参数、替换实现，观察不同结果
 
 ---
 
