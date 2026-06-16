@@ -44,6 +44,10 @@ scene: C
 - [templates/four-layer-design.md](templates/four-layer-design.md) — 四层设计
 - [templates/program.md](templates/program.md) — 迭代策略文件（迭代模式专用）
 
+## 实战案例
+
+- [cases/pi-agent-iteration.md](../cases/pi-agent-iteration.md) — PI-Agent 6轮Ratchet Loop迭代实录（本地小模型编码Agent，6轮0回退，3.5x性能提升）
+
 ## 输出
 
 - 标准模式：可运行的代码实现 + 设计文档

@@ -509,6 +509,12 @@ def _generate_summary(self, messages):
 
 ---
 
+## 12. 实战案例
+
+详见 [cases/pi-agent-iteration.md](../cases/pi-agent-iteration.md) — PI-Agent 6轮Ratchet Loop迭代实录（本地小模型编码Agent，6轮0回退，3.5x性能提升）
+
+---
+
 > 本skill借鉴 autoresearch Ratchet Loop 设计，适用于任何项目的迭代开发
 > 方法论：正交增量 + 测试驱动发现 + 版本化沉淀 + Ratchet Loop
 > 参考：Karpathy autoresearch (https://github.com/karpathy/autoresearch, March 2026)

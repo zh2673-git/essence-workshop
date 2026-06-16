@@ -58,3 +58,7 @@ scene: E
 | 论文风格 | 学术论文式严谨输出 |
 | 对话风格 | 通俗易懂的对话体 |
 | 蒸馏Skill风格 | 激活distillation/output/中对应人物Skill，以其视角输出 |
+
+## 实战案例
+
+- [cases/wechat-zh2673.md](../cases/wechat-zh2673.md) — 公众号zh2673自动化运营（场景E+B2，一个月内出现爆款，集中带来用户增长）

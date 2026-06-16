@@ -159,10 +159,14 @@ essence-workshop/                    # 路由Skill（本文件）
 │   ├── templates/                   # Reveal模板+品牌规格
 │   └── scripts/                     # 管线脚本（html/pptx/slides/video/wechat）
 │
-└── skill-optimization/              # F: Skill优化
-    ├── SKILL.md
-    ├── F-skill-optimization.md      # 工作流
-    └── references/                  # Skill模板+评分+反模式
+├── skill-optimization/              # F: Skill优化
+│   ├── SKILL.md
+│   ├── F-skill-optimization.md      # 工作流
+│   └── references/                  # Skill模板+评分+反模式
+│
+└── cases/                           # 实战案例
+    ├── pi-agent-iteration.md        # PI-Agent 6轮Ratchet Loop迭代
+    └── wechat-zh2673.md             # 公众号自动化运营
 ```
 
 ---
