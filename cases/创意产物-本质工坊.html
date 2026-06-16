@@ -306,6 +306,41 @@
         }
         .cta-btn:hover { transform: scale(1.05); }
 
+        /* 为什么叫本质 */
+        .essence-explain { max-width: 700px; margin: 0 auto; }
+        .essence-quote {
+            font-size: 1.1rem; color: var(--primary-light); text-align: center;
+            padding: 1.5rem 2rem; margin-bottom: 2rem;
+            border-left: 3px solid var(--primary); border-right: 3px solid var(--primary);
+            background: rgba(108,92,231,0.08); border-radius: 8px;
+            font-style: italic; line-height: 1.8;
+        }
+        .essence-chain { display: flex; flex-direction: column; gap: 1rem; }
+        .essence-step {
+            display: flex; align-items: flex-start; gap: 1rem;
+            padding: 1rem 1.5rem; border-radius: 10px;
+            background: var(--card); border: 1px solid var(--border);
+            transition: border-color 0.3s;
+        }
+        .essence-step:hover { border-color: var(--primary); }
+        .essence-num {
+            width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.9rem;
+            background: rgba(108,92,231,0.2); color: var(--primary-light);
+            border: 1px solid var(--primary);
+        }
+        .essence-text { font-size: 0.92rem; color: var(--text-muted); line-height: 1.6; }
+        .essence-text strong { color: var(--text); }
+
+        /* 案例GitHub链接 */
+        .case-github {
+            display: inline-block; margin-top: 0.8rem;
+            font-size: 0.75rem; color: var(--primary-light);
+            text-decoration: none; opacity: 0.7; transition: opacity 0.2s;
+        }
+        .case-github:hover { opacity: 1; }
+
         @media (max-width: 768px) {
             .case-container { grid-template-columns: 1fr; }
             .hero-stats { gap: 1.5rem; }
@@ -327,6 +362,35 @@
         <div class="stat"><div class="stat-num">4</div><div class="stat-label">验证案例</div></div>
     </div>
 </div>
+
+<!-- 为什么叫本质 -->
+<section>
+    <div class="section-title">为什么叫「本质」</div>
+    <div class="section-sub">源于哲学的根本追问——回到事物最纯粹的逻辑起点</div>
+    <div class="essence-explain">
+        <div class="essence-quote">
+            "本质"（Essence）一词源自哲学的核心概念：事物存在的根本属性，剥离一切表象后剩下的不可再减的纯粹逻辑。
+        </div>
+        <div class="essence-chain">
+            <div class="essence-step">
+                <div class="essence-num">1</div>
+                <div class="essence-text"><strong>哲学根基</strong>：亚里士多德的「本质」（τὸ τί ἦν εἶναι）——事物之所以为该事物的根本规定性</div>
+            </div>
+            <div class="essence-step">
+                <div class="essence-num">2</div>
+                <div class="essence-text"><strong>纯逻辑推理</strong>：不从经验归纳，而从约束条件出发逐步推导必然结论——约束即起点，而非限制</div>
+            </div>
+            <div class="essence-step">
+                <div class="essence-num">3</div>
+                <div class="essence-text"><strong>三阶方法论</strong>：是什么（定义本质）→ 为什么（建立因果）→ 怎么做（推导方案）——每一步都是纯逻辑推导</div>
+            </div>
+            <div class="essence-step">
+                <div class="essence-num">4</div>
+                <div class="essence-text"><strong>实践验证</strong>：DataDone-RE六层递进引擎就是从"仅有四类数据"这一约束纯逻辑推导出来的——不是设计选择，是逻辑必然</div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <!-- 核心理念 -->
 <section>
@@ -462,6 +526,7 @@
                 <div class="metric"><div class="metric-val">3.5x</div><div class="metric-label">性能提升</div></div>
                 <div class="metric"><div class="metric-val">27/27</div><div class="metric-label">测试通过</div></div>
             </div>
+            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/pi-agent-iteration.md" target="_blank">📄 在GitHub查看完整案例 →</a>
         </div>
 
         <!-- 案例2：公众号 -->
@@ -485,6 +550,7 @@
                 <div class="metric"><div class="metric-val">2w+</div><div class="metric-label">单篇最高阅读</div></div>
                 <div class="metric"><div class="metric-val">+600</div><div class="metric-label">涨粉(含长尾)</div></div>
             </div>
+            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/wechat-zh2673.md" target="_blank">📄 在GitHub查看完整案例 →</a>
         </div>
 
         <!-- 案例3：DataDone-RE -->
@@ -514,6 +580,7 @@
                 <div class="metric"><div class="metric-val">11表</div><div class="metric-label">Excel工作表</div></div>
                 <div class="metric"><div class="metric-val">4层</div><div class="metric-label">架构重构</div></div>
             </div>
+            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/datadone-re.md" target="_blank">📄 在GitHub查看完整案例 →</a>
         </div>
 
         <!-- 案例4：GitHub→Obsidian -->
@@ -552,6 +619,7 @@
                 <div class="metric"><div class="metric-val">10x</div><div class="metric-label">解析效率提升</div></div>
                 <div class="metric"><div class="metric-val">0摩擦</div><div class="metric-label">知识入库</div></div>
             </div>
+            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/github-to-obsidian.md" target="_blank">📄 在GitHub查看完整案例 →</a>
         </div>
     </div>
 </section>
