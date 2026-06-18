@@ -330,6 +330,35 @@
         }
         .cta-btn:hover { transform: scale(1.05); }
 
+        /* 差异化定位：底层认知视角 */
+        .differentiator { max-width: 900px; margin: 0 auto; }
+        .diff-pain {
+            padding: 1.2rem 1.5rem; margin-bottom: 1.5rem; border-radius: 10px;
+            background: rgba(253,121,168,0.08); border: 1px solid rgba(253,121,168,0.25);
+            font-size: 0.95rem; line-height: 1.7;
+        }
+        .diff-pain strong { color: var(--accent2); }
+        .diff-pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        .diff-pillar {
+            padding: 1.2rem 1rem; border-radius: 12px; text-align: center;
+            background: var(--card); border: 1px solid var(--border);
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        .diff-pillar:hover { transform: translateY(-4px); border-color: var(--accent); }
+        .diff-pillar-icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
+        .diff-pillar-title { font-weight: 600; color: var(--primary-light); margin-bottom: 0.4rem; font-size: 0.95rem; }
+        .diff-pillar-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+        .diff-loop {
+            padding: 1rem 1.5rem; border-radius: 10px;
+            background: linear-gradient(135deg, rgba(108,92,231,0.1), rgba(0,206,201,0.1));
+            border: 1px solid var(--border); text-align: center;
+            font-size: 0.9rem; line-height: 1.7;
+        }
+        .diff-loop strong { color: var(--accent); }
+        @media (max-width: 768px) {
+            .diff-pillars { grid-template-columns: 1fr; }
+        }
+
         /* 为什么叫本质 */
         .essence-explain { max-width: 700px; margin: 0 auto; }
         .essence-quote {
@@ -365,10 +394,131 @@
         }
         .case-github:hover { opacity: 1; }
 
+        /* 体验中心 */
+        .exp-center {
+            background: rgba(255,255,255,0.02);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+        }
+        .exp-tabs {
+            display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;
+            margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;
+        }
+        .exp-tab {
+            padding: 0.8rem 1.5rem; border-radius: 10px; cursor: pointer;
+            transition: all 0.3s; background: var(--card); border: 1px solid var(--border);
+            font-size: 0.95rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;
+        }
+        .exp-tab:hover { border-color: var(--primary); color: var(--text); }
+        .exp-tab.active { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border-color: transparent; }
+        .exp-panel { display: none; }
+        .exp-panel.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .exp-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .exp-trigger {
+            padding: 0.4rem 1rem; background: rgba(0,206,201,0.1);
+            border: 1px solid var(--accent); border-radius: 20px;
+            color: var(--accent); font-family: monospace; font-size: 0.85rem;
+        }
+        .exp-desc { color: var(--text-muted); font-size: 0.9rem; }
+        .exp-output {
+            background: rgba(0,0,0,0.3); border-radius: 12px;
+            border: 1px solid var(--border); overflow: hidden;
+        }
+        .iframe-wrap { position: relative; width: 100%; height: 500px; }
+        .iframe-wrap iframe { width: 100%; height: 100%; border: none; }
+        .iframe-note {
+            padding: 0.8rem 1.2rem; background: rgba(108,92,231,0.08);
+            border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-muted);
+        }
+        .kg-scroll-wrap {
+            border-top: 1px solid var(--border);
+            padding: 1rem 1.2rem;
+            background: rgba(76,175,80,0.05);
+        }
+        .kg-scroll-title {
+            font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.6rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .kg-scroll-title strong { color: #4caf50; }
+        .kg-scroll-container {
+            overflow-x: auto; overflow-y: auto;
+            max-height: 400px;
+            border-radius: 8px; border: 1px solid var(--border);
+            background: rgba(0,0,0,0.3);
+            -webkit-overflow-scrolling: touch;
+        }
+        .kg-scroll-container img {
+            display: block; width: 100%; min-width: 400px;
+            height: auto;
+            cursor: grab;
+        }
+        .kg-scroll-container img:active { cursor: grabbing; }
+        .kg-scroll-hint {
+            font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;
+            text-align: center; font-style: italic;
+        }
+        .skill-preview { padding: 1.5rem; max-height: 500px; overflow-y: auto; }
+        .skill-preview h4 { color: var(--primary-light); margin-bottom: 0.5rem; }
+        .skill-preview .skill-quote {
+            border-left: 3px solid var(--accent); padding: 0.8rem 1.2rem; margin: 1rem 0;
+            background: rgba(0,206,201,0.05); font-style: italic; color: var(--text);
+        }
+        .skill-preview table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .skill-preview th, .skill-preview td { padding: 0.5rem; border: 1px solid var(--border); text-align: left; font-size: 0.85rem; }
+        .skill-preview th { background: rgba(108,92,231,0.1); color: var(--primary-light); }
+        .iteration-timeline { padding: 1.5rem; }
+        .timeline-track { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; overflow-x: auto; }
+        .timeline-step {
+            flex-shrink: 0; padding: 0.8rem 1.2rem; border-radius: 10px; cursor: pointer;
+            transition: all 0.3s; background: var(--card); border: 1px solid var(--border);
+            text-align: center; min-width: 80px;
+        }
+        .timeline-step:hover { border-color: var(--accent); }
+        .timeline-step.active { background: rgba(0,206,201,0.15); border-color: var(--accent); }
+        .timeline-step .step-num { font-weight: 700; color: var(--accent); }
+        .timeline-step .step-label { font-size: 0.75rem; color: var(--text-muted); }
+        .timeline-detail {
+            background: rgba(255,255,255,0.03); border-radius: 8px;
+            padding: 1.2rem; border: 1px solid var(--border);
+        }
+        .timeline-detail h5 { color: var(--primary-light); margin-bottom: 0.5rem; }
+        .timeline-detail .detail-row { display: flex; gap: 1rem; margin-bottom: 0.5rem; font-size: 0.85rem; }
+        .timeline-detail .detail-label { color: var(--text-muted); min-width: 100px; }
+        .timeline-detail .detail-val { color: var(--text); }
+        .ratchet-badge {
+            display: inline-block; padding: 0.2rem 0.8rem; border-radius: 4px;
+            font-size: 0.75rem; background: rgba(76,175,80,0.15); color: #4caf50;
+            border: 1px solid rgba(76,175,80,0.3);
+        }
+        .wechat-showcase { padding: 1.5rem; }
+        .wechat-showcase img { width: 100%; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--border); }
+        .wechat-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem; margin-top: 1rem; }
+        .wechat-metric { text-align: center; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border); }
+        .wechat-metric .val { font-size: 1.5rem; font-weight: 700; color: var(--accent2); }
+        .wechat-metric .label { font-size: 0.8rem; color: var(--text-muted); }
+        .router-demo { padding: 1.5rem; }
+        .router-input-area { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .router-chip {
+            padding: 0.6rem 1.2rem; border-radius: 20px; cursor: pointer;
+            transition: all 0.3s; background: var(--card); border: 1px solid var(--border);
+            font-size: 0.9rem; color: var(--text);
+        }
+        .router-chip:hover { border-color: var(--primary); background: rgba(108,92,231,0.1); transform: translateY(-2px); }
+        .router-result {
+            background: rgba(255,255,255,0.03); border-radius: 8px; padding: 1.2rem;
+            border: 1px solid var(--border); min-height: 120px;
+        }
+        .router-result .route-arrow { color: var(--accent); font-size: 1.2rem; margin: 0.5rem 0; }
+        .router-result .route-scene { color: var(--primary-light); font-weight: 600; }
+        .router-result .route-output { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem; }
+
         @media (max-width: 768px) {
             .case-container { grid-template-columns: 1fr; }
             .case-row-bottom { grid-template-columns: 1fr; max-width: 100%; }
             .hero-stats { gap: 1.5rem; }
+            .wechat-metrics { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -432,6 +582,38 @@
     </div>
 </section>
 
+<!-- 差异化定位：底层认知视角 -->
+<section>
+    <div class="section-title">为什么不只是"又一个造Skill的工具"</div>
+    <div class="section-sub">市面上的Skill工具看似同质化，缺的不是工具，是看问题的视角</div>
+    <div class="differentiator">
+        <div class="diff-pain">
+            <strong>痛点</strong>：当前造Skill的工具大多停留在"流程编排"层面——把用户的操作步骤固化下来。但流程是表象，<strong>真正决定Skill质量的，是它看问题的底层视角</strong>。没有视角的Skill，只是空壳模板。
+        </div>
+        <div class="diff-pillars">
+            <div class="diff-pillar">
+                <div class="diff-pillar-icon">🎯</div>
+                <div class="diff-pillar-title">纯逻辑推理视角</div>
+                <div class="diff-pillar-desc">从约束条件出发，纯逻辑推导必然结论。不是"怎么设计"，而是"逻辑上只能是这样"。为业务工具提供不可再减的底层元信息。</div>
+            </div>
+            <div class="diff-pillar">
+                <div class="diff-pillar-icon">🔬</div>
+                <div class="diff-pillar-title">多维蒸馏视角</div>
+                <div class="diff-pillar-desc">从30+来源提炼心智模型、决策启发式、场景路由。不是"记录方法"，而是"萃取思维DNA"。为认知型Skill提供可复用的思维框架。</div>
+            </div>
+            <div class="diff-pillar">
+                <div class="diff-pillar-icon">🔄</div>
+                <div class="diff-pillar-title">自迭代闭环</div>
+                <div class="diff-pillar-desc">规范接口（P/Q/I三维验证）+ Ratchet Loop（只进不退）。不是"写完就定"，而是"每次调用都在进化"。让Skill具备生命体特征。</div>
+            </div>
+        </div>
+        <div class="diff-loop">
+            <strong>完整闭环</strong>：认知视角（元信息） → 规范接口（稳定性） → 自迭代（进化能力）<br>
+            前两者提供"好的起点"，后者保证"持续变好"——这才是制造工具的工具应有的样子。
+        </div>
+    </div>
+</section>
+
 <!-- 7大场景 -->
 <section>
     <div class="section-title">7大场景，覆盖认知全链路</div>
@@ -478,6 +660,182 @@
             <h3>Skill优化</h3>
             <div class="scene-route">场景F · 「优化skill/达尔文」</div>
             <p>评估→改进→验证循环，让Skill自我进化</p>
+        </div>
+    </div>
+</section>
+
+<!-- 体验中心 -->
+<section>
+    <div class="section-title">体验中心 · 真实输出可交互</div>
+    <div class="section-sub">点击下方标签，体验本质工坊生成的真实产物</div>
+    <div class="exp-center">
+        <div class="exp-tabs">
+            <div class="exp-tab active" onclick="switchExpTab(0)">📚 K12知识拆解</div>
+            <div class="exp-tab" onclick="switchExpTab(1)">⚗️ 大师蒸馏</div>
+            <div class="exp-tab" onclick="switchExpTab(2)">🔄 Agent迭代实录</div>
+            <div class="exp-tab" onclick="switchExpTab(3)">� 公众号文章真实输出</div>
+            <div class="exp-tab" onclick="switchExpTab(4)">🗺️ 场景路由</div>
+        </div>
+
+        <!-- Panel 0: K12知识拆解 -->
+        <div class="exp-panel active" id="exp-panel-0">
+            <div class="exp-header">
+                <div class="exp-trigger">「拆解杠杆原理」</div>
+                <div class="exp-desc">场景A2 · 七维框架拆解，生成交互式HTML+SVG图示+测验</div>
+            </div>
+            <div class="exp-output">
+                <div class="iframe-wrap">
+                    <iframe src="samples/k12-lever.html" loading="lazy"></iframe>
+                </div>
+                <div class="iframe-note">👆 这是本质工坊生成的真实K12教学HTML，可点击卡片展开/折叠、查看SVG图示、做测验题</div>
+                <div class="kg-scroll-wrap">
+                    <div class="kg-scroll-title">
+                        <strong>📊 K12知识图谱</strong>· 杠杆原理是150+知识点之一，下方图谱可上下滑动查看完整知识体系
+                    </div>
+                    <div class="kg-scroll-container">
+                        <img src="images/knowledge-graph.png" alt="K12知识图谱（150+知识点，覆盖小初高5学科）">
+                    </div>
+                    <div class="kg-scroll-hint">↑ 上下滑动查看完整知识图谱 · 已生成150+知识点HTML，覆盖小学到高中5个学科 ↓</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 1: 大师蒸馏 -->
+        <div class="exp-panel" id="exp-panel-1">
+            <div class="exp-header">
+                <div class="exp-trigger">「蒸馏芒格思维」</div>
+                <div class="exp-desc">场景B · 将思维模式蒸馏为认知操作系统Skill（11位大师之一）</div>
+            </div>
+            <div class="exp-output">
+                <div class="skill-preview">
+                    <h4>查理·芒格 · 认知操作系统</h4>
+                    <div class="skill-quote">"我只想知道我将来会在哪里死，这样我就永远不去那里。"</div>
+                    <p><strong>一句话定义</strong>：芒格的认知本质 = 用多元学科的检查清单对抗人类认知偏差的防御性决策系统</p>
+
+                    <h4 style="margin-top:1.5rem">核心心智模型</h4>
+                    <table>
+                        <tr><th>#</th><th>模型</th><th>一句话定义</th><th>根因</th></tr>
+                        <tr><td>1</td><td>多元思维模型</td><td>从80-90个学科提取核心模型构建决策网络</td><td>🟢 跨学科阅读+Caltech训练</td></tr>
+                        <tr><td>2</td><td>逆向思考</td><td>先想什么会导致失败，然后避免它</td><td>🟢 法学院+Jacobi定理</td></tr>
+                        <tr><td>3</td><td>能力圈</td><td>严格界定懂的领域，圈外保持诚实</td><td>🟢 法律伦理+投资教训</td></tr>
+                        <tr><td>4</td><td>人类误判心理学</td><td>25种认知偏差的系统防御清单</td><td>🟢 心理学+进化论研究</td></tr>
+                    </table>
+
+                    <h4 style="margin-top:1.5rem">场景路由表</h4>
+                    <table>
+                        <tr><th>场景</th><th>调用的模型组合</th><th>决策启发式</th></tr>
+                        <tr><td>投资决策</td><td>逆向思考+能力圈+多元模型</td><td>安全边际、下重注、长期持有</td></tr>
+                        <tr><td>商业分析</td><td>激励分析+Lollapalooza+企业文化</td><td>看管理层品格、看定价权</td></tr>
+                        <tr><td>人生决策</td><td>逆向思考+道德品格+长期主义</td><td>避免嫉妒、选对伴侣、持续学习</td></tr>
+                    </table>
+
+                    <p style="margin-top:1rem;color:var(--text-muted);font-size:0.85rem">这是11个已蒸馏Skill之一。每个Skill都包含：本质三阶（是什么→为什么→怎么做）+ 研究材料 + 场景路由 + 表达DNA + 根因追溯</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 2: Agent迭代实录（真实素材） -->
+        <div class="exp-panel" id="exp-panel-2">
+            <div class="exp-header">
+                <div class="exp-trigger">「迭代开发PI-Agent」</div>
+                <div class="exp-desc">场景C2 · 真实Ratchet Loop迭代记录 · 6轮0回退 · 3.5倍加速 · <a href="samples/pi-agent/results.tsv" target="_blank" style="color:var(--accent)">results.tsv</a> · <a href="samples/pi-agent/trae-session-record.html" target="_blank" style="color:var(--accent)">TRAE对话实录</a></div>
+            </div>
+            <div class="exp-output">
+                <div class="iteration-timeline">
+                    <!-- 真实results.tsv数据 -->
+                    <div style="margin-bottom:1rem;padding:0.8rem 1.2rem;background:rgba(76,175,80,0.08);border-radius:8px;border:1px solid rgba(76,175,80,0.2);font-size:0.85rem">
+                        <strong style="color:#4caf50">📊 真实实验记录（results.tsv）</strong>：6轮迭代 · 0次回退 · 100%保留率 · 3.5倍性能提升（913s→258s）
+                    </div>
+                    <div class="timeline-track">
+                        <div class="timeline-step active" onclick="switchIteration(0)"><div class="step-num">v1</div><div class="step-label">最小验证<br>3/3</div></div>
+                        <div class="timeline-step" onclick="switchIteration(1)"><div class="step-num">v2</div><div class="step-label">standard<br>4/4</div></div>
+                        <div class="timeline-step" onclick="switchIteration(2)"><div class="step-num">v3</div><div class="step-label">full+edit<br>4/4</div></div>
+                        <div class="timeline-step" onclick="switchIteration(3)"><div class="step-num">v4</div><div class="step-label">模型对比<br>8/8</div></div>
+                        <div class="timeline-step" onclick="switchIteration(4)"><div class="step-num">v5</div><div class="step-label">复杂任务<br>4/4</div></div>
+                        <div class="timeline-step" onclick="switchIteration(5)"><div class="step-num">v6</div><div class="step-label">3.5x加速<br>4/4</div></div>
+                    </div>
+                    <div class="timeline-detail" id="iter-detail">
+                        <h5>v1: 最小Agent验证 — 3/3 通过</h5>
+                        <div class="detail-row"><span class="detail-label">改动</span><span class="detail-val">minimal profile (read+bash) + Ollama原生API + 总结轮兜底</span></div>
+                        <div class="detail-row"><span class="detail-label">关键发现</span><span class="detail-val">模型先尝试ls失败后自动切换到python -c — 错误恢复能力好；发现必须用Ollama原生API（think=False）</span></div>
+                        <div class="detail-row"><span class="detail-label">测试</span><span class="detail-val">3/3 通过</span></div>
+                        <div class="detail-row"><span class="detail-label">Ratchet决策</span><span class="detail-val"><span class="ratchet-badge">P✅ Q✅ I✅ → 保留</span></span></div>
+                    </div>
+                    <div style="margin-top:1rem;padding:0.8rem 1.2rem;background:rgba(108,92,231,0.08);border-radius:8px;border:1px solid var(--border);font-size:0.82rem;color:var(--text-muted)">
+                        💡 <strong style="color:var(--primary-light)">验证合同</strong>（<a href="samples/pi-agent/program.md" target="_blank" style="color:var(--accent)">查看program.md</a>）：三维判定 P(前置)+Q(后置)+I(不变量)，任一失败则回退。Q通过但I失败是最危险场景——退步被误判为改进。
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 3: 公众号文章真实输出 -->
+        <div class="exp-panel" id="exp-panel-3">
+            <div class="exp-header">
+                <div class="exp-trigger">「写公众号」</div>
+                <div class="exp-desc">场景E · 本质工坊自动生成的公众号文章（PI-Agent自迭代案例） · <a href="samples/wechat-article/article.md" target="_blank" style="color:var(--accent)">查看完整文章</a></div>
+            </div>
+            <div class="exp-output">
+                <div class="wechat-showcase">
+                    <!-- 文章封面和核心配图 -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem">
+                        <img src="samples/wechat-article/cover.png" alt="文章封面" style="width:100%;border-radius:8px;border:1px solid var(--border)" onerror="this.style.display='none'">
+                        <img src="samples/wechat-article/img5_iterations.png" alt="6轮迭代总览" style="width:100%;border-radius:8px;border:1px solid var(--border)" onerror="this.style.display='none'">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-bottom:1rem">
+                        <img src="samples/wechat-article/img1_formula.png" alt="核心公式" style="width:100%;border-radius:6px;border:1px solid var(--border)" onerror="this.style.display='none'">
+                        <img src="samples/wechat-article/img4_validation.png" alt="三维验证" style="width:100%;border-radius:6px;border:1px solid var(--border)" onerror="this.style.display='none'">
+                        <img src="samples/wechat-article/img6_insight.png" alt="核心洞察" style="width:100%;border-radius:6px;border:1px solid var(--border)" onerror="this.style.display='none'">
+                    </div>
+
+                    <!-- 文章摘要 -->
+                    <div style="background:rgba(108,92,231,0.08);border-radius:8px;padding:1.2rem;border:1px solid var(--border);margin-bottom:1rem">
+                        <h4 style="color:var(--primary-light);margin-bottom:0.5rem">📰 文章标题：制造工具的工具：如何用自身方法论驱动自迭代？</h4>
+                        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.8rem"><strong>摘要</strong>：一个Skill用自身的方法论驱动真实项目从0到1完成6轮自动化迭代，0次回退，3.5倍性能加速。这不是人工模拟，而是"制造工具的工具"的自迭代验证。</p>
+                        <p style="font-size:0.82rem;color:var(--text-muted)">本文是本质工坊场景E（内容输出）公众号管线自动生成的真实文章，基于PI-Agent自迭代案例，包含核心公式、PI对比、增强型极简、三维验证、迭代总览、核心洞察6张配图。</p>
+                    </div>
+
+                    <!-- 文章核心观点 -->
+                    <div style="background:rgba(0,206,201,0.05);border-radius:8px;padding:1rem;border:1px solid var(--border);margin-bottom:1rem">
+                        <h5 style="color:var(--accent);margin-bottom:0.5rem">🔑 三个反直觉发现</h5>
+                        <div style="font-size:0.82rem;color:var(--text-muted);line-height:1.7">
+                            <div style="margin-bottom:0.4rem"><strong style="color:var(--text)">1. 环境说明比few-shot更有效</strong>：告诉模型"用dir而不是ls"比试错学习快3.5倍</div>
+                            <div style="margin-bottom:0.4rem"><strong style="color:var(--text)">2. 4b模型可能比9b更实用</strong>：推理速度比推理深度更重要</div>
+                            <div><strong style="color:var(--text)">3. 容错性比精确性更重要</strong>：edit三级匹配使成功率从0%提升到100%</div>
+                        </div>
+                    </div>
+
+                    <div class="wechat-metrics">
+                        <div class="wechat-metric"><div class="val">6张</div><div class="label">自动配图</div></div>
+                        <div class="wechat-metric"><div class="val">全自动</div><div class="label">文章生成</div></div>
+                        <div class="wechat-metric"><div class="val">3.5x</div><div class="label">案例加速</div></div>
+                        <div class="wechat-metric"><div class="val">0回退</div><div class="label">迭代稳定性</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 4: 场景路由 -->
+        <div class="exp-panel" id="exp-panel-4">
+            <div class="exp-header">
+                <div class="exp-trigger">输入触发词</div>
+                <div class="exp-desc">本质工坊路由Skill自动识别意图，调度对应子Skill</div>
+            </div>
+            <div class="exp-output">
+                <div class="router-demo">
+                    <div class="router-input-area">
+                        <div class="router-chip" onclick="routeDemo('探索量子计算')">探索量子计算</div>
+                        <div class="router-chip" onclick="routeDemo('拆解杠杆原理')">拆解杠杆原理</div>
+                        <div class="router-chip" onclick="routeDemo('蒸馏芒格思维')">蒸馏芒格思维</div>
+                        <div class="router-chip" onclick="routeDemo('开发XX系统')">开发XX系统</div>
+                        <div class="router-chip" onclick="routeDemo('分析XX项目')">分析XX项目</div>
+                        <div class="router-chip" onclick="routeDemo('写公众号')">写公众号</div>
+                        <div class="router-chip" onclick="routeDemo('优化skill')">优化skill</div>
+                    </div>
+                    <div class="router-result" id="route-result">
+                        <div style="color:var(--text-muted)">👆 点击上方触发词，查看路由结果</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -550,7 +908,7 @@
                 <div class="metric"><div class="metric-val">3.5x</div><div class="metric-label">性能提升</div></div>
                 <div class="metric"><div class="metric-val">27/27</div><div class="metric-label">测试通过</div></div>
             </div>
-            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/pi-agent-iteration.md" target="_blank">📄 查看完整案例 →</a>
+            <a class="case-github" href="pi-agent-iteration.md" target="_blank">📄 查看完整案例 →</a>
         </div>
 
         <!-- 案例2：公众号 -->
@@ -573,7 +931,7 @@
                 <div class="metric"><div class="metric-val">+600</div><div class="metric-label">涨粉</div></div>
                 <div class="metric"><div class="metric-val">1月</div><div class="metric-label">运营周期</div></div>
             </div>
-            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/wechat-zh2673.md" target="_blank">📄 查看完整案例 →</a>
+            <a class="case-github" href="wechat-zh2673.md" target="_blank">📄 查看完整案例 →</a>
         </div>
 
         <!-- 案例3：DataDone-RE -->
@@ -593,7 +951,7 @@
                 <div class="metric"><div class="metric-val">11表</div><div class="metric-label">Excel工作表</div></div>
                 <div class="metric"><div class="metric-val">4层</div><div class="metric-label">架构重构</div></div>
             </div>
-            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/datadone-re.md" target="_blank">📄 查看完整案例 →</a>
+            <a class="case-github" href="datadone-re.md" target="_blank">📄 查看完整案例 →</a>
         </div>
     </div>
     <!-- 下排2个居中 -->
@@ -618,7 +976,7 @@
                 <div class="metric"><div class="metric-val">10x</div><div class="metric-label">效率提升</div></div>
                 <div class="metric"><div class="metric-val">0摩擦</div><div class="metric-label">知识入库</div></div>
             </div>
-            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/github-to-obsidian.md" target="_blank">📄 查看完整案例 →</a>
+            <a class="case-github" href="github-to-obsidian.md" target="_blank">📄 查看完整案例 →</a>
         </div>
 
         <!-- 案例5：K12知识图谱 -->
@@ -644,7 +1002,7 @@
                 <div class="metric"><div class="metric-val">7维</div><div class="metric-label">拆解框架</div></div>
                 <div class="metric"><div class="metric-val">5科</div><div class="metric-label">学科覆盖</div></div>
             </div>
-            <a class="case-github" href="https://github.com/zh2673-git/essence-workshop/tree/main/cases/k12-knowledge-graph.md" target="_blank">📄 查看完整案例 →</a>
+            <a class="case-github" href="k12-knowledge-graph.md" target="_blank">📄 查看完整案例 →</a>
         </div>
     </div>
 </section>
@@ -674,6 +1032,57 @@
     <p>本质工坊不是给你一个工具，而是给你制造工具的能力。把你的方法论蒸馏成AI Skill，让认知能力可复用、可进化、可分享。</p>
     <a href="https://github.com/zh2673-git/essence-workshop" class="cta-btn">GitHub 开源地址 →</a>
 </div>
+
+<script>
+// 体验中心Tab切换
+function switchExpTab(idx) {
+    document.querySelectorAll('.exp-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+    document.querySelectorAll('.exp-panel').forEach((p,i) => p.classList.toggle('active', i===idx));
+}
+
+// PI-Agent迭代数据（来自真实results.tsv）
+const iterData = [
+    {title:'v1: 最小Agent验证 — 3/3 通过', change:'minimal profile (read+bash) + Ollama原生API + 总结轮兜底', finding:'模型先尝试ls失败后自动切换到python -c — 错误恢复能力好；发现必须用Ollama原生API（think=False）', test:'3/3 通过', ratchet:'P✅ Q✅ I✅ → 保留'},
+    {title:'v2: standard profile — 4/4 通过', change:'增加write工具（read+write+bash三工具）', finding:'write工具调用精确，参数正确；验证渐进式工具暴露策略有效；回归测试v1的3个用例仍通过', test:'4/4 通过', ratchet:'P✅ Q✅ I✅ → 保留'},
+    {title:'v3: full profile + edit模糊匹配 — 4/4 通过', change:'增加edit工具 + 三级匹配策略（精确→去空白→单行模糊）', finding:'edit对小模型最难——Windows换行符和缩进不匹配；三级匹配使edit成功率从0%到100%；容错性比精确性更重要', test:'4/4 通过', ratchet:'P✅ Q✅ I✅ → 保留'},
+    {title:'v4: 模型对比 — 8/8 通过', change:'qwen3.5:4b vs qwen3.5:9b 对比测试', finding:'意外：4b模型(205s)比9b(360s)更快！9b生成更长thinking内容；推理速度可能比推理深度更重要', test:'8/8 通过', ratchet:'P✅ Q✅ I✅ → 保留'},
+    {title:'v5: 复杂多步任务 — 4/4 通过（需优化）', change:'复杂编码任务（创建模块+使用模块+修复bug+理解代码），4b模型', finding:'4/4通过但耗时913秒；问题：提示词缺少环境说明，模型反复尝试Linux命令（python3/bash/which）', test:'4/4 通过', ratchet:'P✅ Q✅ I✅ → 保留（需优化）'},
+    {title:'v6: Windows兼容性+提示词优化 — 3.5倍加速！', change:'系统提示词增加Windows环境说明 + edit使用指导', finding:'总耗时从913s降到258s，3.5倍加速！环境说明比few-shot更有效——消除信息不对称；edit首次成功', test:'4/4 通过 (258s)', ratchet:'P✅ Q✅ I✅ → 保留'},
+];
+
+function switchIteration(idx) {
+    document.querySelectorAll('.timeline-step').forEach((s,i) => s.classList.toggle('active', i===idx));
+    const d = iterData[idx];
+    document.getElementById('iter-detail').innerHTML = `
+        <h5>${d.title}</h5>
+        <div class="detail-row"><span class="detail-label">改动</span><span class="detail-val">${d.change}</span></div>
+        <div class="detail-row"><span class="detail-label">关键发现</span><span class="detail-val">${d.finding}</span></div>
+        <div class="detail-row"><span class="detail-label">测试</span><span class="detail-val">${d.test}</span></div>
+        <div class="detail-row"><span class="detail-label">Ratchet决策</span><span class="detail-val"><span class="ratchet-badge">${d.ratchet}</span></span></div>
+    `;
+}
+
+// 场景路由Demo
+const routeMap = {
+    '探索量子计算': {scene:'场景A · 知识探索', output:'三阶正向推导（是什么→为什么→怎么做），生成结构化知识笔记'},
+    '拆解杠杆原理': {scene:'场景A2 · K12知识拆解', output:'七维框架拆解，生成交互式HTML+SVG图示+知识图谱（如上方体验）'},
+    '蒸馏芒格思维': {scene:'场景B · 人物蒸馏', output:'从30+来源调研，蒸馏为认知操作系统Skill（如上方体验）'},
+    '开发XX系统': {scene:'场景C · 项目开发', output:'从零构建系统，生成设计文档+可运行代码+迭代计划'},
+    '分析XX项目': {scene:'场景D · 项目解析', output:'逆向分析项目架构，生成Obsidian笔记+双向链接'},
+    '写公众号': {scene:'场景E · 内容输出', output:'6条管线之一，生成微信受限HTML+品牌配图+自动排版'},
+    '优化skill': {scene:'场景F · Skill优化', output:'评估→改进→验证循环，生成评分卡+优化报告'},
+};
+
+function routeDemo(trigger) {
+    const r = routeMap[trigger];
+    document.getElementById('route-result').innerHTML = `
+        <div style="font-family:monospace;color:var(--accent);margin-bottom:0.5rem">用户输入: "${trigger}"</div>
+        <div class="route-arrow">→ 路由Skill识别意图</div>
+        <div class="route-arrow">→ 调度 <span class="route-scene">${r.scene}</span></div>
+        <div class="route-output">输出: ${r.output}</div>
+    `;
+}
+</script>
 
 </body>
 </html>
