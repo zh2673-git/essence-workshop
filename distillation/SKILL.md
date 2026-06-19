@@ -47,3 +47,4 @@ scene: B+B2
 - `output/wangyangming.skill/` — 王阳明
 - `output/xunzi.skill/` — 荀子
 - `output/zhugeliang.skill/` — 诸葛亮
+- `output/zhangxuefeng.skill/` — 张雪峰
