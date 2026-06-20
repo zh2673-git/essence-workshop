@@ -450,16 +450,24 @@ def generate_html(elements_dir, output_dir, brand_spec_path=None, title="课程"
     print("[HTML Pipeline] Done.")
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description="本质工坊 · HTML交互管线")
     parser.add_argument("--elements", required=True, help="元素层目录路径")
     parser.add_argument("--output", required=True, help="输出目录路径")
     parser.add_argument("--brand-spec", default=None, help="品牌规格文件路径")
     parser.add_argument("--title", default="课程", help="课程标题")
     parser.add_argument("--mode", default="scroll", choices=["scroll", "paged"], help="输出模式：scroll=连续滚动, paged=分页课件")
-    args = parser.parse_args()
+    parser.add_argument("--platform", default="browser", choices=["browser", "wechat"],
+                        help="目标平台（默认 browser）")
+    args = parser.parse_args(argv)
 
-    generate_html(args.elements, args.output, args.brand_spec, args.title, args.mode)
+    if args.platform == 'browser':
+        generate_html(args.elements, args.output, args.brand_spec, args.title, args.mode)
+    else:
+        # 通过统一调度器应用平台约束
+        from ..dispatcher import dispatch
+        dispatch('html', args.platform, args.elements, args.output,
+                 title=args.title, brand_spec=args.brand_spec, mode=args.mode)
 
 
 if __name__ == "__main__":

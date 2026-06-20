@@ -182,15 +182,22 @@ def generate_slides(elements_dir, output_dir, title="演示", theme="black"):
     print("[Slides Pipeline] Done.")
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description="本质工坊 · 演示管线（Reveal.js）")
     parser.add_argument("--elements", required=True, help="元素层目录路径")
     parser.add_argument("--output", required=True, help="输出目录路径")
     parser.add_argument("--title", default="演示", help="演示标题")
     parser.add_argument("--theme", default="black", choices=VALID_THEMES, help="Reveal.js 主题")
-    args = parser.parse_args()
+    parser.add_argument("--platform", default="browser", choices=["browser", "reveal"],
+                        help="目标平台（默认 browser）")
+    args = parser.parse_args(argv)
 
-    generate_slides(args.elements, args.output, args.title, args.theme)
+    if args.platform == 'browser':
+        generate_slides(args.elements, args.output, args.title, args.theme)
+    else:
+        from ..dispatcher import dispatch
+        dispatch('slides', args.platform, args.elements, args.output,
+                 title=args.title, theme=args.theme)
 
 
 if __name__ == "__main__":

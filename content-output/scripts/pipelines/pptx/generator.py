@@ -192,7 +192,7 @@ def generate_pptx(elements_dir, output_dir, template_path=None, brand_spec_path=
         generate_pptx_simple(elements_dir, output_dir, template_path, brand_spec_path, title)
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description="本质工坊 · PPT管线")
     parser.add_argument("--elements", required=True, help="元素层目录路径")
     parser.add_argument("--output", required=True, help="输出目录路径")
@@ -201,9 +201,17 @@ def main():
     parser.add_argument("--title", default="演示", help="演示标题")
     parser.add_argument("--mode", default="simple", choices=["simple", "precise"], help="生成模式：simple=python-pptx, precise=html2pptx.js")
     parser.add_argument("--layout", default="LAYOUT_16x9", choices=["LAYOUT_16x9", "LAYOUT_4x3"], help="幻灯片布局（precise模式）")
-    args = parser.parse_args()
+    parser.add_argument("--platform", default="office", choices=["office"],
+                        help="目标平台（默认 office）")
+    args = parser.parse_args(argv)
 
-    generate_pptx(args.elements, args.output, args.template, args.brand_spec, args.title, args.mode, args.layout)
+    if args.platform == 'office':
+        generate_pptx(args.elements, args.output, args.template, args.brand_spec, args.title, args.mode, args.layout)
+    else:
+        from ..dispatcher import dispatch
+        dispatch('pptx', args.platform, args.elements, args.output,
+                 title=args.title, template=args.template, brand_spec=args.brand_spec,
+                 mode=args.mode, layout=args.layout)
 
 
 if __name__ == "__main__":

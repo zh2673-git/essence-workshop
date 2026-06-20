@@ -43,25 +43,25 @@ def _build_theme(colors=None):
             '"PingFang SC","Noto Sans SC",sans-serif;'
             f"font-size:16px;line-height:1.8;color:{c['fg']};"
         ),
-        "h1": f"font-size:22px;font-weight:700;color:{c['accent']};margin:36px 0 16px;line-height:1.4;",
-        "h2": f"font-size:19px;font-weight:600;color:{c['accent']};margin:36px 0 16px;padding-bottom:8px;border-bottom:1px solid {c['border']};",
+        "h1": f"font-size:22px;font-weight:700;color:{c['accent']};margin:36px 0 16px;",
+        "h2": f"font-size:19px;font-weight:600;color:{c['accent']};margin:36px 0 16px;border-bottom:1px solid {c['border']};",
         "h3": f"font-size:17px;font-weight:600;color:{c['accent']};margin:20px 0 12px;",
         "h4": f"font-size:16px;font-weight:600;color:{c['muted']};margin:14px 0 8px;",
-        "p": f"margin:0 0 28px;color:{c['fg']};line-height:1.8;",
-        "blockquote": f"border-left:3px solid {c['accent']};background:{c['bg_alt']};margin:28px 0;padding:16px 20px;border-radius:0 10px 10px 0;color:{c['muted']};",
-        "ul": f"margin:16px 0;padding-left:24px;color:{c['fg']};",
-        "ol": f"margin:16px 0;padding-left:24px;color:{c['fg']};",
-        "li": "margin:8px 0;line-height:1.8;",
-        "strong": f"font-weight:700;background:linear-gradient(to bottom,{c['bg']} 45%,rgba(217,119,87,0.15) 45%);",
-        "em": f"font-style:italic;color:{c['muted']};",
-        "a": f"color:{c['accent']};text-decoration:none;",
-        "hr": f"border:none;border-top:1px solid {c['border']};margin:36px 0;",
-        "code": f"background:{c['bg_code']};color:{c['accent']};padding:2px 6px;border-radius:4px;font-size:0.9em;",
-        "pre": f"background:{c['bg_code']};color:{c['fg']};padding:16px 20px;border-radius:10px;overflow-x:auto;margin:28px 0;",
-        "img": "max-width:100%;height:auto;border-radius:6px;margin:12px 0;",
+        "p": "",
+        "blockquote": f"border-left:3px solid {c['accent']};background:{c['bg_alt']};margin:28px 0;padding:16px 20px;color:{c['muted']};",
+        "ul": "margin:16px 0;padding-left:24px;",
+        "ol": "margin:16px 0;padding-left:24px;",
+        "li": "margin:8px 0;",
+        "strong": f"color:{c['accent']};",
+        "em": "",
+        "a": "",
+        "hr": "",
+        "code": f"color:{c['accent']};",
+        "pre": f"background:{c['bg_code']};padding:16px 20px;border-radius:10px;margin:28px 0;",
+        "img": "max-width:100%;height:auto;margin:12px 0;",
         "table": "width:100%;border-collapse:collapse;margin:20px 0;",
         "th": f"background:{c['bg_code']};font-weight:600;padding:10px 14px;border:1px solid {c['border']};text-align:left;color:{c['accent']};",
-        "td": f"padding:10px 14px;border:1px solid {c['border']};color:{c['fg']};",
+        "td": f"padding:10px 14px;border:1px solid {c['border']};",
     }
 
 
@@ -878,6 +878,10 @@ def convert_markdown(file_path="", markdown="", theme=None,
 
     md_parser = MarkdownIt("default", {"html": True})
     body_html = md_parser.render(md_content)
+
+    # 修复：markdown_it 对段首长文本 **bold** 转换不完整的后处理
+    # 将 HTML 中残留的 **text** 标记转换为 <strong>text</strong>
+    body_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', body_html)
 
     styled_html = apply_inline_styles(body_html, theme, brand_spec_path)
 

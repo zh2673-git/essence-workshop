@@ -46,7 +46,9 @@ scene: E
 
 ## 脚本
 
-- `scripts/pipelines/` — 各管线脚本（html/pptx/slides/video/wechat/notebook）
+- `scripts/pipelines/` — 各形式生成器（html/pptx/slides/video/notebook）
+- `scripts/pipelines/platforms/` — 统一平台适配器（browser/wechat/office/jupyter/reveal/video-channel/bilibili/douyin）
+- `scripts/pipelines/dispatcher.py` — 形式-平台统一调度器
 - `scripts/elements/` — 元素层脚本（brand_extractor/record_gif/svg_to_png）
 - `scripts/shared/` — 跨管线共享（article_fetcher/article_to_video）
 - `scripts/cli.py` — 命令行入口
@@ -62,3 +64,9 @@ scene: E
 ## 实战案例
 
 - [cases/wechat-zh2673.md](../cases/wechat-zh2673.md) — 公众号zh2673自动化运营（场景E+B2，一个月内出现爆款，集中带来用户增长）
+- [cases/video-dsl-ratchet.md](../cases/video-dsl-ratchet.md) — Video DSL 从零到完整视频管线（场景C2+E，6轮 Ratchet Loop，含形式vs平台重构实现）
+- [cases/video-dsl/](../cases/video-dsl/) — Video DSL 迭代计划、测试报告、验收文档归档
+
+## 架构演进
+
+- [docs/form-vs-platform.md](docs/form-vs-platform.md) — 内容输出层重构：将管线拆分为“形式层”与“平台适配层”。视频管线与非视频形式已统一调度（`--form video/html/slides/pptx/notebook --platform ...`），平台适配器全部合并到 `scripts/pipelines/platforms/`。
