@@ -1,7 +1,7 @@
 ---
 name: 内容输出
-description: 多管线发布系统，将内容按风格改写后输出到目标平台
-version: 2.0
+description: 多管线发布系统，将内容按风格改写后输出到目标平台，支持7种输出风格与连载小说子系统
+version: 2.1
 scene: E
 ---
 
@@ -15,6 +15,7 @@ scene: E
 
 - 「写公众号」「做视频」「HTML交互」「做演示」「做PPT」
 - 「做notebook」「生成教学notebook」「教学课件」
+- 「写连载小说」「小说连载」「连载XX」→ 连载小说子系统
 - 其他场景产出后选择输出
 
 ## 执行流程
@@ -38,6 +39,15 @@ scene: E
 - [references/topic-selection.md](references/topic-selection.md) — 选题诊断
 - [references/element-spec.md](references/element-spec.md) — 元素层规格
 
+### 连载小说子系统
+- [serial-fiction/SKILL.md](serial-fiction/SKILL.md) — 连载小说子系统说明
+- [serial-fiction/SF-serial-fiction.md](serial-fiction/SF-serial-fiction.md) — 连载小说工作流
+- [serial-fiction/references/fiction-style-guide.md](serial-fiction/references/fiction-style-guide.md) — 小说风格规范
+- [serial-fiction/references/world-building-guide.md](serial-fiction/references/world-building-guide.md) — 世界观构建方法
+- [serial-fiction/references/character-card-template.md](serial-fiction/references/character-card-template.md) — 人物卡模板
+- [serial-fiction/references/chapter-outline-template.md](serial-fiction/references/chapter-outline-template.md) — 分章大纲模板
+- [serial-fiction/references/series-state-spec.md](serial-fiction/references/series-state-spec.md) — 连载状态规范
+
 ## 模板
 
 - [templates/reveal-template.html](templates/reveal-template.html) — 演示管线模板
@@ -55,11 +65,17 @@ scene: E
 
 ## 输出风格
 
-| 风格 | 说明 |
-|------|------|
-| 论文风格 | 学术论文式严谨输出 |
-| 对话风格 | 通俗易懂的对话体 |
-| 蒸馏Skill风格 | 激活distillation/output/中对应人物Skill，以其视角输出 |
+| 风格 | 说明 | 默认篇幅 |
+|------|------|---------|
+| 论文风格 | 学术论文式严谨输出 | 7000-8000字 |
+| 专栏风格 | 论文的轻量版，观点+案例 | 3000-5000字 |
+| 故事风格 | 用叙事包装知识/案例 | 2500-4500字 |
+| 教程/清单风格 | 步骤清晰，直接可用 | 1500-3000字 |
+| 观点/时评风格 | 立场鲜明，短小犀利 | 1200-2500字 |
+| 对话风格 | 通俗易懂的对话体 | 不定 |
+| 蒸馏Skill风格 | 激活distillation/output/中对应人物Skill，以其视角输出 | 不定 |
+
+> 连载小说作为独立子系统，单章篇幅 2000-4000字，详见 [serial-fiction/SKILL.md](serial-fiction/SKILL.md)。
 
 ## 实战案例
 

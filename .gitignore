@@ -1,5 +1,6 @@
 /output/
 /content-output/output/
+/content-output/serial-fiction/output/
 __pycache__/
 *.pyc
 .DS_Store

@@ -94,7 +94,7 @@ _H2_PATTERN = re.compile(r'^##\s+(.+)\s*$', re.MULTILINE)
 
 def _extract_frontmatter(md):
     match = _FM_PATTERN.match(md)
-    metadata = {"title": "", "author": "", "digest": ""}
+    metadata = {"title": "", "author": "", "digest": "", "style": ""}
     if not match:
         return md, metadata
     body = match.group(1)
@@ -909,6 +909,7 @@ def convert_markdown(file_path="", markdown="", theme=None,
         "title": metadata.get("title", "") or title,
         "author": metadata.get("author", "") or author,
         "digest": metadata.get("digest", "") or digest,
+        "style": metadata.get("style", ""),
     }
 
 
@@ -934,7 +935,7 @@ def inspect_article(file_path):
     readiness = "error" if has_error else ("warning" if has_warning else "ready")
 
     return {
-        "metadata": {"title": title, "author": author, "digest": digest},
+        "metadata": {"title": title, "author": author, "digest": digest, "style": metadata.get("style", "")},
         "readiness": readiness,
         "checks": checks,
     }

@@ -29,6 +29,60 @@ except ImportError:
     from converter import convert_markdown, inspect_article
 
 
+# ─── 风格约束配置 ───────────────────────────────────────────
+# 与 content-output/references/pipeline-wechat.md 保持一致
+# frontmatter 中 style 字段使用英文 key，如 style: column
+
+STYLE_CONSTRAINTS = {
+    "paper":        {"words": (7000, 8000), "images": 7, "png": 6, "gif": 1, "display": "论文风格"},
+    "column":       {"words": (3000, 5000), "images": 5, "png": 4, "gif": 1, "display": "专栏风格"},
+    "story":        {"words": (2500, 4500), "images": 5, "png": 4, "gif": 1, "display": "故事风格"},
+    "tutorial":     {"words": (1500, 3000), "images": 4, "png": 3, "gif": 1, "display": "教程/清单风格"},
+    "opinion":      {"words": (1200, 2500), "images": 3, "png": 2, "gif": 1, "display": "观点/时评风格"},
+    "serial-fiction": {"words": (2000, 4000), "images": 5, "png": 4, "gif": 1, "display": "连载小说风格"},
+    "dialogue":     {"words": (0, 20000), "images": 0, "png": 0, "gif": 0, "display": "对话风格"},
+    "distillation": {"words": (0, 20000), "images": 0, "png": 0, "gif": 0, "display": "蒸馏Skill风格"},
+}
+
+DEFAULT_STYLE = "paper"
+
+
+def _detect_style(md_content):
+    """从 frontmatter 解析 style 字段，未指定则返回默认风格。"""
+    match = re.match(r'^---\s*\n(.*?)\n---\s*\n', md_content, re.DOTALL)
+    if not match:
+        return DEFAULT_STYLE
+    for line in match.group(1).split("\n"):
+        if line.lower().startswith("style:"):
+            style = line.split(":", 1)[1].strip().lower()
+            if style in STYLE_CONSTRAINTS:
+                return style
+            # 兼容中文风格名（如"故事风格"→"story"）
+            mapping = {
+                "论文风格": "paper",
+                "专栏风格": "column",
+                "故事风格": "story",
+                "教程风格": "tutorial",
+                "清单风格": "tutorial",
+                "教程/清单风格": "tutorial",
+                "观点风格": "opinion",
+                "时评风格": "opinion",
+                "观点/时评风格": "opinion",
+                "对话风格": "dialogue",
+                "蒸馏skill风格": "distillation",
+                "连载小说风格": "serial-fiction",
+                "连载小说": "serial-fiction",
+            }
+            if style in mapping:
+                return mapping[style]
+    return DEFAULT_STYLE
+
+
+def _get_style_constraint(style):
+    """获取风格约束，未知风格使用默认值。"""
+    return STYLE_CONSTRAINTS.get(style, STYLE_CONSTRAINTS[DEFAULT_STYLE])
+
+
 # ─── 封面生成 ───────────────────────────────────────────────
 # 封面由大模型生成 SVG，本函数负责查找已有 SVG 并转为 PNG
 
@@ -74,8 +128,11 @@ def generate_cover_png(title, subtitle="", author="", output_path="", elements_d
 
 # ─── 文章检查 ───────────────────────────────────────────────
 
-def check_article(file_path, check_plain_text=True, check_images=True, json_output=False):
-    """只执行质量检查（字数+配图），不转换不推送。"""
+def check_article(file_path, check_plain_text=True, check_images=True, json_output=False, style=None):
+    """只执行质量检查（字数+配图），不转换不推送。
+
+    若未指定 style，自动从文件 frontmatter 解析。
+    """
     file_path = Path(file_path)
     if not file_path.exists():
         print(f"ERROR: 文件不存在: {file_path}")
@@ -84,7 +141,26 @@ def check_article(file_path, check_plain_text=True, check_images=True, json_outp
     md_content = file_path.read_text(encoding="utf-8")
     md_no_frontmatter = re.sub(r'^---.*?---', '', md_content, flags=re.DOTALL).strip()
 
-    result = {"success": True, "plain_text_count": 0, "image_count": 0, "png_count": 0, "gif_count": 0}
+    if style is None:
+        style = _detect_style(md_content)
+    constraint = _get_style_constraint(style)
+    min_words, max_words = constraint["words"]
+    target_images = constraint["images"]
+    target_png = constraint["png"]
+    target_gif = constraint["gif"]
+
+    if not json_output:
+        print(f"检测风格: {constraint['display']} ({style})")
+
+    result = {
+        "success": True,
+        "style": style,
+        "style_display": constraint["display"],
+        "plain_text_count": 0,
+        "image_count": 0,
+        "png_count": 0,
+        "gif_count": 0,
+    }
 
     if check_plain_text:
         md_no_img = re.sub(r'!\[.*?\]\(.*?\)', '', md_no_frontmatter)
@@ -94,13 +170,14 @@ def check_article(file_path, check_plain_text=True, check_images=True, json_outp
         plain_text_count = chinese_chars + english_words
         result["plain_text_count"] = plain_text_count
 
-        if plain_text_count < 7000:
-            print(f"FAIL: 纯文本仅 {plain_text_count} 字，未达 7000 字硬性要求（差 {7000 - plain_text_count} 字）")
+        if min_words > 0 and plain_text_count < min_words:
+            print(f"FAIL: 纯文本仅 {plain_text_count} 字，未达 {constraint['display']} 的 {min_words} 字要求（差 {min_words - plain_text_count} 字）")
             result["success"] = False
-        elif plain_text_count > 8000:
-            print(f"WARN: 纯文本 {plain_text_count} 字，超过 8000 字上限，建议精简")
+        elif max_words > 0 and plain_text_count > max_words:
+            print(f"WARN: 纯文本 {plain_text_count} 字，超过 {constraint['display']} 的 {max_words} 字上限，建议精简")
         else:
-            print(f"PASS: 纯文本 {plain_text_count} 字（目标 7000-8000）")
+            target_label = f"{min_words}-{max_words}" if max_words > 0 else "不限"
+            print(f"PASS: 纯文本 {plain_text_count} 字（目标 {target_label}）")
 
     if check_images:
         img_tags = re.findall(r'!\[.*?\]\(.*?\)', md_no_frontmatter)
@@ -111,17 +188,19 @@ def check_article(file_path, check_plain_text=True, check_images=True, json_outp
         result["png_count"] = png_count
         result["gif_count"] = gif_count
 
-        if total_images < 7:
-            print(f"FAIL: 配图仅 {total_images} 张，未达 7 张硬性要求（6 PNG + 1 GIF）")
+        if target_images > 0 and total_images < target_images:
+            print(f"FAIL: 配图仅 {total_images} 张，未达 {constraint['display']} 的 {target_images} 张要求")
             result["success"] = False
-        if png_count < 6:
-            print(f"FAIL: PNG 配图仅 {png_count} 张，至少需要 6 张 PNG")
+        if target_png > 0 and png_count < target_png:
+            print(f"FAIL: PNG 配图仅 {png_count} 张，{constraint['display']} 至少需要 {target_png} 张 PNG")
             result["success"] = False
-        if gif_count < 1:
-            print(f"FAIL: 缺少 GIF 动图，至少需要 1 张 GIF")
+        if target_gif > 0 and gif_count < target_gif:
+            print(f"FAIL: 缺少 GIF 动图，{constraint['display']} 至少需要 {target_gif} 张 GIF")
             result["success"] = False
-        if result["success"] and total_images >= 7:
+        if result["success"] and target_images > 0:
             print(f"PASS: 配图 {png_count} PNG + {gif_count} GIF = {total_images} 张")
+        elif target_images == 0:
+            print(f"PASS: {constraint['display']} 不强制配图要求")
 
     if json_output:
         print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -143,46 +222,58 @@ def publish(file_path, cover="", title="", author="",
         return {"success": False, "error": f"文件不存在: {file_path}"}
 
     md_content = file_path.read_text(encoding="utf-8")
+    style = _detect_style(md_content)
+    constraint = _get_style_constraint(style)
+    min_words, max_words = constraint["words"]
+    target_images = constraint["images"]
+    target_png = constraint["png"]
+    target_gif = constraint["gif"]
+
+    if not json_output:
+        print(f"检测风格: {constraint['display']} ({style})")
 
     if check_plain_text:
         md_no_frontmatter = re.sub(r'^---.*?---', '', md_content, flags=re.DOTALL).strip()
         md_no_img = re.sub(r'!\[.*?\]\(.*?\)', '', md_no_frontmatter)
-        md_no_md = re.sub(r'[#*>\-|=`~\[\](){}]', '', md_no_img)
+        md_no_md = re.sub(r'[#*>\-|`~\[\](){}]', '', md_no_img)
         chinese_chars = len(re.findall(r'[\u4e00-\u9fff]', md_no_md))
         english_words = len(re.findall(r'[a-zA-Z]+', md_no_md))
         plain_text_count = chinese_chars + english_words
-        if plain_text_count < 7000:
-            print(f"WARNING: 纯文本仅 {plain_text_count} 字，未达 7000 字硬性要求")
+        if min_words > 0 and plain_text_count < min_words:
+            print(f"WARNING: 纯文本仅 {plain_text_count} 字，未达 {constraint['display']} 的 {min_words} 字要求")
             print(f"  可用 --skip-plain-check 跳过检查")
             if not json_output:
-                return {"success": False, "error": f"纯文本仅 {plain_text_count} 字，需 >= 7000 字",
-                        "plain_text_count": plain_text_count}
-        elif plain_text_count > 8000:
-            print(f"WARNING: 纯文本 {plain_text_count} 字，超过 8000 字上限，建议精简")
+                return {"success": False, "error": f"纯文本仅 {plain_text_count} 字，{constraint['display']} 需 >= {min_words} 字",
+                        "plain_text_count": plain_text_count, "style": style}
+        elif max_words > 0 and plain_text_count > max_words:
+            print(f"WARNING: 纯文本 {plain_text_count} 字，超过 {constraint['display']} 的 {max_words} 字上限，建议精简")
 
     if check_images:
         img_tags = re.findall(r'!\[.*?\]\(.*?\)', md_no_frontmatter if check_plain_text else md_content)
         png_count = sum(1 for t in img_tags if '.png' in t.lower())
         gif_count = sum(1 for t in img_tags if '.gif' in t.lower())
         total_images = len(img_tags)
-        if total_images < 7:
-            print(f"WARNING: 配图仅 {total_images} 张，未达 7 张硬性要求（6 PNG + 1 GIF）")
+        if target_images > 0 and total_images < target_images:
+            print(f"WARNING: 配图仅 {total_images} 张，未达 {constraint['display']} 的 {target_images} 张要求")
             if not json_output:
-                return {"success": False, "error": f"配图仅 {total_images} 张，需 7 张（6 PNG + 1 GIF）",
-                        "image_count": total_images, "png_count": png_count, "gif_count": gif_count}
-        if png_count < 6:
-            print(f"WARNING: PNG 配图仅 {png_count} 张，至少需要 6 张 PNG")
+                return {"success": False, "error": f"配图仅 {total_images} 张，{constraint['display']} 需 {target_images} 张",
+                        "image_count": total_images, "png_count": png_count, "gif_count": gif_count, "style": style}
+        if target_png > 0 and png_count < target_png:
+            print(f"WARNING: PNG 配图仅 {png_count} 张，{constraint['display']} 至少需要 {target_png} 张 PNG")
             if not json_output:
-                return {"success": False, "error": f"PNG 配图仅 {png_count} 张，需 >= 6 张 PNG",
-                        "image_count": total_images, "png_count": png_count, "gif_count": gif_count}
-        if gif_count < 1:
-            print(f"WARNING: 缺少 GIF 动图，至少需要 1 张 GIF")
+                return {"success": False, "error": f"PNG 配图仅 {png_count} 张，{constraint['display']} 需 >= {target_png} 张",
+                        "image_count": total_images, "png_count": png_count, "gif_count": gif_count, "style": style}
+        if target_gif > 0 and gif_count < target_gif:
+            print(f"WARNING: 缺少 GIF 动图，{constraint['display']} 至少需要 {target_gif} 张 GIF")
             if not json_output:
-                return {"success": False, "error": "缺少 GIF 动图，至少需要 1 张 GIF",
-                        "image_count": total_images, "png_count": png_count, "gif_count": gif_count}
-        if png_count > 6 or gif_count > 1:
-            print(f"INFO: 配图超出限制（{png_count} PNG + {gif_count} GIF），将截断为 6 PNG + 1 GIF")
-        print(f"  配图检查通过: {png_count} PNG + {gif_count} GIF = {total_images} 张")
+                return {"success": False, "error": f"{constraint['display']} 缺少 GIF 动图，需 >= {target_gif} 张",
+                        "image_count": total_images, "png_count": png_count, "gif_count": gif_count, "style": style}
+        if target_png > 0 and target_gif > 0 and (png_count > target_png or gif_count > target_gif):
+            print(f"INFO: 配图超出 {constraint['display']} 限制（{png_count} PNG + {gif_count} GIF），将截断为 {target_png} PNG + {target_gif} GIF")
+        if target_images > 0:
+            print(f"  配图检查通过: {png_count} PNG + {gif_count} GIF = {total_images} 张")
+        else:
+            print(f"  {constraint['display']} 不强制配图要求")
 
     result = convert_markdown(
         file_path=str(file_path),
