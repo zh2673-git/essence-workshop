@@ -17,6 +17,10 @@ class PlatformConstraint(TypedDict, total=False):
     forbidden_tags: list[str]
     image_hosting: str
     file_extension: str
+    inline_svg: bool
+    wiki_links: bool
+    callouts: bool
+    attachment_dir: str
 
 
 DEFAULT_CONSTRAINTS: dict[str, PlatformConstraint] = {
@@ -63,6 +67,16 @@ DEFAULT_CONSTRAINTS: dict[str, PlatformConstraint] = {
         'forbidden_tags': [],
         'image_hosting': 'inline',
         'file_extension': '.ipynb',
+    },
+    'markdown': {
+        'description': 'Markdown',
+        'max_width': None,
+        'max_height': None,
+        'inline_svg': True,
+        'wiki_links': False,
+        'callouts': False,
+        'attachment_dir': 'assets',
+        'file_extension': '.md',
     },
 }
 

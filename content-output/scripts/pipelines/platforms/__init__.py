@@ -10,6 +10,7 @@ from .wechat import WechatAdapter
 from .office import OfficeAdapter
 from .jupyter import JupyterAdapter
 from .reveal import RevealAdapter
+from .obsidian import ObsidianAdapter
 from .video_channel import VideoChannelAdapter
 from .bilibili import BilibiliAdapter
 from .douyin import DouyinAdapter
@@ -20,6 +21,7 @@ ADAPTERS = {
     'office': OfficeAdapter,
     'jupyter': JupyterAdapter,
     'reveal': RevealAdapter,
+    'obsidian': ObsidianAdapter,
     'video-channel': VideoChannelAdapter,
     'bilibili': BilibiliAdapter,
     'douyin': DouyinAdapter,

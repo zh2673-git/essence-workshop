@@ -46,8 +46,8 @@ scene: E
 
 ## 脚本
 
-- `scripts/pipelines/` — 各形式生成器（html/pptx/slides/video/notebook）
-- `scripts/pipelines/platforms/` — 统一平台适配器（browser/wechat/office/jupyter/reveal/video-channel/bilibili/douyin）
+- `scripts/pipelines/` — 各形式生成器（html/pptx/slides/video/notebook/markdown）
+- `scripts/pipelines/platforms/` — 统一平台适配器（browser/wechat/office/jupyter/reveal/obsidian/video-channel/bilibili/douyin）
 - `scripts/pipelines/dispatcher.py` — 形式-平台统一调度器
 - `scripts/elements/` — 元素层脚本（brand_extractor/record_gif/svg_to_png）
 - `scripts/shared/` — 跨管线共享（article_fetcher/article_to_video）

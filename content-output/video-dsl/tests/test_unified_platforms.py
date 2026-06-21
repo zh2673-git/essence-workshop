@@ -16,6 +16,7 @@ from platforms.wechat import WechatAdapter
 from platforms.office import OfficeAdapter
 from platforms.jupyter import JupyterAdapter
 from platforms.reveal import RevealAdapter
+from platforms.obsidian import ObsidianAdapter
 
 
 class TestUnifiedPlatforms(unittest.TestCase):
@@ -26,8 +27,10 @@ class TestUnifiedPlatforms(unittest.TestCase):
         self.assertIn('office', platforms)
         self.assertIn('jupyter', platforms)
         self.assertIn('reveal', platforms)
+        self.assertIn('obsidian', platforms)
 
     def test_supported_platforms(self):
+        self.assertIn('obsidian', supported_platforms_for_form('markdown'))
         self.assertIn('browser', supported_platforms_for_form('html'))
         self.assertIn('wechat', supported_platforms_for_form('html'))
         self.assertIn('browser', supported_platforms_for_form('slides'))
@@ -64,6 +67,14 @@ class TestUnifiedPlatforms(unittest.TestCase):
         adapter = RevealAdapter()
         options = adapter.apply('slides', {})
         self.assertEqual(options['_platform'], 'reveal')
+
+    def test_obsidian_adapter(self):
+        adapter = ObsidianAdapter()
+        options = adapter.apply('markdown', {})
+        self.assertEqual(options['_platform'], 'obsidian')
+        constraint = adapter.get_constraint('markdown')
+        self.assertTrue(constraint['wiki_links'])
+        self.assertFalse(constraint['inline_svg'])
 
     def test_get_adapter_unknown(self):
         with self.assertRaises(ValueError):

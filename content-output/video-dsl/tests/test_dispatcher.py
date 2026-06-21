@@ -56,6 +56,12 @@ class TestDispatcher(unittest.TestCase):
         self.assertTrue(os.path.exists(path))
         self.assertTrue(path.endswith('index.html'))
 
+    def test_dispatch_markdown(self):
+        output_dir = os.path.join(self.tmpdir.name, 'out-md')
+        path = dispatch('markdown', 'obsidian', self.elements_dir, output_dir, title='Test')
+        self.assertTrue(os.path.exists(path))
+        self.assertTrue(path.endswith('index.md'))
+
 
 if __name__ == '__main__':
     unittest.main()

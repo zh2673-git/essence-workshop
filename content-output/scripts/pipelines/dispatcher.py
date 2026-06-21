@@ -90,6 +90,25 @@ def route_pptx(elements_dir: str, output_dir: str, platform: str, **kwargs):
     return os.path.join(output_dir, 'output.pptx')
 
 
+def route_markdown(elements_dir: str, output_dir: str, platform: str, **kwargs):
+    generator = _load_module_by_path('markdown_generator', _module_path('markdown/generator.py'))
+    options = apply_platform(platform, 'markdown', {
+        'elements_dir': elements_dir,
+        'output_dir': output_dir,
+        'title': kwargs.get('title', ''),
+        'platform': platform,
+        'attachment_dir': kwargs.get('attachment_dir', 'assets'),
+    })
+    generator.generate_markdown(
+        elements_dir=options['elements_dir'],
+        output_dir=options['output_dir'],
+        title=options.get('title', ''),
+        platform=options.get('platform', 'obsidian'),
+        attachment_dir=options.get('attachment_dir', 'assets'),
+    )
+    return os.path.join(output_dir, 'index.md')
+
+
 def route_notebook(elements_dir: str, output_dir: str, platform: str, **kwargs):
     options = apply_platform(platform, 'notebook', {
         'elements_dir': elements_dir,
@@ -132,6 +151,8 @@ def dispatch(form: str, platform: str, elements_dir: str = '', output_dir: str =
         return route_slides(elements_dir, output_dir, platform, **kwargs)
     elif form == 'pptx':
         return route_pptx(elements_dir, output_dir, platform, **kwargs)
+    elif form == 'markdown':
+        return route_markdown(elements_dir, output_dir, platform, **kwargs)
     elif form == 'notebook':
         return route_notebook(elements_dir, output_dir, platform, **kwargs)
     else:
@@ -141,10 +162,10 @@ def dispatch(form: str, platform: str, elements_dir: str = '', output_dir: str =
 def main(argv=None):
     parser = argparse.ArgumentParser(description='本质工坊 · 内容输出统一调度器')
     parser.add_argument('--form', required=True,
-                        choices=['html', 'slides', 'pptx', 'notebook'],
+                        choices=['html', 'slides', 'pptx', 'markdown', 'notebook'],
                         help='内容形式')
     parser.add_argument('--platform', required=True,
-                        choices=['browser', 'wechat', 'office', 'jupyter', 'reveal'],
+                        choices=['browser', 'wechat', 'office', 'jupyter', 'reveal', 'obsidian'],
                         help='目标平台')
     parser.add_argument('--elements', required=True, help='元素层目录路径')
     parser.add_argument('--output', required=True, help='输出目录路径')
