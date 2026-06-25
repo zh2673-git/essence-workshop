@@ -104,7 +104,7 @@ E2(连载小说) → 每章需要一个概念内核 → G(概念寓言化)
 | 教程/清单风格 | 步骤清晰，直接可用 | 1500-3000字 |
 | 观点/时评风格 | 立场鲜明，短小犀利 | 1200-2500字 |
 | 对话风格 | Q&A结构，播客文字版 | 不定 |
-| 蒸馏Skill风格 | 激活distillation/output/中对应人物Skill，以其视角输出 | 不定 |
+| 蒸馏Skill风格 | 激活distillation/output/中对应人物Skill或领域框架Skill，以其视角输出 | 不定 |
 | 连载小说风格 | 章节化叙事，悬念驱动 | 2000-4000字/章 |
 
 ---
@@ -153,7 +153,7 @@ essence-workshop/                    # 路由Skill（本文件）
 │   ├── B2-topic-distillation.md     # 话题蒸馏工作流
 │   ├── references/                  # 蒸馏方法论+材料验证
 │   ├── templates/                   # 蒸馏Skill模板
-│   └── output/                      # 蒸馏实例（11个已蒸馏Skill）
+│   └── output/                          # 蒸馏实例（12个已蒸馏Skill）
 │
 ├── project-dev/                     # C: 项目开发
 │   ├── SKILL.md

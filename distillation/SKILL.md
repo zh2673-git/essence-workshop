@@ -48,3 +48,4 @@ scene: B+B2
 - `output/xunzi.skill/` — 荀子
 - `output/zhugeliang.skill/` — 诸葛亮
 - `output/zhangxuefeng.skill/` — 张雪峰
+- `output/law-application.skill/` — 法条适用认知框架

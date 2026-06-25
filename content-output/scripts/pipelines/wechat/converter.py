@@ -57,7 +57,7 @@ def _build_theme(colors=None):
         "a": "",
         "hr": "",
         "code": f"color:{c['accent']};",
-        "pre": f"background:{c['bg_code']};padding:16px 20px;border-radius:10px;margin:28px 0;",
+        "pre": f"background:{c['bg_code']};padding:16px 20px;border-radius:10px;margin:28px 0;white-space:pre-wrap;word-break:break-all;overflow-wrap:break-word;max-width:100%;box-sizing:border-box;",
         "img": "max-width:100%;height:auto;margin:12px 0;",
         "table": "width:100%;border-collapse:collapse;margin:20px 0;",
         "th": f"background:{c['bg_code']};font-weight:600;padding:10px 14px;border:1px solid {c['border']};text-align:left;color:{c['accent']};",
