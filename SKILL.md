@@ -2,12 +2,12 @@
 name: 本质工坊
 description: |
   认知→元素→管线→平台 富媒体交付系统。
-  联邦式架构：7个独立子Skill + 1个路由Skill，每个子Skill自包含（references+templates+scripts），可独立使用也可统一调度。
+  联邦式架构：8个独立子Skill + 1个路由Skill，每个子Skill自包含（references+templates+scripts），可独立使用也可统一调度。
   基于三阶方法论（是什么-为什么-怎么做）和类-属性-方法-路由模型，融合坡度理解渐进式认知方法。
-  支持9大场景：知识探索、K12知识拆解、人物蒸馏、项目开发、项目解析、内容输出、连载小说、概念寓言化、Skill优化。
+  支持10大场景：知识探索、K12知识拆解、人物蒸馏、项目开发、项目解析、内容输出、白板录制、连载小说、概念寓言化、Skill优化。
   三层交付架构：元素层（原子资产）→ 管线层（按平台约束组装）→ 平台层（交付成品）。
-  6条管线：公众号管线、视频号管线、HTML交互管线、演示管线、PPT管线、Notebook管线。
-  触发词：「探索XX」「拆解XX」「蒸馏XX」「开发XX」「分析XX」「写公众号」「做视频」「做PPT」「HTML交互」「做notebook」「写连载小说」「小说连载」「用寓言讲XX」「XX寓言化」「优化skill」「达尔文」「darwin」。
+  7条管线：公众号管线、视频号管线、HTML交互管线、演示管线、PPT管线、Notebook管线、白板录制管线。
+  触发词：「探索XX」「拆解XX」「蒸馏XX」「开发XX」「分析XX」「写公众号」「做视频」「做PPT」「HTML交互」「做notebook」「白板录制」「录白板」「白板讲解」「写连载小说」「小说连载」「用寓言讲XX」「XX寓言化」「优化skill」「达尔文」「darwin」。
 ---
 
 # 本质工坊 · 场景路由
@@ -40,6 +40,7 @@ description: |
 | **C2: 迭代开发** | 「迭代开发XX」「从0到1构建XX并迭代」「构建agent」 | [project-dev/iterative-loop.md](project-dev/iterative-loop.md) | Ratchet Loop闭环迭代，方案→执行→测试→评估→保留/回退 |
 | **D: 项目解析** | 「分析XX项目」「拆解XX代码」 | [project-analysis/](project-analysis/SKILL.md) | 逆向分析现有项目 |
 | **E: 内容输出** | 「写公众号」「做视频」「做PPT」「HTML交互」「做notebook」 | [content-output/](content-output/SKILL.md) | 多管线发布（6条管线+7种风格） |
+| **E3: 白板录制** | 「白板录制」「录白板」「白板讲解」「做白板视频」「AI画白板」 | [whiteboard-recorder/](whiteboard-recorder/SKILL.md) | 无限画布AI白板生成+镜头自动跟随+提词器+录制 |
 | **E2: 连载小说** | 「写连载小说」「小说连载」「连载XX」 | [content-output/serial-fiction/](content-output/serial-fiction/SKILL.md) | 多章节叙事系统，世界观→人物→大纲→分章→连载管理 |
 | **G: 概念寓言化** | 「用寓言讲XX」「XX寓言化」「给XX编个故事」「坡度寓言XX」 | [fable-concept/](fable-concept/SKILL.md) | 概念→寓言故事，承担坡度理解"阶段2建立联系"，可被A/A2/B/E/E2调用 |
 | **F: Skill优化** | 「优化skill」「达尔文」「darwin」 | [skill-optimization/](skill-optimization/SKILL.md) | 评估→改进→验证循环 |
@@ -83,15 +84,15 @@ E2(连载小说) → 每章需要一个概念内核 → G(概念寓言化)
 └────────┘ └────────┘ └────────┘ └────────┘ └────────┘
          ↓
 管线层（Pipeline）—— 按平台约束组装
-┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
-│公众号  │ │视频号  │ │HTML交互│ │ 演示   │ │  PPT   │ │Notebook│
-└───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘
-    ↓          ↓          ↓          ↓          ↓          ↓
+┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
+│公众号  │ │视频号  │ │HTML交互│ │ 演示   │ │  PPT   │ │Notebook│ │白板录制│
+└───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘
+    ↓          ↓          ↓          ↓          ↓          ↓          ↓
 平台层（Platform）—— 交付成品
-┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
-│微信公众号│ │视频号  │ │浏览器  │ │Reveal  │ │PPT/WPS │ │Jupyter │
-│受限HTML │ │MP4     │ │HTML交互│ │.js演示 │ │.pptx   │ │.ipynb  │
-└────────┘ └────────┘ └────────┘ └────────┘ └────────┘ └────────┘
+┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
+│微信公众号│ │视频号  │ │浏览器  │ │Reveal  │ │PPT/WPS │ │Jupyter │ │白板MP4 │
+│受限HTML │ │MP4     │ │HTML交互│ │.js演示 │ │.pptx   │ │.ipynb  │ │+源文件 │
+└────────┘ └────────┘ └────────┘ └────────┘ └────────┘ └────────┘ └────────┘
 ```
 
 ### 输出风格
@@ -180,6 +181,11 @@ essence-workshop/                    # 路由Skill（本文件）
 │       ├── SF-serial-fiction.md     # 工作流
 │       ├── references/              # 小说规范+模板说明
 │       └── templates/               # 世界观/人物/章节模板
+│
+├── whiteboard-recorder/             # E3: 白板录制
+│   ├── SKILL.md
+│   ├── references/                  # Excalidraw元素规范+AI Prompt指南
+│   └── scripts/                     # AI白板生成脚本
 │
 ├── skill-optimization/              # F: Skill优化
 │   ├── SKILL.md
