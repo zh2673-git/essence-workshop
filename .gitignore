@@ -4,8 +4,7 @@
 /content-output/serial-fiction/output/
 whiteboard-recorder/output/
 whiteboard-recorder/webapp/dist/
-*/output/
-**/output/
+# 注意：distillation/output/ 下的蒸馏产物需要推送，不忽略
 
 # Python缓存
 __pycache__/
