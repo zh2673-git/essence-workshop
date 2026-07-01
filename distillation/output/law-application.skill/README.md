@@ -47,8 +47,9 @@ law-application.skill/
     │   ├── defense-and-validity-review/  # 抗辩与效力检视
     │   └── fallback-application/     # 兜底适用
     │
-    └── 辅助原子技能（3 个）
+    └── 辅助原子技能（4 个）
         ├── case-retrieval/           # 案例检索
+        ├── evidence-discovery/       # 证据发现（新增）
         ├── evidence-evaluation/      # 证据评估
         └── legal-consequence-calculation/  # 法律后果量化计算
 ```
@@ -147,10 +148,10 @@ fact-trimming
 | 结构 | 单一 mega-skill | 总 skill + 原子 skill 族 + 复合编排器 |
 | 支撑材料 | 内嵌于 skill 目录 | 统一 `references/` |
 | 可调用性 | 8 个框架内嵌，无法单独调用 | 每个原子 skill 可独立调用 |
-| 编排 | 无明确编排层 | 有 `skills/orchestrator` 标准调用链与 QC |
+| 编排 | 无 | 有 `skills/orchestrator` 标准调用链与 QC |
 | 检索策略 | 倾向绑定北大法宝 MCP | MCP 优先，模型/Agent 联网搜索兜底 |
+| 证据法 | 缺失 | 新增 `evidence-discovery`：从要件到取证材料的反向映射 + `evidence-evaluation` |
 | 请求权检视 | 一般性描述 | 九阶请求权检视 |
-| 证据法 | 缺失 | 有 `skills/evidence-evaluation` |
 | 案例检索 | 薄弱 | 有 `skills/case-retrieval` |
 | 量化计算 | 缺失 | 有 `skills/legal-consequence-calculation` |
 | 输入/输出模板 | 较少 | 每个 skill 都有结构化模板 |

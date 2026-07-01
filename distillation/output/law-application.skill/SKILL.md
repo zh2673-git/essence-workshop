@@ -6,8 +6,10 @@ description: |
   - 分析具体事件的法律关系与法律后果；
   - 检索并适用法律规范；
   - 进行涵摄、冲突裁决、法律解释、抗辩检视；
+  - 把法律要件转化为可取得的证据材料并评估证明力；
   - 生成端到端的法条适用分析报告。
-  本技能内部由 1 个复合编排器、8 个核心原子 skill 和 3 个辅助原子 skill 组成。
+  触发词包括：「法条适用」「法律关系」「涵摄」「怎么证明」「需要什么证据」「去哪里查」「找哪个部门」「材料怎么取」。
+  本技能内部由 1 个复合编排器、8 个核心原子 skill 和 4 个辅助原子 skill 组成。
   默认入口为 `skills/orchestrator/SKILL.md`，负责按标准流程调度原子 skill。
   边界：不构成法律意见，不替代执业律师；重大、复杂或涉及人身自由的案件必须建议咨询执业法律专业人员。
 ---
@@ -73,6 +75,7 @@ law-application.skill/
 | 审查抗辩与效力 | `skills/defense-and-validity-review` |
 | 穷尽具体规则后兜底 | `skills/fallback-application` |
 | 检索类案 | `skills/case-retrieval` |
+| 推导取证方案 | `skills/evidence-discovery` |
 | 评估证据 | `skills/evidence-evaluation` |
 | 计算赔偿/刑期/处罚 | `skills/legal-consequence-calculation` |
 
@@ -86,13 +89,14 @@ law-application.skill/
 fact-trimming
   → legal-relationship-typing
   → norm-retrieval
-  → [case-retrieval]
+  → case-retrieval
   → subsumption
-  → [legal-interpretation]
-  → [conflict-resolution]
+  → evidence-discovery
+  → legal-interpretation
+  → conflict-resolution
   → defense-and-validity-review
-  → [legal-consequence-calculation]
-  → [fallback-application]
+  → legal-consequence-calculation
+  → fallback-application
 ```
 
 每个阶段均设有质量检查点（QC），未通过则回溯至前序阶段。
