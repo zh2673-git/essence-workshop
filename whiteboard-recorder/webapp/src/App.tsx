@@ -8,6 +8,7 @@ import { TeleprompterPanel } from './components/TeleprompterPanel';
 import { WebcamDragHandle } from './components/WebcamDragHandle';
 import { ContentImporter } from './components/ContentImporter';
 import { SceneNavigator } from './components/SceneNavigator';
+import { WorkSelector } from './components/WorkSelector';
 import { CompositionRenderer } from './modules/CompositionRenderer';
 import { MediaCapture } from './modules/MediaCapture';
 import { WebcamModule } from './modules/WebcamModule';
@@ -51,35 +52,44 @@ function App() {
   const [countdownActive, setCountdownActive] = useState(false);
   const [renderScale, setRenderScale] = useState(1);
   const [autoLoaded, setAutoLoaded] = useState(false);
+  const [selectedWorkId, setSelectedWorkId] = useState<string | null>(null);
   const whiteboardCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const excalidrawAPIRef = useRef<ExcalidrawImperativeAPI | null>(null);
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const workParam = urlParams.get('work');
+    if (workParam) {
+      setSelectedWorkId(workParam);
+    }
+  }, []);
+
+  const loadWorkProject = useCallback((api: ExcalidrawImperativeAPI, workId: string) => {
+    fetch(`/api/works/${encodeURIComponent(workId)}`)
+      .then(res => {
+        if (res.ok) return res.json();
+        throw new Error('Failed to load work');
+      })
+      .then((project: WhiteboardProject) => {
+        useAppStore.getState().loadWhiteboardProject(project);
+        sceneManager.setExcalidrawAPI(api);
+        sceneManager.loadProject(project);
+        if (project.scenes.length > 0) {
+          useAppStore.getState().setSceneTeleprompter(project.scenes[0]);
+        }
+        setAutoLoaded(true);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : '加载作品失败');
+      });
+  }, [setError]);
+
   const handleExcalidrawReady = useCallback((api: ExcalidrawImperativeAPI | null) => {
     excalidrawAPIRef.current = api;
-    if (api && !autoLoaded) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const autoLoad = urlParams.get('autoload');
-      if (autoLoad !== 'false') {
-        fetch('/generated-project.json')
-          .then(res => {
-            if (res.ok) return res.json();
-            throw new Error('No auto-load project found');
-          })
-          .then((project: WhiteboardProject) => {
-            useAppStore.getState().loadWhiteboardProject(project);
-            sceneManager.setExcalidrawAPI(api);
-            sceneManager.loadProject(project);
-            if (project.scenes.length > 0) {
-              useAppStore.getState().setSceneTeleprompter(project.scenes[0]);
-            }
-            setAutoLoaded(true);
-          })
-          .catch(() => {
-            // No auto project, that's fine
-          });
-      }
+    if (api && !autoLoaded && selectedWorkId) {
+      loadWorkProject(api, selectedWorkId);
     }
-  }, [autoLoaded]);
+  }, [autoLoaded, selectedWorkId, loadWorkProject]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -362,8 +372,16 @@ function App() {
 
   const resolution = RESOLUTION_MAP[recording.resolution];
 
+  const handleSelectWork = useCallback((workId: string) => {
+    setSelectedWorkId(workId);
+    if (excalidrawAPIRef.current) {
+      loadWorkProject(excalidrawAPIRef.current, workId);
+    }
+  }, [loadWorkProject]);
+
   return (
     <div className="w-full h-full relative bg-gray-100 overflow-hidden">
+      {!selectedWorkId && !autoLoaded && <WorkSelector onSelect={handleSelectWork} />}
       <div ref={containerRef} className="absolute inset-0 flex items-center justify-center">
         <div
           ref={recordingAreaRef}

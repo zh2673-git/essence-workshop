@@ -301,15 +301,13 @@ def export_whiteboard_project(result: dict, output_path: str):
 def main():
     parser = argparse.ArgumentParser(description="本质工坊 · AI白板内容生成器")
     parser.add_argument("source", help="输入源：本地Markdown文件路径 / 公众号URL / 纯文本")
-    parser.add_argument("--output", "-o", default="./whiteboard-output", help="输出目录")
+    parser.add_argument("--output", "-o", default=None, help="输出目录（默认：whiteboard-recorder/output/<作品名>/）")
     parser.add_argument("--title", "-t", default=None, help="自定义标题（可选）")
     parser.add_argument("--api-key", default=None, help="LLM API Key")
     parser.add_argument("--model", default="ep-20241203203426-7hr9v", help="模型名称")
     parser.add_argument("--api-base", default=None, help="API Base URL")
     
     args = parser.parse_args()
-    
-    os.makedirs(args.output, exist_ok=True)
     
     content_data = fetch_content(args.source)
     title = args.title or content_data["title"]
@@ -321,9 +319,13 @@ def main():
     result = generate_with_ai(content, title, args.api_key, args.model, args.api_base)
     
     base_name = re.sub(r'[^\w\u4e00-\u9fff]+', '_', title)[:50]
-    excalidraw_path = os.path.join(args.output, f"{base_name}.excalidraw")
-    project_path = os.path.join(args.output, f"{base_name}.whiteboard.json")
-    script_path = os.path.join(args.output, f"{base_name}-提词器.md")
+    skill_dir = Path(__file__).resolve().parent.parent
+    output_dir = args.output or os.path.join(skill_dir, "output", base_name)
+    os.makedirs(output_dir, exist_ok=True)
+    
+    excalidraw_path = os.path.join(output_dir, f"{base_name}.excalidraw")
+    project_path = os.path.join(output_dir, f"{base_name}.whiteboard.json")
+    script_path = os.path.join(output_dir, f"{base_name}-提词器.md")
     
     export_excalidraw_file(result, excalidraw_path)
     export_whiteboard_project(result, project_path)
