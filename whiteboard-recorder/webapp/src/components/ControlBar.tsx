@@ -1,4 +1,4 @@
-import { Play, Pause, Square, Settings as SettingsIcon, Video, VideoOff, Mic, MicOff, MousePointer, MousePointerClick, FileText } from 'lucide-react';
+import { Play, Pause, Square, Settings as SettingsIcon, Video, VideoOff, Mic, MicOff, MousePointer, MousePointerClick, FileText, Hand } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { formatDuration } from '../utils/mediaUtils';
 
@@ -20,10 +20,12 @@ export function ControlBar({
     elapsedTime,
     webcam,
     cursor,
+    gesture,
     teleprompter,
     recording,
     updateWebcamSettings,
     updateCursorSettings,
+    updateGestureSettings,
     updateTeleprompterSettings,
     updateRecordingSettings,
     toggleSettings,
@@ -102,6 +104,18 @@ export function ControlBar({
           title={teleprompter.enabled ? '关闭提词器' : '开启提词器'}
         >
           <FileText className="w-5 h-5" />
+        </button>
+
+        <button
+          onClick={() => updateGestureSettings({ enabled: !gesture.enabled })}
+          className={`p-3 rounded-xl transition-colors ${
+            gesture.enabled
+              ? 'bg-cyan-100 text-cyan-600 hover:bg-cyan-200'
+              : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+          }`}
+          title={gesture.enabled ? '关闭手势控制' : '开启手势控制'}
+        >
+          <Hand className="w-5 h-5" />
         </button>
 
         <div className="w-px h-8 bg-gray-200" />

@@ -1,4 +1,5 @@
 import type { Bounds } from '../types';
+import type { HandGestureModule } from './HandGestureModule';
 
 export class WebcamModule {
   private canvas: HTMLCanvasElement;
@@ -7,6 +8,8 @@ export class WebcamModule {
   private rafId: number | null = null;
   private running = false;
   private filter: 'none' | 'soften' | 'grayscale' = 'none';
+  private gestureEnabled = false;
+  private handGestureModule: HandGestureModule | null = null;
 
   private bounds: Bounds = { x: 0, y: 0, width: 320, height: 240 };
 
@@ -16,6 +19,11 @@ export class WebcamModule {
     this.videoElement = videoElement;
     this.canvas.width = 320;
     this.canvas.height = 240;
+  }
+
+  setGestureMode(enabled: boolean, module: HandGestureModule | null): void {
+    this.gestureEnabled = enabled;
+    this.handGestureModule = module;
   }
 
   setBounds(bounds: Bounds): void {
@@ -82,6 +90,10 @@ export class WebcamModule {
         const drawX = (width - drawWidth) / 2;
         const drawY = (height - drawHeight) / 2;
         ctx.drawImage(videoElement, drawX, drawY, drawWidth, drawHeight);
+
+        if (this.gestureEnabled) {
+          this.drawLandmarks(drawX, drawY, drawWidth, drawHeight);
+        }
       }
 
       ctx.restore();
@@ -89,6 +101,38 @@ export class WebcamModule {
 
     this.rafId = requestAnimationFrame(this.render);
   };
+
+  private drawLandmarks(drawX: number, drawY: number, drawWidth: number, drawHeight: number): void {
+    const landmarks = this.handGestureModule?.getCurrentLandmarks();
+    if (!landmarks || landmarks.length === 0) return;
+
+    const { ctx } = this;
+
+    ctx.save();
+    ctx.filter = 'none';
+
+    for (let i = 0; i < landmarks.length; i++) {
+      const p = landmarks[i];
+      const x = drawX + p.x * drawWidth;
+      const y = drawY + p.y * drawHeight;
+      const isIndexTip = i === 8;
+
+      ctx.beginPath();
+      ctx.arc(x, y, isIndexTip ? 5 : 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = isIndexTip ? '#ef4444' : '#4ade80';
+      ctx.fill();
+
+      if (isIndexTip) {
+        ctx.beginPath();
+        ctx.arc(x, y, 10, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
+  }
 
   destroy(): void {
     this.stop();

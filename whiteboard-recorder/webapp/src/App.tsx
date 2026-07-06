@@ -12,6 +12,7 @@ import { WorkSelector } from './components/WorkSelector';
 import { CompositionRenderer } from './modules/CompositionRenderer';
 import { MediaCapture } from './modules/MediaCapture';
 import { WebcamModule } from './modules/WebcamModule';
+import { HandGestureModule } from './modules/HandGestureModule';
 import { CursorEffects } from './modules/CursorEffects';
 import { RecordingController } from './modules/RecordingController';
 import { sceneManager } from './modules/SceneManager';
@@ -26,12 +27,15 @@ function App() {
     status,
     webcam,
     cursor,
+    gesture,
     recording,
     setStatus,
     setElapsedTime,
     setRecordedBlob,
     setRecordedUrl,
     setError,
+    updateWebcamSettings,
+    updateGestureSettings,
   } = useAppStore();
 
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -46,6 +50,7 @@ function App() {
   const recordingRendererRef = useRef<CompositionRenderer | null>(null);
   const mediaCaptureRef = useRef<MediaCapture | null>(null);
   const webcamModuleRef = useRef<WebcamModule | null>(null);
+  const handGestureModuleRef = useRef<HandGestureModule | null>(null);
   const cursorEffectsRef = useRef<CursorEffects | null>(null);
   const recordingControllerRef = useRef<RecordingController | null>(null);
 
@@ -53,6 +58,10 @@ function App() {
   const [renderScale, setRenderScale] = useState(1);
   const [autoLoaded, setAutoLoaded] = useState(false);
   const [selectedWorkId, setSelectedWorkId] = useState<string | null>(null);
+  const [gestureStatus, setGestureStatus] = useState<{ status: string; message: string }>({
+    status: 'idle',
+    message: '',
+  });
   const whiteboardCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const excalidrawAPIRef = useRef<ExcalidrawImperativeAPI | null>(null);
 
@@ -173,7 +182,20 @@ function App() {
     const mediaCapture = new MediaCapture(hiddenVideoRef.current);
     mediaCaptureRef.current = mediaCapture;
 
+    const handGestureModule = new HandGestureModule({
+      videoElement: hiddenVideoRef.current,
+      mirror: gesture.mirror,
+      onMove: (x, y) => {
+        cursorEffectsRef.current?.setGestureTarget(x, y);
+      },
+      onStatusChange: (status, message) => {
+        setGestureStatus({ status, message: message || '' });
+      },
+    });
+    handGestureModuleRef.current = handGestureModule;
+
     const webcamModule = new WebcamModule(webcamCanvasRef.current, hiddenVideoRef.current);
+    webcamModule.setGestureMode(gesture.enabled, handGestureModule);
     webcamModuleRef.current = webcamModule;
 
     return () => {
@@ -181,6 +203,7 @@ function App() {
       recordingRenderer.destroy();
       mediaCapture.destroy();
       webcamModule.destroy();
+      handGestureModule.destroy();
       recordingControllerRef.current?.destroy();
       cursorEffectsRef.current?.destroy();
     };
@@ -215,15 +238,18 @@ function App() {
     webcamModuleRef.current.setFilter(webcam.filter);
 
     if (cursorEffectsRef.current) {
+      const isGesture = gesture.enabled;
       cursorEffectsRef.current.setStyle({
-        color: cursor.color,
-        size: cursor.size,
+        color: isGesture ? gesture.color : cursor.color,
+        size: isGesture ? gesture.size : cursor.size,
         showClickEffect: cursor.showClickEffect,
         clickEffectColor: cursor.clickEffectColor,
+        icon: isGesture ? gesture.icon : undefined,
       });
       cursorEffectsRef.current.setSize(resolution.width, resolution.height);
+      cursorEffectsRef.current.setGestureMode(isGesture);
     }
-  }, [webcam, cursor, recording.resolution]);
+  }, [webcam, cursor, gesture, recording.resolution]);
 
   useEffect(() => {
     const updateScale = () => {
@@ -261,22 +287,46 @@ function App() {
         showClickEffect: cursor.showClickEffect,
         clickEffectColor: cursor.clickEffectColor,
       });
+      cursorEffects.setGestureMode(gesture.enabled);
       cursorEffects.start();
     }
   }, [cursor, recording.resolution]);
+
+  // gesture 启用时强制打开摄像头；关闭摄像头时同步关闭手势
+  useEffect(() => {
+    if (gesture.enabled && !webcam.enabled) {
+      updateWebcamSettings({ enabled: true });
+    }
+  }, [gesture.enabled, webcam.enabled, updateWebcamSettings]);
+
+  useEffect(() => {
+    if (!webcam.enabled && gesture.enabled) {
+      updateGestureSettings({ enabled: false });
+    }
+  }, [webcam.enabled, gesture.enabled, updateGestureSettings]);
+
+  useEffect(() => {
+    handGestureModuleRef.current?.setMirror(gesture.mirror);
+    cursorEffectsRef.current?.setGestureMode(gesture.enabled);
+    webcamModuleRef.current?.setGestureMode(gesture.enabled, handGestureModuleRef.current);
+  }, [gesture.mirror, gesture.enabled]);
 
   useEffect(() => {
     if (webcam.enabled && mediaCaptureRef.current && webcamModuleRef.current) {
       mediaCaptureRef.current.requestPermissions(true, false).then(({ videoGranted }) => {
         if (videoGranted) {
           webcamModuleRef.current?.start();
+          if (gesture.enabled) {
+            handGestureModuleRef.current?.start();
+          }
         }
       });
     } else if (!webcam.enabled && mediaCaptureRef.current) {
       webcamModuleRef.current?.stop();
+      handGestureModuleRef.current?.stop();
       mediaCaptureRef.current.stopWebcam();
     }
-  }, [webcam.enabled]);
+  }, [webcam.enabled, gesture.enabled]);
 
   useEffect(() => {
     const mimeType = getSupportedMimeType();
@@ -481,6 +531,17 @@ function App() {
           <span className="text-2xl">🎨</span>
           WhiteboardCaster
         </h1>
+        {gesture.enabled && gestureStatus.message && (
+          <div className="mt-2 flex items-center gap-2 text-sm">
+            <span className={`w-2 h-2 rounded-full ${
+              gestureStatus.status === 'detected' ? 'bg-green-500' :
+              gestureStatus.status === 'error' ? 'bg-red-500' :
+              gestureStatus.status === 'ready' ? 'bg-green-400' :
+              'bg-yellow-400 animate-pulse'
+            }`} />
+            <span className="text-gray-600">{gestureStatus.message}</span>
+          </div>
+        )}
       </div>
 
       <video

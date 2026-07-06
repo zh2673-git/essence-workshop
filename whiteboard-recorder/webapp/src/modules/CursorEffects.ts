@@ -12,6 +12,7 @@ interface CursorStyle {
   size: number;
   showClickEffect: boolean;
   clickEffectColor: string;
+  icon?: string;
 }
 
 export class CursorEffects {
@@ -34,7 +35,12 @@ export class CursorEffects {
   private currentY = 0;
   private ripples: Ripple[] = [];
 
+  private gestureMode = false;
+  private gestureX = 0;
+  private gestureY = 0;
+
   private onMouseMove = (e: MouseEvent): void => {
+    if (this.gestureMode) return;
     const rect = this.container.getBoundingClientRect();
     const scaleX = this.canvas.width / rect.width;
     const scaleY = this.canvas.height / rect.height;
@@ -54,6 +60,33 @@ export class CursorEffects {
       duration: 500,
     });
   };
+
+  setGestureTarget(x: number, y: number): void {
+    this.gestureX = x * this.canvas.width;
+    this.gestureY = y * this.canvas.height;
+    if (this.gestureMode) {
+      this.targetX = this.gestureX;
+      this.targetY = this.gestureY;
+    }
+  }
+
+  setGestureMode(enabled: boolean): void {
+    this.gestureMode = enabled;
+    if (enabled) {
+      this.targetX = this.gestureX;
+      this.targetY = this.gestureY;
+    }
+  }
+
+  triggerGestureClick(): void {
+    if (!this.style.showClickEffect) return;
+    this.ripples.push({
+      x: this.currentX,
+      y: this.currentY,
+      startTime: performance.now(),
+      duration: 500,
+    });
+  }
 
   constructor(canvas: HTMLCanvasElement, container: HTMLElement) {
     this.canvas = canvas;
@@ -122,6 +155,37 @@ export class CursorEffects {
       return true;
     });
 
+    if (style.icon) {
+      this.drawIconCursor();
+    } else {
+      this.drawGlowCursor();
+    }
+
+    this.rafId = requestAnimationFrame(this.render);
+  };
+
+  private drawIconCursor(): void {
+    const { ctx, style } = this;
+    const fontSize = Math.max(style.size * 1.5, 16);
+
+    ctx.save();
+    ctx.font = `${fontSize}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // 阴影让图标更立体
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 2;
+
+    ctx.fillText(style.icon!, this.currentX, this.currentY);
+    ctx.restore();
+  }
+
+  private drawGlowCursor(): void {
+    const { ctx, style } = this;
+
     const gradient = ctx.createRadialGradient(
       this.currentX,
       this.currentY,
@@ -143,9 +207,7 @@ export class CursorEffects {
     ctx.arc(this.currentX, this.currentY, style.size * 0.15, 0, Math.PI * 2);
     ctx.fillStyle = style.color;
     ctx.fill();
-
-    this.rafId = requestAnimationFrame(this.render);
-  };
+  }
 
   destroy(): void {
     this.stop();

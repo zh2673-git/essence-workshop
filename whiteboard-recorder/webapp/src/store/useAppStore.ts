@@ -4,6 +4,7 @@ import type {
   Bounds,
   WebcamSettings,
   CursorSettings,
+  GestureSettings,
   TeleprompterSettings,
   RecordingSettings,
   WhiteboardProject,
@@ -12,6 +13,7 @@ import type {
 import {
   DEFAULT_WEBCAM_SETTINGS,
   DEFAULT_CURSOR_SETTINGS,
+  DEFAULT_GESTURE_SETTINGS,
   DEFAULT_TELEPROMPTER_SETTINGS,
   DEFAULT_RECORDING_SETTINGS,
 } from '../types';
@@ -26,11 +28,12 @@ interface AppState {
   
   webcam: WebcamSettings;
   cursor: CursorSettings;
+  gesture: GestureSettings;
   teleprompter: TeleprompterSettings;
   recording: RecordingSettings;
-  
+
   showSettings: boolean;
-  activeSettingsTab: 'webcam' | 'cursor' | 'teleprompter' | 'recording' | 'scenes' | null;
+  activeSettingsTab: 'webcam' | 'cursor' | 'gesture' | 'teleprompter' | 'recording' | 'scenes' | null;
   webcamDragging: boolean;
   showSceneNavigator: boolean;
   currentSceneIndex: number;
@@ -45,6 +48,7 @@ interface AppState {
   updateWebcamSettings: (settings: Partial<WebcamSettings>) => void;
   setWebcamBounds: (bounds: Bounds) => void;
   updateCursorSettings: (settings: Partial<CursorSettings>) => void;
+  updateGestureSettings: (settings: Partial<GestureSettings>) => void;
   updateTeleprompterSettings: (settings: Partial<TeleprompterSettings>) => void;
   updateRecordingSettings: (settings: Partial<RecordingSettings>) => void;
   
@@ -67,6 +71,7 @@ export const useAppStore = create<AppState>((set) => ({
   
   webcam: { ...DEFAULT_WEBCAM_SETTINGS },
   cursor: { ...DEFAULT_CURSOR_SETTINGS },
+  gesture: { ...DEFAULT_GESTURE_SETTINGS },
   teleprompter: { ...DEFAULT_TELEPROMPTER_SETTINGS },
   recording: { ...DEFAULT_RECORDING_SETTINGS },
   
@@ -89,6 +94,8 @@ export const useAppStore = create<AppState>((set) => ({
     set((state) => ({ webcam: { ...state.webcam, bounds } })),
   updateCursorSettings: (settings) =>
     set((state) => ({ cursor: { ...state.cursor, ...settings } })),
+  updateGestureSettings: (settings) =>
+    set((state) => ({ gesture: { ...state.gesture, ...settings } })),
   updateTeleprompterSettings: (settings) =>
     set((state) => ({ teleprompter: { ...state.teleprompter, ...settings } })),
   updateRecordingSettings: (settings) =>
@@ -139,6 +146,7 @@ export const useAppStore = create<AppState>((set) => ({
       error: null,
       webcam: { ...DEFAULT_WEBCAM_SETTINGS },
       cursor: { ...DEFAULT_CURSOR_SETTINGS },
+      gesture: { ...DEFAULT_GESTURE_SETTINGS },
       teleprompter: { ...DEFAULT_TELEPROMPTER_SETTINGS },
       currentSceneIndex: 0,
     }),

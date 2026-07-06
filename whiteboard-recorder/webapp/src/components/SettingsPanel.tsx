@@ -1,6 +1,6 @@
-import { X, Video, MousePointer, FileText, Settings } from 'lucide-react';
+import { X, Video, MousePointer, FileText, Settings, Hand } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
-import type { WebcamSettings, CursorSettings, TeleprompterSettings, RecordingSettings } from '../types';
+import type { WebcamSettings, CursorSettings, GestureSettings, TeleprompterSettings, RecordingSettings } from '../types';
 
 export function SettingsPanel() {
   const {
@@ -9,10 +9,12 @@ export function SettingsPanel() {
     toggleSettings,
     webcam,
     cursor,
+    gesture,
     teleprompter,
     recording,
     updateWebcamSettings,
     updateCursorSettings,
+    updateGestureSettings,
     updateTeleprompterSettings,
     updateRecordingSettings,
   } = useAppStore();
@@ -23,6 +25,7 @@ export function SettingsPanel() {
     { id: 'recording' as const, label: '录制', icon: Settings },
     { id: 'webcam' as const, label: '摄像头', icon: Video },
     { id: 'cursor' as const, label: '光标', icon: MousePointer },
+    { id: 'gesture' as const, label: '手势', icon: Hand },
     { id: 'teleprompter' as const, label: '提词器', icon: FileText },
   ];
 
@@ -74,6 +77,12 @@ export function SettingsPanel() {
           <CursorSettingsPanel
             settings={cursor}
             onChange={updateCursorSettings}
+          />
+        )}
+        {currentTab === 'gesture' && (
+          <GestureSettingsPanel
+            settings={gesture}
+            onChange={updateGestureSettings}
           />
         )}
         {currentTab === 'teleprompter' && (
@@ -208,6 +217,28 @@ function ColorPicker({ label, value, onChange }: ColorPickerProps) {
   );
 }
 
+interface TextInputProps {
+  label: string;
+  value: string;
+  placeholder?: string;
+  onChange: (value: string) => void;
+}
+
+function TextInput({ label, value, placeholder, onChange }: TextInputProps) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-gray-700 whitespace-nowrap">{label}</span>
+      <input
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-32 px-3 py-2 text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400"
+      />
+    </div>
+  );
+}
+
 interface RecordingSettingsPanelProps {
   settings: RecordingSettings;
   onChange: (settings: Partial<RecordingSettings>) => void;
@@ -338,6 +369,69 @@ function CursorSettingsPanel({ settings, onChange }: CursorSettingsPanelProps) {
           label="点击效果颜色"
           value={settings.clickEffectColor}
           onChange={(clickEffectColor) => onChange({ clickEffectColor })}
+        />
+      </SettingSection>
+    </div>
+  );
+}
+
+interface GestureSettingsPanelProps {
+  settings: GestureSettings;
+  onChange: (settings: Partial<GestureSettings>) => void;
+}
+
+function GestureSettingsPanel({ settings, onChange }: GestureSettingsPanelProps) {
+  return (
+    <div>
+      <SettingSection title="手势控制">
+        <Toggle
+          label="启用手势控制"
+          checked={settings.enabled}
+          onChange={(enabled) => onChange({ enabled })}
+        />
+        <p className="text-xs text-gray-500 -mt-2 mb-2">
+          开启后会自动启用摄像头，用食指指尖控制光标位置。
+        </p>
+        <Toggle
+          label="镜像X轴"
+          checked={settings.mirror}
+          onChange={(mirror) => onChange({ mirror })}
+        />
+      </SettingSection>
+      <SettingSection title="光标外观">
+        <TextInput
+          label="光标图案"
+          value={settings.icon}
+          placeholder="🚀"
+          onChange={(icon) => onChange({ icon })}
+        />
+        <div className="flex flex-wrap gap-2 -mt-1">
+          {['🚀', '👆', '✨', '🔴', '🎯', '👁️', '🐦', '⚡'].map((emoji) => (
+            <button
+              key={emoji}
+              onClick={() => onChange({ icon: emoji })}
+              className={`w-9 h-9 text-lg rounded-lg border transition-colors ${
+                settings.icon === emoji
+                  ? 'border-cyan-400 bg-cyan-50'
+                  : 'border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+        <Slider
+          label="光标大小"
+          value={settings.size}
+          min={10}
+          max={60}
+          unit="px"
+          onChange={(size) => onChange({ size })}
+        />
+        <ColorPicker
+          label="光标颜色"
+          value={settings.color}
+          onChange={(color) => onChange({ color })}
         />
       </SettingSection>
     </div>

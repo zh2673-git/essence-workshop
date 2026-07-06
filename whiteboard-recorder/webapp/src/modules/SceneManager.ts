@@ -1,7 +1,7 @@
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types/types';
 import type { WhiteboardProject, WhiteboardScene } from '../types';
 
-const normalizeElement = (el: any, index: number): any => {
+const normalizeElement = (el: any, _index: number): any => {
   return {
     ...el,
     version: el.version || 1,
@@ -18,7 +18,7 @@ const normalizeElement = (el: any, index: number): any => {
   };
 };
 
-const calculateSceneViewport = (scene: WhiteboardScene, sceneIndex: number): { x: number; y: number; zoom: number } => {
+const calculateSceneViewport = (scene: WhiteboardScene, _sceneIndex: number): { x: number; y: number; zoom: number } => {
   if (scene.viewport) {
     return scene.viewport;
   }
@@ -50,7 +50,6 @@ export class SceneManager {
   private excalidrawAPI: ExcalidrawImperativeAPI | null = null;
   private project: WhiteboardProject | null = null;
   private currentSceneIndex: number = 0;
-  private isAnimating: boolean = false;
 
   setExcalidrawAPI(api: ExcalidrawImperativeAPI | null) {
     this.excalidrawAPI = api;
@@ -135,52 +134,9 @@ export class SceneManager {
     return this.goToScene(this.project.scenes.length - 1, animate);
   }
 
-  private animateCameraTo(targetX: number, targetY: number, targetZoom: number, duration: number = 800) {
-    if (!this.excalidrawAPI || this.isAnimating) return;
-
-    this.isAnimating = true;
-    const startState = this.excalidrawAPI.getAppState();
-    const startX = startState.scrollX;
-    const startY = startState.scrollY;
-    const startZoom = startState.zoom.value;
-
-    const startTime = performance.now();
-
-    const easeOutCubic = (t: number): number => {
-      return 1 - Math.pow(1 - t, 3);
-    };
-
-    const animate = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = easeOutCubic(progress);
-
-      const currentX = startX + (targetX - startX) * eased;
-      const currentY = startY + (targetY - startY) * eased;
-      const currentZoom = startZoom + (targetZoom - startZoom) * eased;
-
-      this.excalidrawAPI?.updateScene({
-        appState: {
-          scrollX: currentX,
-          scrollY: currentY,
-          zoom: { value: currentZoom as any }
-        }
-      });
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        this.isAnimating = false;
-      }
-    };
-
-    requestAnimationFrame(animate);
-  }
-
   reset() {
     this.project = null;
     this.currentSceneIndex = 0;
-    this.isAnimating = false;
     if (this.excalidrawAPI) {
       this.excalidrawAPI.updateScene({ elements: [] });
     }

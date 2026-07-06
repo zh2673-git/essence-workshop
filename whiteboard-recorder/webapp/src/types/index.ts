@@ -89,6 +89,15 @@ export interface CursorSettings {
   clickEffectColor: string;
 }
 
+export interface GestureSettings {
+  enabled: boolean;
+  mirror: boolean;
+  showPreview: boolean;
+  size: number;
+  color: string;
+  icon: string;
+}
+
 export interface TeleprompterSettings {
   enabled: boolean;
   text: string;
@@ -125,6 +134,15 @@ export const DEFAULT_CURSOR_SETTINGS: CursorSettings = {
   size: 20,
   showClickEffect: true,
   clickEffectColor: '#f97316',
+};
+
+export const DEFAULT_GESTURE_SETTINGS: GestureSettings = {
+  enabled: false,
+  mirror: true,
+  showPreview: false,
+  size: 24,
+  color: '#38bdf8',
+  icon: '🚀',
 };
 
 export const DEFAULT_TELEPROMPTER_SETTINGS: TeleprompterSettings = {
