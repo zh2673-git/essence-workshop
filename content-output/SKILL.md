@@ -9,12 +9,13 @@ scene: E
 
 ## 核心方法
 
-风格改写 → 元素层资产生成 → 管线输出，支持6条管线（公众号/视频号/HTML交互/演示/PPT/Notebook）。
+风格改写 → 元素层资产生成 → 管线输出，支持7条管线（公众号/视频号/口播稿/HTML交互/演示/PPT/Notebook）。
 
 ## 触发条件
 
 - 「写公众号」「做视频」「HTML交互」「做演示」「做PPT」
 - 「做notebook」「生成教学notebook」「教学课件」
+- 「写口播稿」「写录制稿」「口播脚本」「录制脚本」「真人出镜稿」→ 口播稿管线
 - 「写连载小说」「小说连载」「连载XX」→ 连载小说子系统
 - 其他场景产出后选择输出
 
@@ -27,6 +28,7 @@ scene: E
 ### 管线规范
 - [references/pipeline-wechat.md](references/pipeline-wechat.md) — 公众号管线
 - [references/pipeline-video.md](references/pipeline-video.md) — 视频号管线
+- [references/pipeline-broadcast.md](references/pipeline-broadcast.md) — 口播稿管线
 - [references/pipeline-html.md](references/pipeline-html.md) — HTML交互管线
 - [references/pipeline-slides.md](references/pipeline-slides.md) — 演示管线
 - [references/pipeline-pptx.md](references/pipeline-pptx.md) — PPT管线
@@ -53,6 +55,7 @@ scene: E
 - [templates/reveal-template.html](templates/reveal-template.html) — 演示管线模板
 - [templates/brand-spec.json](templates/brand-spec.json) — 品牌规格
 - [templates/notebook-template.ipynb](templates/notebook-template.ipynb) — Notebook管线模板
+- [templates/broadcast-script-template.md](templates/broadcast-script-template.md) — 口播稿模板
 
 ## 脚本
 

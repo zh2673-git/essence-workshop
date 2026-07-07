@@ -19,8 +19,8 @@ scene: E3
 
 ## 执行流程
 
-1. **内容获取**：读取本地Markdown文件 / 抓取公众号文章URL / 接收纯文本输入
-2. **AI生成**：调用LLM深度理解内容，在无限画布上自由排布手绘图解，自动分页，生成讲解节奏
+1. **内容获取**：读取本地Markdown文件 / 抓取公众号文章URL / 接收纯文本输入 / 读取 content-output 生成的 `broadcast-script.md`
+2. **AI生成**：调用LLM深度理解内容，在无限画布上自由排布手绘图解，自动分页，生成讲解节奏（口播稿输入时按已有镜头拆分，旁白直接作为提词器）
 3. **镜头规划**：AI给出每个讲解点对应的视口中心坐标，实现镜头平滑跟随
 4. **提词生成**：同步生成口语化提词器脚本，与镜头移动同步
 5. **前端加载**：导入到WhiteboardCaster录制工具，即可直接开始录制
@@ -41,6 +41,7 @@ scene: E3
 ## 脚本
 
 - `scripts/whiteboard_generator.py` — AI白板内容生成器，输入文本/URL，输出无限画布JSON+提词脚本
+- `scripts/broadcast_to_whiteboard.py` — 口播稿→白板桥接器，输入 content-output 生成的 `broadcast-script.md`，按镜头生成白板画面+提词器
 - `scripts/` 复用 `../content-output/scripts/shared/article_fetcher.py` 做内容抓取
 
 ## 前端工具
