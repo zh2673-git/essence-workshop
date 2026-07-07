@@ -54,12 +54,23 @@ function worksMiddleware() {
 
         const match = pathname.match(/^\/(.+)$/)
         if (match) {
-          const relPath = decodeURIComponent(match[1]).replace(/\/$/, '')
-          const filePath = path.join(worksDir, relPath)
+          let relPath = decodeURIComponent(match[1]).replace(/\/$/, '')
+          let filePath = path.join(worksDir, relPath)
           if (!filePath.startsWith(worksDir) || !fs.existsSync(filePath)) {
             res.statusCode = 404
             res.end(JSON.stringify({ error: 'Work not found' }))
             return
+          }
+          // 如果只传了目录名，自动查找目录下的第一个 .whiteboard.json 文件
+          if (fs.statSync(filePath).isDirectory()) {
+            const files = fs.readdirSync(filePath)
+            const wbFile = files.find(f => f.endsWith('.whiteboard.json'))
+            if (!wbFile) {
+              res.statusCode = 404
+              res.end(JSON.stringify({ error: 'No whiteboard file in work folder' }))
+              return
+            }
+            filePath = path.join(filePath, wbFile)
           }
           res.setHeader('Content-Type', 'application/json')
           res.end(fs.readFileSync(filePath, 'utf-8'))

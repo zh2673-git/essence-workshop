@@ -49,3 +49,4 @@ scene: B+B2
 - `output/zhugeliang.skill/` — 诸葛亮
 - `output/zhangxuefeng.skill/` — 张雪峰
 - `output/law-application.skill/` — 法条适用认知框架
+- `output/pusuzhidao.skill/` — 朴素之道（创作者风格）

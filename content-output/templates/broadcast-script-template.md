@@ -3,6 +3,7 @@ title: "在这里写视频标题"
 target_duration: "3-5min"
 audience: "外行"
 sensitive_mode: false
+style_reference: "pusuzhidao"  # 可选：引用 distillation/output/{name}.skill 的创作者风格
 total_chars: 0
 ---
 
@@ -70,3 +71,4 @@ total_chars: 0
 - [ ] 每个镜头都有白板提示
 - [ ] 坡度三阶段完整：点出概念 → 建立联系 → 详细解释
 - [ ] 若为敏感内容，寓言前 80% 无真实概念名
+- [ ] 若指定 style_reference，已落实该创作者表达 DNA
