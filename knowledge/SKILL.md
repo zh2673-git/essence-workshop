@@ -1,15 +1,19 @@
 ---
 name: K12知识拆解
-description: 七维框架拆解知识点，还原认知过程，支持知识点/项目式/讲课三种模式
-version: 1.0
+description: 七维框架拆解知识点，基于v2方法论（本质定义先行+顿悟触发），支持知识点/项目式/讲课三种模式
+version: 2.0
 scene: A2
 ---
 
 # K12知识拆解（知本）· Skill
 
-## 核心方法
+## 核心方法（v2）
 
-七维框架：定义 → 溯源 → 矛盾 → 应用 → 延伸 → 网络 → 验证，配合范式族插件和学段适配。
+**本质定义先行 → 七维框架展开（含顿悟触发）**：
+1. Step 0（v2新增）：本质定义先行——为知识点找到本质定义并通过本质检验
+2. 七维框架：定义锚点（升级为本质锚点） → 溯源 → 矛盾（含反常识根因） → 应用 → 延伸（含视角升级） → 网络 → 验证
+3. 类-属性-方法-路由由本质定义锚定，每个维度必须能回溯到本质
+4. 配合范式族插件和学段适配
 
 ## 触发条件
 
@@ -22,6 +26,7 @@ scene: A2
 
 ## 参考文档
 
+- [../exploration/references/methodology.md](../exploration/references/methodology.md) — v2方法论基础
 - [references/formal-science.md](references/formal-science.md) — 形式科学族插件
 - [references/humanities.md](references/humanities.md) — 人文学科族插件
 - [references/life-science.md](references/life-science.md) — 生命科学族插件
