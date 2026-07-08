@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 为什么飞机能飞</title>
+<style>
+:root { --bg-primary:#0f1117;--bg-secondary:#1a1d27;--bg-card:#1e2130;--text-primary:#e8e8ed;--text-secondary:#9ca3af;--text-muted:#6b7280;--border-color:#2d3148;--accent-color:#ff9800;--accent-glow:rgba(255,152,0,0.12);--success:#4caf50;--error:#ef5350;--radius:8px;--radius-lg:12px;--font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;--color-physics:#ff7043;--color-math:#26c6da; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);line-height:1.8;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:radial-gradient(circle at 20% 50%,var(--accent-glow) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,255,255,0.02) 0%,transparent 40%);pointer-events:none;z-index:0}
+.header{position:relative;z-index:1;padding:40px 24px 24px;max-width:800px;margin:0 auto;border-bottom:1px solid var(--border-color)}
+.header .project-badge{display:inline-block;background:var(--accent-color);color:var(--bg-primary);padding:2px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;margin-bottom:8px}
+.header h1{font-size:2rem;font-weight:700;margin-bottom:8px}
+.header h1 .accent{color:var(--accent-color)}
+.header .meta{display:flex;gap:16px;align-items:center;color:var(--text-secondary);font-size:0.9rem;flex-wrap:wrap}
+.header .meta .tag{background:var(--bg-card);border:1px solid var(--border-color);padding:2px 12px;border-radius:20px;font-size:0.85rem}
+.main{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:24px}
+.section{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px}
+.section h2{font-size:1.1rem;color:var(--text-primary);margin-bottom:12px}
+.section p{color:var(--text-secondary);line-height:1.9;margin-bottom:8px}
+.section .highlight{color:var(--accent-color);font-weight:500}
+.section svg{max-width:100%;height:auto}
+.section svg text{font-family:var(--font-sans)}
+.kp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:24px}
+.kp-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:20px;transition:border-color 0.2s;position:relative}
+.kp-card:hover{border-color:var(--accent-color)}
+.kp-card .kp-number{position:absolute;top:12px;right:16px;width:24px;height:24px;border-radius:50%;background:var(--bg-secondary);border:1px solid var(--border-color);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;color:var(--text-muted)}
+.kp-card .kp-subject{font-size:0.75rem;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:8px}
+.kp-card .kp-subject.physics{background:rgba(255,112,67,0.15);color:var(--color-physics)}
+.kp-card .kp-name{font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:4px}
+.kp-card .kp-role{font-size:0.8rem;color:var(--text-muted);margin-bottom:12px}
+.kp-card .kp-status{display:flex;align-items:center;gap:6px;font-size:0.85rem}
+.kp-card .kp-status.generated{color:var(--success)}
+.kp-card .kp-status.pending{color:var(--text-muted)}
+.kp-card .kp-status .status-dot{width:8px;height:8px;border-radius:50%}
+.kp-card .kp-status.generated .status-dot{background:var(--success)}
+.kp-card .kp-status.pending .status-dot{background:var(--text-muted);opacity:0.5}
+.kp-card .kp-link{display:inline-block;margin-top:8px;padding:4px 12px;border-radius:16px;font-size:0.8rem;text-decoration:none;transition:all 0.2s}
+.kp-card .kp-link.view{background:rgba(76,175,80,0.1);border:1px solid var(--success);color:var(--success)}
+.kp-card .kp-link.view:hover{background:rgba(76,175,80,0.2)}
+.extensions ul{list-style:none;padding:0}
+.extensions ul li{padding:8px 0 8px 20px;position:relative;color:var(--text-secondary)}
+.extensions ul li::before{content:'';position:absolute;left:0;top:16px;width:8px;height:8px;border-radius:50%;background:var(--accent-color);opacity:0.6}
+.footer{position:relative;z-index:1;max-width:800px;margin:40px auto 0;padding:24px;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);font-size:0.8rem}
+@media(max-width:640px){.header{padding:24px 16px 16px}.header h1{font-size:1.5rem}.main{padding:16px}.kp-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="project-badge">项目式学习</span>
+  <h1>知本 · <span class="accent">为什么飞机能飞</span></h1>
+  <div class="meta">
+    <span class="tag">物理</span>
+    <span class="tag">八年级</span>
+    <span class="tag">因果解释型</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- 问题概述 -->
+  <div class="section">
+    <h2>问题</h2>
+    <p>一架波音747重达400吨——相当于600辆小汽车。这么重的东西，为什么能飞上天？</p>
+    <p>直觉告诉你"重的东西会掉下来"，但飞机偏偏打破了这个直觉。秘密不在于飞机有多轻，而在于<span class="highlight">空气对飞机施加的力</span>。要理解飞机为什么能飞，你需要搞清楚三件事：空气有压力、流速快的空气压力小、机翼的形状让上下空气流速不同。</p>
+  </div>
+
+  <!-- 学习路径图 -->
+  <div class="section">
+    <h2>学习路径</h2>
+    <svg viewBox="0 0 700 160" xmlns="http://www.w3.org/2000/svg">
+      <!-- 连线 -->
+      <line x1="90" y1="50" x2="230" y2="50" stroke="#2d3148" stroke-width="2"/>
+      <line x1="280" y1="50" x2="420" y2="50" stroke="#2d3148" stroke-width="2"/>
+      <line x1="470" y1="50" x2="580" y2="50" stroke="#2d3148" stroke-width="2"/>
+      <polygon points="228,45 238,50 228,55" fill="#6b7280"/>
+      <polygon points="418,45 428,50 418,55" fill="#6b7280"/>
+      <polygon points="578,45 588,50 578,55" fill="#6b7280"/>
+
+      <!-- 节点1: 大气压强 -->
+      <circle cx="70" cy="50" r="28" fill="rgba(255,112,67,0.15)" stroke="#ff7043" stroke-width="2"/>
+      <text x="70" y="54" text-anchor="middle" fill="#ff7043" font-size="12" font-weight="bold">1</text>
+      <text x="70" y="95" text-anchor="middle" fill="#e8e8ed" font-size="12">大气压强</text>
+      <text x="70" y="112" text-anchor="middle" fill="#6b7280" font-size="9">前导</text>
+
+      <!-- 节点2: 伯努利原理 -->
+      <circle cx="260" cy="50" r="28" fill="rgba(255,112,67,0.15)" stroke="#ff7043" stroke-width="2"/>
+      <text x="260" y="54" text-anchor="middle" fill="#ff7043" font-size="12" font-weight="bold">2</text>
+      <text x="260" y="95" text-anchor="middle" fill="#e8e8ed" font-size="12">伯努利原理</text>
+      <text x="260" y="112" text-anchor="middle" fill="#6b7280" font-size="9">核心</text>
+
+      <!-- 节点3: 升力 -->
+      <circle cx="450" cy="50" r="28" fill="rgba(255,112,67,0.15)" stroke="#ff7043" stroke-width="2"/>
+      <text x="450" y="54" text-anchor="middle" fill="#ff7043" font-size="12" font-weight="bold">3</text>
+      <text x="450" y="95" text-anchor="middle" fill="#e8e8ed" font-size="12">升力</text>
+      <text x="450" y="112" text-anchor="middle" fill="#6b7280" font-size="9">核心</text>
+
+      <!-- 终点 -->
+      <circle cx="610" cy="50" r="24" fill="rgba(255,152,0,0.2)" stroke="#ff9800" stroke-width="2"/>
+      <text x="610" y="55" text-anchor="middle" fill="#ff9800" font-size="18">!</text>
+      <text x="610" y="95" text-anchor="middle" fill="#ff9800" font-size="12" font-weight="bold">飞行原理</text>
+      <text x="610" y="112" text-anchor="middle" fill="#6b7280" font-size="9">综合</text>
+    </svg>
+  </div>
+
+  <!-- 知识点卡片 -->
+  <h2 style="font-size:1.1rem;color:var(--text-primary);margin-bottom:12px;">知识点</h2>
+  <div class="kp-grid">
+
+    <div class="kp-card">
+      <span class="kp-number">1</span>
+      <span class="kp-subject physics">物理</span>
+      <div class="kp-name">大气压强</div>
+      <div class="kp-role">前导 — 理解空气有压力</div>
+      <div class="kp-status generated">
+        <span class="status-dot"></span>
+        已生成
+      </div>
+      <a href="大气压强.html" class="kp-link view">查看</a>
+    </div>
+
+    <div class="kp-card">
+      <span class="kp-number">2</span>
+      <span class="kp-subject physics">物理</span>
+      <div class="kp-name">伯努利原理</div>
+      <div class="kp-role">核心 — 流速快的地方压强小</div>
+      <div class="kp-status generated">
+        <span class="status-dot"></span>
+        已生成
+      </div>
+      <a href="伯努利原理.html" class="kp-link view">查看</a>
+    </div>
+
+    <div class="kp-card">
+      <span class="kp-number">3</span>
+      <span class="kp-subject physics">物理</span>
+      <div class="kp-name">升力</div>
+      <div class="kp-role">核心 — 机翼上下压强差产生向上的力</div>
+      <div class="kp-status generated">
+        <span class="status-dot"></span>
+        已生成
+      </div>
+      <a href="升力.html" class="kp-link view">查看</a>
+    </div>
+
+  </div>
+
+  <!-- 综合思考 -->
+  <div class="section">
+    <h2>综合思考</h2>
+    <p>飞机能飞，不是因为"轻"，而是因为<span class="highlight">空气给了它一个向上的力</span>。这个力的产生链条是：</p>
+    <p><strong>第一步</strong>：空气有压强——你无时无刻不被大约10万帕的气压包围着，只是你习惯了感受不到。<strong>大气压强</strong>是这一切的基础。</p>
+    <p><strong>第二步</strong>：流速影响压强——<strong>伯努利原理</strong>告诉我们，空气流速快的地方压强小，流速慢的地方压强大。这不是魔法，是能量守恒：动能大了，压力能就得小。</p>
+    <p><strong>第三步</strong>：机翼制造压强差——机翼上面弯、下面平，空气从上面走过时路径更长、流速更快，所以上面压强小、下面压强大。这个压强差乘以机翼面积，就是<strong>升力</strong>。</p>
+    <p>当升力 > 重力，飞机就飞起来了。不是对抗重力，而是<span class="highlight">利用空气的压强差</span>把自己"托"上去。</p>
+  </div>
+
+  <!-- 延伸问题 -->
+  <div class="section extensions">
+    <h2>延伸问题</h2>
+    <ul>
+      <li>飞机倒飞时（机翼朝下），升力从哪来？特技飞机的机翼和普通飞机有什么不同？</li>
+      <li>火箭没有机翼，为什么也能飞？火箭的推力原理和飞机的升力原理有什么本质区别？</li>
+      <li>为什么飞机不能飞出大气层？太空中没有空气，伯努利原理还能用吗？</li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="footer">
+  知本 KnowledgeRoot — 知识本质拆解系统
+</div>
+
+</body>
+</html>

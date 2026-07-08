@@ -1,0 +1,750 @@
+"""
+本质工坊 · 公众号文章转视频
+从公众号文章（URL抓取或API拉取）自动生成视频号短视频
+
+完整链路：
+  文章正文 → 拆分为镜头(slides.json) → TTS旁白 → Canvas录制 → FFmpeg合并 → MP4
+
+文章获取方式：
+  1. URL方式（默认推荐）：提供公众号文章链接，抓取正文
+     - 适用于任何公众号的已发布文章，无权限要求
+  2. API方式（受权限制约）：通过media_id拉取
+     - 需认证服务号才能使用 freepublish 接口
+     - 订阅号/未认证服务号只能看到API上传的素材
+  3. 本地文件：直接提供Markdown文件路径
+
+用法:
+  python article_to_video.py --url https://mp.weixin.qq.com/s/xxx      从URL抓取文章并生成视频（推荐）
+  python article_to_video.py --article output/article.md               从本地Markdown生成视频
+  python article_to_video.py --media-id XXXXX                          从公众号拉取文章并生成视频（需API权限）
+  python article_to_video.py --url https://mp.weixin.qq.com/s/xxx --voice zh-CN-YunxiNeural
+  python article_to_video.py --url https://mp.weixin.qq.com/s/xxx --save-article output/article.md
+"""
+
+import argparse
+import json
+import os
+import re
+import sys
+import time
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def parse_template_sections(markdown):
+    """将Markdown拆分为section列表（替代已删除的content_templates模块）。"""
+    sections = []
+    lines = markdown.split("\n")
+    current = {"heading": "", "content": []}
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        h_match = re.match(r'^(#{1,4})\s+(.+)', stripped)
+        if h_match:
+            if current["heading"] or current["content"]:
+                sections.append(current)
+            current = {"heading": h_match.group(2).strip(), "content": []}
+        elif stripped.startswith("> "):
+            current["content"].append(("quote", stripped[2:].strip()))
+        elif stripped.startswith("- ") or stripped.startswith("* "):
+            current["content"].append(("bullet", stripped[2:].strip()))
+        elif re.match(r'^\d+[.、)]\s*', stripped):
+            text = re.sub(r'^\d+[.、)]\s*', '', stripped)
+            current["content"].append(("step", text.strip()))
+        elif stripped == "---":
+            if current["heading"] or current["content"]:
+                sections.append(current)
+            current = {"heading": "", "content": []}
+        else:
+            current["content"].append(("text", stripped))
+    if current["heading"] or current["content"]:
+        sections.append(current)
+    return sections
+
+
+def parse_section(section):
+    """尝试从section解析为模板slide（简化版，返回None则走通用分类）。"""
+    return None
+
+
+def validate_slide(slide):
+    """简单校验slide结构。"""
+    if not slide.get("type"):
+        return False, "missing type"
+    return True, ""
+
+
+def _build_narration(slide):
+    stype = slide.get("type", "")
+    if stype == "title":
+        return slide.get("title", "")
+    elif stype == "stat":
+        parts = [slide.get("value", ""), slide.get("label", "")]
+        if slide.get("sublabel"):
+            parts.append(slide["sublabel"])
+        return "，".join(p for p in parts if p)
+    elif stype == "bullet":
+        return "，".join(slide.get("items", []))
+    elif stype == "chart":
+        return "，".join(d.get("label", "") for d in slide.get("data", []))
+    elif stype == "quote":
+        return slide.get("text", "")
+    elif stype == "timeline":
+        return "，".join(e.get("title", "") for e in slide.get("events", []))
+    elif stype == "focus":
+        return slide.get("explanation", "")
+    elif stype == "steps":
+        return "，".join(s.get("desc", "") or s.get("title", "") for s in slide.get("steps", []))
+    elif stype == "qa":
+        q = slide.get("question", "")
+        a = slide.get("answer", "")
+        return f"{q}答案是，{a}"
+    elif stype == "compare":
+        left = slide.get("left", [])
+        right = slide.get("right", [])
+        return "，".join(left + right)
+    elif stype == "summary":
+        return "总结一下。" + "，".join(slide.get("items", []))
+    return ""
+
+
+def split_into_slides(markdown, title=""):
+    sections = parse_template_sections(markdown)
+    if not sections:
+        return []
+    return sections
+
+
+def classify_slide_type(section, slide_index=0, total_sections=1):
+    content = section["content"]
+    heading = section.get("heading", "")
+    has_bullets = any(c[0] == "bullet" for c in content)
+    has_steps = any(c[0] == "step" for c in content)
+    has_quotes = any(c[0] == "quote" for c in content)
+    text_items = [c[1] for c in content if c[0] == "text"]
+    all_text = heading + " " + " ".join(c[1] for c in content)
+
+    stat_pattern = re.compile(r'\d+[.%万亿]|\d+倍|\d+[个条项]')
+    has_stat = any(stat_pattern.search(t) for t in text_items) and len(text_items) <= 3
+
+    qa_pattern = re.compile(r'^(.{2,15})[？?](.{2,})$')
+    qa_match = None
+    for t in text_items:
+        m = qa_pattern.match(t)
+        if m:
+            qa_match = m
+            break
+
+    compare_keywords = ["对比", "vs", "VS", "差异", "优劣", "比较", "区别", "哪个", "更好", "替代", "竞品"]
+    has_compare = any(kw in all_text for kw in compare_keywords)
+
+    timeline_keywords = ["年", "世纪", "阶段", "时期", "历程", "演进", "发展史", "起源", "诞生"]
+    has_timeline = any(kw in all_text for kw in timeline_keywords) and has_bullets
+
+    focus_keywords = ["核心", "关键", "本质", "根本", "最重要", "关键在于", "核心是", "本质是"]
+    has_focus = any(kw in all_text for kw in focus_keywords) and len(text_items) <= 2 and not has_bullets
+
+    if qa_match:
+        return "qa"
+    if has_stat and not has_bullets and not has_steps:
+        return "stat"
+    if has_steps and not has_bullets:
+        return "steps"
+    if has_compare and has_bullets:
+        return "compare"
+    if has_timeline:
+        return "timeline"
+    if has_focus:
+        return "focus"
+    if has_bullets:
+        return "bullet"
+    if has_quotes and len(content) <= 2:
+        return "quote"
+    if len(content) == 0 and heading:
+        return "title"
+
+    if slide_index == 0 and total_sections > 3:
+        return "focus"
+    if slide_index == total_sections - 1 and total_sections > 3:
+        return "stat"
+    if slide_index % 3 == 2 and total_sections > 4 and text_items:
+        stat_in_text = any(stat_pattern.search(t) for t in text_items)
+        if stat_in_text:
+            return "stat"
+
+    return "bullet"
+
+
+def detect_visual_style(sections):
+    text = "\n".join(
+        s["heading"] + " " + " ".join(c[1] for c in s["content"])
+        for s in sections
+    )
+
+    tech_keywords = ["AI", "编程", "代码", "算法", "技术", "Agent", "API", "模型",
+                     "训练", "推理", "部署", "架构", "框架", "开源", "GPT", "LLM",
+                     "深度学习", "机器学习", "神经网络", "transformer"]
+    edu_keywords = ["教育", "学习", "成长", "阅读", "写作", "学校", "课程",
+                    "方法", "练习", "习惯", "知识", "技能", "提升", "入门"]
+    compare_keywords = ["对比", "vs", "差异", "优劣", "选择", "比较", "区别",
+                        "哪个", "更好", "替代", "竞品", "优劣", "分析"]
+    philosophy_keywords = ["哲学", "思考", "本质", "意义", "价值", "人生",
+                          "存在", "意识", "自由", "真理", "智慧", "境界"]
+    space_keywords = ["宇宙", "太空", "星空", "探索", "无限", "维度", "量子",
+                      "引力", "暗物质", "黑洞", "光年", "银河", "天文", "深空"]
+    ink_keywords = ["书法", "水墨", "禅", "道", "古典", "传统", "文人", "诗意",
+                    "留白", "意境", "气韵", "古风", "国风", "雅"]
+    nature_keywords = ["自然", "生态", "环境", "植物", "动物", "森林", "海洋",
+                       "气候", "可持续", "生物", "绿色", "有机", "山水", "田园"]
+
+    scores = {
+        "tech": sum(text.count(k) for k in tech_keywords),
+        "edu": sum(text.count(k) for k in edu_keywords),
+        "compare": sum(text.count(k) for k in compare_keywords),
+        "philosophy": sum(text.count(k) for k in philosophy_keywords),
+        "space": sum(text.count(k) for k in space_keywords),
+        "ink": sum(text.count(k) for k in ink_keywords),
+        "nature": sum(text.count(k) for k in nature_keywords),
+    }
+
+    best = max(scores, key=scores.get)
+    if scores[best] == 0:
+        return "tech"
+
+    return best
+
+
+def generate_timeline(slide):
+    dur = slide.get("duration", 10)
+    elements = []
+    stype = slide.get("type", "bullet")
+
+    if stype == "title":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "icon", "enter_at": 0.2, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "title", "enter_at": 0.4, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.7, "exit_at": dur - 0.5, "easing": "expoOut"})
+        if slide.get("subtitle"):
+            elements.append({"id": "subtitle", "enter_at": 0.9, "exit_at": dur - 0.5, "easing": "expoOut"})
+    elif stype == "bullet":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "heading", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        for i, _ in enumerate(slide.get("items", [])):
+            elements.append({"id": f"item_{i}", "enter_at": 0.4 + i * 0.25, "exit_at": dur - 0.5, "easing": "easeOutBack"})
+    elif stype == "quote":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "openQuote", "enter_at": 0.2, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "card", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "text", "enter_at": 0.6, "exit_at": dur - 0.5, "easing": "expoOut"})
+        if slide.get("source"):
+            elements.append({"id": "source", "enter_at": 0.9, "exit_at": dur - 0.5, "easing": "expoOut"})
+    elif stype == "compare":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "heading", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "leftCol", "enter_at": 0.4, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "rightCol", "enter_at": 0.5, "exit_at": dur - 0.5, "easing": "expoOut"})
+        left_items = slide.get("left", [])
+        right_items = slide.get("right", [])
+        max_items = max(len(left_items), len(right_items))
+        for i in range(max_items):
+            if i < len(left_items):
+                elements.append({"id": f"left_{i}", "enter_at": 0.6 + i * 0.12, "exit_at": dur - 0.5, "easing": "easeOut"})
+            if i < len(right_items):
+                elements.append({"id": f"right_{i}", "enter_at": 0.6 + i * 0.12, "exit_at": dur - 0.5, "easing": "easeOut"})
+    elif stype == "steps":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "heading", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        for i, _ in enumerate(slide.get("steps", [])):
+            elements.append({"id": f"step_{i}", "enter_at": 0.4 + i * 0.3, "exit_at": dur - 0.5, "easing": "easeOutBack"})
+    elif stype == "summary":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "icon", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "heading", "enter_at": 0.2, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.4, "exit_at": dur - 0.5, "easing": "expoOut"})
+        for i, _ in enumerate(slide.get("items", [])):
+            elements.append({"id": f"item_{i}", "enter_at": 0.5 + i * 0.15, "exit_at": dur - 0.5, "easing": "easeOut"})
+    elif stype == "stat":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "ring", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut", "idle": "breathe"})
+        elements.append({"id": "value", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "label", "enter_at": 0.6, "exit_at": dur - 0.5, "easing": "expoOut"})
+        if slide.get("sublabel"):
+            elements.append({"id": "sublabel", "enter_at": 0.8, "exit_at": dur - 0.5, "easing": "expoOut"})
+    elif stype == "chart":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "heading", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "chart", "enter_at": 0.4, "exit_at": dur - 0.5, "easing": "expoOut"})
+    elif stype == "timeline":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "heading", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "accent", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "axis", "enter_at": 0.4, "exit_at": dur - 0.5, "easing": "expoOut"})
+    elif stype == "focus":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "mask", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "keyword", "enter_at": 0.3, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "explanation", "enter_at": 0.6, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "callout", "enter_at": 0.8, "exit_at": dur - 0.5, "easing": "expoOut"})
+    elif stype == "qa":
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "question", "enter_at": 0.1, "exit_at": dur * 0.45, "easing": "expoOut"})
+        elements.append({"id": "flip", "enter_at": dur * 0.45, "exit_at": dur - 0.5, "easing": "expoOut"})
+        elements.append({"id": "answer", "enter_at": dur * 0.5, "exit_at": dur - 0.5, "easing": "expoOut"})
+    else:
+        elements.append({"id": "bg", "enter_at": 0, "exit_at": dur, "easing": "none"})
+        elements.append({"id": "heading", "enter_at": 0.1, "exit_at": dur - 0.5, "easing": "expoOut"})
+
+    return {"duration": dur, "elements": elements}
+
+
+def slides_to_json(sections, article_title=""):
+    slides = []
+
+    if article_title:
+        title_slide = {
+            "type": "title",
+            "title": article_title,
+            "subtitle": "",
+            "duration": 6,
+            "narration": article_title,
+        }
+        title_slide["timeline"] = generate_timeline(title_slide)
+        slides.append(title_slide)
+
+    for sec_idx, section in enumerate(sections):
+        template_slide = parse_section(section)
+        if template_slide:
+            slide = template_slide
+            slide["narration"] = _build_narration(slide)
+            slide["timeline"] = generate_timeline(slide)
+            ok, msg = validate_slide(slide)
+            if not ok:
+                print(f"  [WARN] Template validation failed for {slide.get('type')}: {msg}")
+            slides.append(slide)
+            continue
+
+        slide_type = classify_slide_type(section, sec_idx, len(sections))
+        heading = section["heading"]
+        content = section["content"]
+
+        if slide_type == "title":
+            slide = {
+                "type": "title",
+                "title": heading,
+                "subtitle": "",
+                "duration": 5,
+                "narration": heading,
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
+
+        elif slide_type == "quote":
+            quote_text = " ".join(c[1] for c in content if c[0] == "quote")
+            slide = {
+                "type": "quote",
+                "text": quote_text[:120],
+                "source": (heading or "")[:20],
+                "duration": 6,
+                "narration": quote_text,
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
+
+        elif slide_type == "steps":
+            steps = []
+            for c in content:
+                if c[0] == "step":
+                    steps.append({"title": c[1][:15], "desc": c[1][:30]})
+                elif c[0] == "text" and len(steps) > 0:
+                    steps[-1]["desc"] += " " + c[1][:30]
+            if steps:
+                narration = "，".join(s["desc"] for s in steps)
+                slide = {
+                    "type": "steps",
+                    "title": heading or "步骤",
+                    "steps": steps[:5],
+                    "duration": max(8, len(steps) * 4),
+                    "narration": narration,
+                }
+                slide["timeline"] = generate_timeline(slide)
+                slides.append(slide)
+
+        elif slide_type == "stat":
+            stat_text = " ".join(c[1] for c in content)
+            num_match = re.search(r'(\d+[.%万亿]?万?亿?)', stat_text)
+            value = num_match.group(1) if num_match else "100%"
+            slide = {
+                "type": "stat",
+                "value": value[:10],
+                "label": (heading or stat_text[:20])[:20],
+                "sublabel": stat_text[:30] if len(stat_text) > 20 else "",
+                "duration": 6,
+                "narration": stat_text,
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
+
+        elif slide_type == "qa":
+            qa_text = " ".join(c[1] for c in content)
+            qa_match = re.search(r'^(.{2,15})[？?](.{2,})$', qa_text)
+            question = (qa_match.group(1) + "？" if qa_match else heading)[:40]
+            answer = (qa_match.group(2) if qa_match else qa_text)[:50]
+            slide = {
+                "type": "qa",
+                "question": question,
+                "answer": answer,
+                "duration": 8,
+                "narration": f"{question}答案是，{answer}",
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
+
+        elif slide_type == "compare":
+            bullets = [c[1] for c in content if c[0] == "bullet"]
+            texts = [c[1] for c in content if c[0] == "text"]
+            mid = max(1, len(bullets) // 2)
+            left_items = bullets[:mid]
+            right_items = bullets[mid:] if len(bullets) > mid else texts[:3]
+            if not right_items:
+                right_items = ["—"]
+            if not left_items:
+                left_items = ["—"]
+            narration = "，".join(bullets + texts)
+            slide = {
+                "type": "compare",
+                "title": (heading or "对比")[:15],
+                "leftTitle": "A",
+                "rightTitle": "B",
+                "left": [l[:10] for l in left_items[:4]],
+                "right": [r[:10] for r in right_items[:4]],
+                "duration": max(8, (len(left_items) + len(right_items)) * 3),
+                "narration": narration,
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
+
+        elif slide_type == "timeline":
+            bullets = [c[1] for c in content if c[0] == "bullet"]
+            texts = [c[1] for c in content if c[0] == "text"]
+            events = []
+            for b in bullets[:6]:
+                year_match = re.search(r'(\d{2,4})\s*年?', b)
+                events.append({
+                    "year": (year_match.group(1) if year_match else "")[:6],
+                    "title": b[:15],
+                    "desc": b[:30],
+                })
+            if not events:
+                for i, t in enumerate(texts[:6]):
+                    events.append({
+                        "year": str(i + 1),
+                        "title": t[:15],
+                        "desc": t[:30],
+                    })
+            narration = "，".join(e["title"] for e in events)
+            slide = {
+                "type": "timeline",
+                "title": (heading or "时间线")[:15],
+                "events": events[:6],
+                "duration": max(8, len(events) * 3),
+                "narration": narration,
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
+
+        elif slide_type == "focus":
+            texts = [c[1] for c in content if c[0] == "text"]
+            keyword = heading if heading else (texts[0][:8] if texts else "关键词")
+            explanation = " ".join(texts) if texts else heading
+            slide = {
+                "type": "focus",
+                "keyword": keyword[:8],
+                "explanation": explanation[:60],
+                "callout": explanation[:20] if len(explanation) > 20 else "",
+                "duration": 6,
+                "narration": explanation,
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
+
+        elif slide_type == "chart":
+            bullets = [c[1] for c in content if c[0] == "bullet"]
+            texts = [c[1] for c in content if c[0] == "text"]
+            chart_data = []
+            for b in bullets[:5]:
+                num_match = re.search(r'(\d+)', b)
+                chart_data.append({
+                    "label": b[:6],
+                    "value": int(num_match.group(1)) if num_match else len(b),
+                })
+            if not chart_data:
+                for i, t in enumerate(texts[:5]):
+                    chart_data.append({
+                        "label": t[:6],
+                        "value": 10 + i * 5,
+                    })
+            narration = "，".join(d["label"] for d in chart_data)
+            slide = {
+                "type": "chart",
+                "title": (heading or "数据")[:15],
+                "chartType": "bar",
+                "data": chart_data[:6],
+                "duration": 8,
+                "narration": narration,
+            }
+            slide["timeline"] = generate_timeline(slide)
+            slides.append(slide)
+
+        elif slide_type == "bullet":
+            items = []
+            for c in content:
+                if c[0] == "bullet":
+                    items.append(c[1][:20])
+                elif c[0] == "text" and items:
+                    items[-1] += c[1][:10]
+                elif c[0] == "quote":
+                    items.append(c[1][:20])
+
+            if items:
+                narration = "，".join(items)
+                slide = {
+                    "type": "bullet",
+                    "title": (heading or "要点")[:15],
+                    "items": items[:5],
+                    "duration": max(8, len(items) * 4),
+                    "narration": narration,
+                }
+                slide["timeline"] = generate_timeline(slide)
+                slides.append(slide)
+
+    if len(slides) > 1:
+        summary_items = []
+        for s in slides[1:]:
+            if s["type"] == "title" and s.get("title"):
+                summary_items.append(s["title"])
+            elif s["type"] == "bullet" and s.get("title"):
+                summary_items.append(s["title"])
+            elif s["type"] == "quote" and s.get("text"):
+                summary_items.append(s["text"][:30])
+            elif s["type"] == "compare" and s.get("title"):
+                summary_items.append(s["title"])
+            elif s["type"] == "steps" and s.get("title"):
+                summary_items.append(s["title"])
+            elif s["type"] == "timeline" and s.get("title"):
+                summary_items.append(s["title"])
+            elif s["type"] == "focus" and s.get("keyword"):
+                summary_items.append(s["keyword"])
+            elif s["type"] == "stat" and s.get("label"):
+                summary_items.append(s["label"])
+            elif s["type"] == "chart" and s.get("title"):
+                summary_items.append(s["title"])
+            elif s["type"] == "qa" and s.get("question"):
+                summary_items.append(s["question"][:30])
+
+        if summary_items:
+            summary_slide = {
+                "type": "summary",
+                "title": "总结",
+                "items": summary_items[:4],
+                "duration": 10,
+                "narration": "总结一下。" + "，".join(summary_items[:4]),
+            }
+            summary_slide["timeline"] = generate_timeline(summary_slide)
+            slides.append(summary_slide)
+
+    return {"slides": slides}
+
+
+def fetch_article_by_media_id(media_id):
+    from article_fetcher import get_article_content, html_to_markdown
+
+    articles = get_article_content(media_id)
+    if not articles:
+        print("ERROR: Article not found.")
+        return None
+
+    a = articles[0]
+    markdown = html_to_markdown(a.get("content", ""))
+    return {
+        "title": a.get("title", ""),
+        "author": a.get("author", ""),
+        "markdown": markdown,
+        "url": a.get("url", ""),
+    }
+
+
+def fetch_article_by_url(url):
+    from article_fetcher import fetch_article_by_url as fetch_url
+
+    article = fetch_url(url)
+    if not article:
+        return None
+
+    return {
+        "title": article.get("title", ""),
+        "author": article.get("author", ""),
+        "markdown": article.get("content_markdown", ""),
+        "url": url,
+    }
+
+
+def load_article_from_file(file_path):
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    title = ""
+    title_match = re.match(r'^#\s+(.+)', content)
+    if title_match:
+        title = title_match.group(1).strip()
+
+    return {
+        "title": title,
+        "author": "",
+        "markdown": content,
+        "url": "",
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser(description="本质工坊 · 公众号文章转视频")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--url", type=str, help="公众号文章URL（推荐，无权限要求）")
+    group.add_argument("--article", type=str, help="本地Markdown文章路径")
+    group.add_argument("--media-id", type=str, help="公众号文章media_id（需API权限，认证服务号）")
+
+    parser.add_argument("--output", "-o", default="output/video/", help="视频输出目录")
+    parser.add_argument("--voice", "-v", default="zh-CN-YunxiNeural",
+                        choices=["zh-CN-YunxiNeural", "zh-CN-XiaoxiaoNeural", "zh-CN-YunjianNeural"],
+                        help="TTS语音")
+    parser.add_argument("--rate", "-r", default="+0%", help="TTS语速")
+    parser.add_argument("--width", default=1080, type=int, help="视频宽度")
+    parser.add_argument("--height", default=1920, type=int, help="视频高度")
+    parser.add_argument("--compress", action="store_true", help="压缩视频至50MB")
+    parser.add_argument("--save-article", type=str, default="", help="同时保存文章为Markdown")
+    parser.add_argument("--save-slides", action="store_true", help="保存slides.json到输出目录")
+    parser.add_argument("--template", "-t", default=None, help="自定义HTML模板路径")
+    parser.add_argument("--style", default="dark",
+                        help="视觉风格: dark（固定黑金配色）")
+    parser.add_argument("--visual-style", default="auto", choices=["auto", "tech", "edu", "compare", "philosophy"],
+                        dest="visual_style",
+                        help="Cinematic视觉语言: auto(自动推断), tech, edu, compare, philosophy")
+    parser.add_argument("--bgm", default=None,
+                        help="背景音乐文件路径(MP3/WAV)，旁白时自动降低音量")
+    parser.add_argument("--sfx-dir", default=None, dest="sfx_dir",
+                        help="SFX音效目录(包含whoosh.mp3, sparkle.mp3等)")
+    parser.add_argument("--format", default="mp4", choices=["mp4", "mp4_60fps", "gif"],
+                        help="输出格式: mp4(25fps), mp4_60fps(60帧), gif")
+    parser.add_argument("--brand-spec", default=None, dest="brand_spec",
+                        help="brand-spec.json路径，用于在主题基础上覆写颜色")
+    parser.add_argument("--auto-brand", action="store_true", dest="auto_brand",
+                        help="自动从文章提取品牌素材，生成brand-spec.json并应用")
+
+    args = parser.parse_args()
+
+    print("[1/3] Fetching article...")
+    if args.url:
+        article = fetch_article_by_url(args.url)
+    elif args.article:
+        article = load_article_from_file(args.article)
+    elif args.media_id:
+        article = fetch_article_by_media_id(args.media_id)
+    else:
+        print("ERROR: No article source specified.")
+        sys.exit(1)
+
+    if not article or not article["markdown"]:
+        print("ERROR: Could not fetch article content.")
+        sys.exit(1)
+
+    print(f"  Title: {article['title']}")
+    print(f"  Content length: {len(article['markdown'])} chars")
+
+    if args.save_article:
+        from article_fetcher import save_article
+        save_article({
+            "title": article["title"],
+            "author": article["author"],
+            "content_markdown": article["markdown"],
+            "url": article.get("url", ""),
+        }, args.save_article)
+
+    print("\n[2/3] Splitting article into slides...")
+    sections = split_into_slides(article["markdown"], article["title"])
+    slides_data = slides_to_json(sections, article["title"])
+
+    num_slides = len(slides_data["slides"])
+    total_duration = sum(s["duration"] for s in slides_data["slides"])
+    print(f"  Generated {num_slides} slides, estimated {total_duration}s")
+
+    if num_slides < 3:
+        print("ERROR: Too few slides (<3). The article structure is too poor for video generation.")
+        print("  Possible causes: article has no H2 headings, content is too short, or Markdown is malformed.")
+        print("  Suggestion: use --article with a well-structured Markdown file instead of --url")
+        sys.exit(1)
+    if num_slides > 25:
+        print(f"WARNING: Too many slides ({num_slides}). Truncating to 25 for video length control.")
+        slides_data["slides"] = slides_data["slides"][:25]
+        num_slides = 25
+
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    output_dir = os.path.join(args.output, timestamp)
+    os.makedirs(output_dir, exist_ok=True)
+
+    slides_path = os.path.join(output_dir, "slides.json")
+    with open(slides_path, "w", encoding="utf-8") as f:
+        json.dump(slides_data, f, ensure_ascii=False, indent=2)
+    print(f"  Slides saved: {slides_path}")
+
+    print("\n[3/3] Generating video...")
+    from scripts.pipelines.video.pipeline import generate_video
+
+    visual_style = args.visual_style
+    if visual_style == "auto":
+        visual_style = detect_visual_style(sections)
+        print(f"  [VISUAL] Auto-detected visual style: {visual_style}")
+
+    brand_spec_path = args.brand_spec
+
+    if args.auto_brand and article.get("markdown"):
+        sys.path.insert(0, os.path.join(SCRIPT_DIR, "..", "..", "..", "format-pipeline", "scripts", "elements"))
+        from brand_extractor import extract_brand_from_markdown
+        print("  [BRAND] Auto-extracting brand spec from article...")
+        brand_spec = extract_brand_from_markdown(article["markdown"], article.get("title", ""))
+        brand_spec_save_path = os.path.join(output_dir, "brand-spec.json")
+        with open(brand_spec_save_path, "w", encoding="utf-8") as f:
+            json.dump(brand_spec, f, ensure_ascii=False, indent=2)
+        brand_spec_path = brand_spec_save_path
+        print(f"  [BRAND] Saved: {brand_spec_save_path}")
+        print(f"  [BRAND] Detected theme: {brand_spec.get('detected_theme', 'N/A')}")
+        print(f"  [BRAND] Primary color: {brand_spec['colors'].get('primary', 'N/A')}")
+
+    final_path = generate_video(
+        slides_path=slides_path,
+        output_dir=args.output,
+        template_html=args.template,
+        voice=args.voice,
+        rate=args.rate,
+        width=args.width,
+        height=args.height,
+        compress=args.compress,
+        style=args.style,
+        bgm=args.bgm,
+        fmt=args.format,
+        visual_style=visual_style,
+        sfx_dir=args.sfx_dir,
+        brand_spec_path=brand_spec_path,
+    )
+
+    print(f"\n[DONE] Article → Video complete!")
+    print(f"  Article: {article['title']}")
+    print(f"  Video: {final_path}")
+
+    return final_path
+
+
+if __name__ == "__main__":
+    main()

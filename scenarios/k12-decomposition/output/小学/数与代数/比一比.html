@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 比一比</title>
+<style>:root { --bg-primary: #0f1117; --bg-secondary: #1a1d27; --bg-card: #1e2130; --text-primary: #e8e8ed; --text-secondary: #9ca3af; --text-muted: #6b7280; --border-color: #2d3148; --border-accent: var(--accent-color, #4fc3f7); --accent-color: #4fc3f7; --accent-glow: rgba(79,195,247,0.12); --success: #4caf50; --error: #ef5350; --radius: 8px; --radius-lg: 12px; --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.8; min-height: 100vh; }
+body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+.header { position: relative; z-index: 1; padding: 40px 24px 24px; max-width: 800px; margin: 0 auto; border-bottom: 1px solid var(--border-color); }
+.header h1 { font-size: 2rem; font-weight: 700; }
+.header h1 .accent { color: var(--accent-color); }
+.header .meta { display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 0.9rem; flex-wrap: wrap; }
+.header .meta .tag { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 12px; border-radius: 20px; font-size: 0.85rem; }
+.main { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px; }
+.group { margin-bottom: 32px; }
+.group-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+.group-header .group-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; background: var(--accent-color); color: var(--bg-primary); }
+.group-header .group-title { font-size: 1.1rem; font-weight: 600; }
+.group-header .group-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-left: auto; }
+.dimension-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s; }
+.dimension-card:hover { border-color: var(--border-accent); }
+.dimension-header { display: flex; align-items: center; padding: 16px 20px; cursor: pointer; user-select: none; gap: 12px; }
+.dimension-header .dim-number { width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
+.dimension-header .dim-title { font-weight: 600; }
+.dimension-header .dim-question { font-size: 0.85rem; color: var(--text-muted); margin-left: 8px; }
+.dimension-header .dim-toggle { margin-left: auto; color: var(--text-muted); font-size: 0.8rem; transition: transform 0.2s; flex-shrink: 0; }
+.dimension-header .dim-toggle.collapsed { transform: rotate(-90deg); }
+.dimension-body { padding: 0 20px 20px; color: var(--text-secondary); line-height: 1.9; }
+.dimension-body.collapsed { display: none; }
+.dimension-body p { margin-bottom: 12px; }
+.dimension-body strong { color: var(--text-primary); }
+.dimension-body .highlight { color: var(--accent-color); font-weight: 500; }
+.dimension-body .story-box { background: var(--bg-secondary); border-left: 3px solid var(--accent-color); padding: 16px 20px; border-radius: 0 var(--radius) var(--radius) 0; margin: 12px 0; }
+.dimension-body .example-list { list-style: none; padding: 0; }
+.dimension-body .example-list li { padding: 8px 0 8px 20px; position: relative; }
+.dimension-body .example-list li::before { content: ''; position: absolute; left: 0; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-color); opacity: 0.6; }
+.diagram { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
+.diagram svg { max-width: 100%; height: auto; }
+.diagram svg text { font-family: var(--font-sans); }
+.diagram .caption { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+.quiz-container { padding: 0; }
+.quiz-item { margin-bottom: 16px; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border-color); }
+.quiz-item .quiz-question { font-weight: 600; color: var(--text-primary); margin-bottom: 12px; }
+.quiz-item .quiz-type { font-size: 0.75rem; color: var(--accent-color); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.quiz-options { list-style: none; padding: 0; }
+.quiz-options li { padding: 10px 16px; margin-bottom: 6px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; transition: all 0.2s; color: var(--text-secondary); }
+.quiz-options li:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.quiz-options li.correct { border-color: var(--success); background: rgba(76,175,80,0.1); color: var(--success); }
+.quiz-options li.wrong { border-color: var(--error); background: rgba(239,83,80,0.1); color: var(--error); }
+.quiz-explanation { display: none; margin-top: 12px; padding: 12px 16px; background: var(--bg-card); border-left: 3px solid var(--accent-color); border-radius: 0 var(--radius) var(--radius) 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7; }
+.quiz-explanation.visible { display: block; }
+.map-node { padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; display: inline-block; }
+.map-node:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.map-node.current { background: var(--accent-color); color: var(--bg-primary); border-color: var(--accent-color); font-weight: 600; }
+.map-node.pending { border-style: dashed; opacity: 0.7; }
+.knowledge-map { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-top: 32px; }
+.knowledge-map h3 { font-size: 1rem; margin-bottom: 16px; }
+.map-section { margin-top: 12px; }
+.map-section-title { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
+.map-nodes { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.map-arrow { color: var(--text-muted); font-size: 0.9rem; }
+.footer { position: relative; z-index: 1; max-width: 800px; margin: 40px auto 0; padding: 24px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.8rem; }</style>
+</head>
+<body>
+<div class="header">
+  <h1>知本 · <span class="accent">比一比</span></h1>
+  <div class="meta"><span class="tag">数学</span><span class="tag">一年级</span><span class="tag">数与代数</span></div>
+</div>
+<div class="main">
+  <div class="group">
+    <div class="group-header"><div class="group-icon">认</div><span class="group-title">认知组</span><span class="group-subtitle">理解</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">1</span><span class="dim-title">定义锚点</span><span class="dim-question">它是什么？</span><span class="dim-toggle">▼</span></div>
+      <div class="dimension-body">
+        <p><strong>比一比</strong>就是把两个东西放在一起，看看谁多谁少、谁长谁短、谁高谁矮、谁重谁轻。</p>
+        <p>生活锚点：<span class="highlight">比身高</span>——你和好朋友背靠背站一起，谁头顶更高谁就更高。<span class="highlight">比铅笔</span>——两支铅笔并排放，哪支更长一眼就看出来。</p>
+        <p>概念边界：比一比需要<span class="highlight">两个或以上的东西</span>才能比。一个东西没法说"长"还是"短"——你的铅笔对橡皮来说很长，但对尺子来说很短。长和短是比较出来的，不是天生就有的。</p>
+        <div class="diagram">
+          <svg viewBox="0 0 480 180" xmlns="http://www.w3.org/2000/svg">
+            <!-- 长短比较 -->
+            <text x="240" y="25" text-anchor="middle" fill="var(--accent-color)" font-size="13" font-weight="600">比长短</text>
+            <rect x="40" y="40" width="180" height="20" rx="4" fill="var(--accent-color)" opacity="0.7"/>
+            <text x="130" y="55" text-anchor="middle" fill="var(--bg-primary)" font-size="12" font-weight="600">长铅笔</text>
+            <rect x="40" y="70" width="100" height="20" rx="4" fill="var(--text-muted)" opacity="0.5"/>
+            <text x="90" y="85" text-anchor="middle" fill="var(--text-primary)" font-size="12">短铅笔</text>
+            <!-- 高矮比较 -->
+            <text x="240" y="120" text-anchor="middle" fill="var(--accent-color)" font-size="13" font-weight="600">比高矮</text>
+            <rect x="160" y="130" width="30" height="40" rx="4" fill="var(--accent-color)" opacity="0.7"/>
+            <text x="175" y="160" text-anchor="middle" fill="var(--bg-primary)" font-size="10">高</text>
+            <rect x="220" y="140" width="30" height="30" rx="4" fill="var(--text-muted)" opacity="0.5"/>
+            <text x="235" y="160" text-anchor="middle" fill="var(--text-primary)" font-size="10">矮</text>
+            <!-- 虚线对齐 -->
+            <line x1="40" y1="65" x2="230" y2="65" stroke="var(--text-muted)" stroke-width="0.5" stroke-dasharray="3,3"/>
+            <line x1="155" y1="125" x2="255" y2="125" stroke="var(--text-muted)" stroke-width="0.5" stroke-dasharray="3,3"/>
+          </svg>
+          <div class="caption">比一比：一端对齐，看另一端就知道谁长谁短</div>
+        </div>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">2</span><span class="dim-title">历史溯源</span><span class="dim-question">它从哪来？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <div class="story-box">
+          <p>比一比是人类最古老的数学活动。古人比谁打猎打得多——你的3只兔子，我的5只兔子，我比你多！古人还用身体来比长度：<span class="highlight">一拃</span>（张开手，大拇指到中指的距离）、<span class="highlight">一步</span>（走一步的长度）、<span class="highlight">一庹</span>（张开双臂的长度）。每个人的"拃"不一样长，所以比的时候经常吵架——"你的一拃比我的长！"后来人们才发明了统一的尺子。</p>
+        </div>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">3</span><span class="dim-title">现实矛盾</span><span class="dim-question">为什么需要它？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p><strong>困境时刻</strong>：买鞋的时候，如果不知道自己的脚比鞋子大还是小，鞋就可能买大了或买小了。<span class="highlight">不比较就没法做选择</span>。</p>
+        <p>更麻烦的是：如果比较的方法不对，结果就错了。比如比长短时，两支铅笔<span class="highlight">一端没对齐</span>，就比不出谁长谁短。比高矮时，一个人站在台阶上，另一个人站在平地上，也不公平。所以比一比有铁律：<strong>起点要对齐</strong>。</p>
+      </div>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-header"><div class="group-icon">用</div><span class="group-title">应用组</span><span class="group-subtitle">迁移</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">4</span><span class="dim-title">应用场景</span><span class="dim-question">它能做什么？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <ul class="example-list">
+          <li><strong>比多少</strong>：你的糖多还是我的糖多？一个对一个，谁剩下了谁就多。</li>
+          <li><strong>比长短</strong>：两根绳子哪根长？一端对齐，看另一端。</li>
+          <li><strong>比高矮</strong>：谁更高？背靠背站一起，头顶平齐看脚底。</li>
+        </ul>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">5</span><span class="dim-title">思维延伸</span><span class="dim-question">它还能怎样？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p>比一比是所有"测量"的起点。以后你会学到用<span class="highlight">尺子量</span>（比长短变成量几厘米）、用<span class="highlight">秤称</span>（比轻重变成称几克）、用<span class="highlight">杯量</span>（比多少变成量几毫升）。从"比一比"到"量一量"，就是从"谁长谁短"到"长多少短多少"的飞跃。</p>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">6</span><span class="dim-title">知识网络</span><span class="dim-question">它和什么关联？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p><strong>后续知识</strong>：<span class="map-node pending">分与合</span>——比较之后可以分成几和几；<span class="map-node pending">厘米和米</span>——从"比长短"到"量出多长"。</p>
+      </div>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-header"><div class="group-icon">验</div><span class="group-title">验证组</span><span class="group-subtitle">确认</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">7</span><span class="dim-title">验证理解</span><span class="dim-question">真的懂了吗？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <div class="quiz-container">
+          <div class="quiz-item">
+            <div class="quiz-type">动手操作</div>
+            <div class="quiz-question">拿两支不一样长的铅笔，怎么比出哪支更长？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">把两支铅笔一端对齐，看另一端谁更长</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">拿在手里凭感觉猜</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">不用比，看颜色就行</li>
+            </ul>
+            <div class="quiz-explanation">比长短的关键是"一端对齐"——就像赛跑要站在同一条起跑线上一样。对齐后，另一端伸出去更多的那个就更长。</div>
+          </div>
+          <div class="quiz-item">
+            <div class="quiz-type">辨析</div>
+            <div class="quiz-question">小红站在椅子上，小明站在地上，小红比小明高。这样比对吗？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">对，小红确实比小明高</li>
+              <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">不对，应该都站在地上比才公平</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">无所谓，怎么比都行</li>
+            </ul>
+            <div class="quiz-explanation">比高矮要站在同一个平面上，就像比长短要一端对齐。小红站在椅子上，多了一个椅子的高度，这样比不公平。</div>
+          </div>
+          <div class="quiz-item">
+            <div class="quiz-type">选择</div>
+            <div class="quiz-question">一个苹果和一个橘子比大小，能说"苹果大"吗？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">能，苹果就是大</li>
+              <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">要看和哪个橘子比，比一比才知道</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">不能，苹果永远不大</li>
+            </ul>
+            <div class="quiz-explanation">"大"和"小"是比较出来的，不是绝对的。大苹果可能比小橘子大，但小苹果可能比大橘子小。必须比一比才知道。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section"><div class="map-nodes"><span class="map-node current">比一比</span><span class="map-arrow">→</span></div></div>
+    <div class="map-section"><div class="map-section-title">后续延伸</div><div class="map-nodes"><span class="map-node pending">分与合</span></div></div>
+  </div>
+</div>
+<div class="footer">知本 KnowledgeRoot — 知识本质拆解系统</div>
+<script>function toggleDimension(h){const b=h.nextElementSibling;const t=h.querySelector('.dim-toggle');b.classList.toggle('collapsed');t.classList.toggle('collapsed');}
+function checkAnswer(el,correct,expl){const p=el.parentElement;const opts=p.querySelectorAll('li');opts.forEach(o=>{o.style.pointerEvents='none';});if(correct){el.classList.add('correct');}else{el.classList.add('wrong');opts.forEach(o=>{if(o.dataset.correct==='true')o.classList.add('correct');});}if(expl)expl.classList.add('visible');}</script>
+</body>
+</html>

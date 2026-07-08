@@ -1,0 +1,63 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>知本 · 认识100以内数</title><style>:root{--bg-primary:#0f1117;--bg-secondary:#1a1d27;--bg-card:#1e2130;--text-primary:#e8e8ed;--text-secondary:#9ca3af;--text-muted:#6b7280;--border-color:#2d3148;--border-accent:var(--accent-color,#4fc3f7);--accent-color:#4fc3f7;--accent-glow:rgba(79,195,247,0.12);--success:#4caf50;--error:#ef5350;--radius:8px;--radius-lg:12px;--font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);line-height:1.8;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:radial-gradient(circle at 20% 50%,var(--accent-glow) 0%,transparent 50%);pointer-events:none;z-index:0}
+.header{position:relative;z-index:1;padding:40px 24px 24px;max-width:800px;margin:0 auto;border-bottom:1px solid var(--border-color)}
+.header h1{font-size:2rem;font-weight:700}.header h1 .accent{color:var(--accent-color)}
+.header .meta{display:flex;gap:16px;align-items:center;color:var(--text-secondary);font-size:0.9rem;flex-wrap:wrap}
+.header .meta .tag{background:var(--bg-card);border:1px solid var(--border-color);padding:2px 12px;border-radius:20px;font-size:0.85rem}
+.main{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:24px}
+.group{margin-bottom:32px}
+.group-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border-color)}
+.group-header .group-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;background:var(--accent-color);color:var(--bg-primary)}
+.group-header .group-title{font-size:1.1rem;font-weight:600}.group-header .group-subtitle{font-size:0.85rem;color:var(--text-muted);margin-left:auto}
+.dimension-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;transition:border-color 0.2s}
+.dimension-card:hover{border-color:var(--border-accent)}
+.dimension-header{display:flex;align-items:center;padding:16px 20px;cursor:pointer;user-select:none;gap:12px}
+.dimension-header .dim-number{width:24px;height:24px;border-radius:50%;background:var(--bg-secondary);border:1px solid var(--border-color);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;color:var(--text-secondary);flex-shrink:0}
+.dimension-header .dim-title{font-weight:600}.dimension-header .dim-question{font-size:0.85rem;color:var(--text-muted);margin-left:8px}
+.dimension-header .dim-toggle{margin-left:auto;color:var(--text-muted);font-size:0.8rem;transition:transform 0.2s;flex-shrink:0}
+.dimension-header .dim-toggle.collapsed{transform:rotate(-90deg)}
+.dimension-body{padding:0 20px 20px;color:var(--text-secondary);line-height:1.9}
+.dimension-body.collapsed{display:none}.dimension-body p{margin-bottom:12px}
+.dimension-body strong{color:var(--text-primary)}.dimension-body .highlight{color:var(--accent-color);font-weight:500}
+.dimension-body .story-box{background:var(--bg-secondary);border-left:3px solid var(--accent-color);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;margin:12px 0}
+.dimension-body .example-list{list-style:none;padding:0}.dimension-body .example-list li{padding:8px 0 8px 20px;position:relative}
+.dimension-body .example-list li::before{content:'';position:absolute;left:0;top:16px;width:8px;height:8px;border-radius:50%;background:var(--accent-color);opacity:0.6}
+.diagram{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:20px;margin:16px 0;text-align:center;overflow-x:auto}
+.diagram svg{max-width:100%;height:auto}.diagram svg text{font-family:var(--font-sans)}
+.diagram .caption{font-size:0.8rem;color:var(--text-muted);margin-top:8px}
+.quiz-container{padding:0}.quiz-item{margin-bottom:16px;padding:16px;background:var(--bg-secondary);border-radius:var(--radius);border:1px solid var(--border-color)}
+.quiz-item .quiz-question{font-weight:600;color:var(--text-primary);margin-bottom:12px}
+.quiz-item .quiz-type{font-size:0.75rem;color:var(--accent-color);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.quiz-options{list-style:none;padding:0}.quiz-options li{padding:10px 16px;margin-bottom:6px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;color:var(--text-secondary)}
+.quiz-options li:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.quiz-options li.correct{border-color:var(--success);background:rgba(76,175,80,0.1);color:var(--success)}
+.quiz-options li.wrong{border-color:var(--error);background:rgba(239,83,80,0.1);color:var(--error)}
+.quiz-explanation{display:none;margin-top:12px;padding:12px 16px;background:var(--bg-card);border-left:3px solid var(--accent-color);border-radius:0 var(--radius) var(--radius) 0;color:var(--text-secondary);font-size:0.9rem;line-height:1.7}
+.quiz-explanation.visible{display:block}
+.map-node{padding:6px 16px;border-radius:20px;font-size:0.85rem;border:1px solid var(--border-color);background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;transition:all 0.2s;display:inline-block}
+.map-node:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.map-node.current{background:var(--accent-color);color:var(--bg-primary);border-color:var(--accent-color);font-weight:600}
+.map-node.pending{border-style:dashed;opacity:0.7}
+.knowledge-map{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px;margin-top:32px}
+.knowledge-map h3{font-size:1rem;margin-bottom:16px}
+.map-section{margin-top:12px}.map-section-title{font-size:0.8rem;color:var(--text-muted);margin-bottom:8px}
+.map-nodes{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.map-arrow{color:var(--text-muted);font-size:0.9rem}
+.footer{position:relative;z-index:1;max-width:800px;margin:40px auto 0;padding:24px;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);font-size:0.8rem}:root{--accent-color:#4fc3f7;--accent-glow:#4fc3f720;--border-accent:#4fc3f7}</style></head><body>
+<div class="header"><h1>知本 · <span class="accent">认识100以内数</span></h1><div class="meta"><span class="tag">数学</span><span class="tag">一年级</span><span class="tag">数与代数</span></div></div>
+<div class="main">
+<div class="group"><div class="group-header"><div class="group-icon">认</div><span class="group-title">认知组</span><span class="group-subtitle">理解</span></div><p><strong>认识100以内数</strong>就是认识1到100这些数，理解<span class="highlight">位值制</span>——十位和个位上的数字分别代表什么，会比较大小。</p><p>生活锚点：<span class="highlight">数小棒</span>——10根小棒捆成一捆代表1个十，3捆加5根就是35。<span class="highlight">看温度计</span>——温度计上的刻度从0到100。</p><p>概念边界：35中的3在十位表示3个十（30），5在个位表示5个一（5）。<span class="highlight">同一个数字在不同位置代表不同的值</span>。</p><div class="story-box"><p>位值制是人类最伟大的数学发明之一。古罗马数字没有位值制——VIII就是8，但VIII不能像8那样做加减法。<span class="highlight">印度-阿拉伯数字</span>有了位值制，才让竖式计算成为可能。</p><p>中国古人用算筹表示位值：纵式和横式交替摆放，不同位置代表不同数位。这比罗马数字先进得多。</p></div><p><strong>困境时刻</strong>：如果没有位值制，35要写成"三十五"或"XXXV"，做加减法只能心算，没法列竖式。<span class="highlight">位值制让计算有了固定的程序</span>。</p><p>更关键的是：35和53用了同样的数字3和5，但代表完全不同的数。<span class="highlight">位置决定大小</span>——这就是位值制的威力。</p></div>
+
+<div class="diagram"><svg viewBox="0 0 440 200" xmlns="http://www.w3.org/2000/svg"><rect x="50" y="80" width="120" height="50" rx="6" fill="rgba(79,195,247,0.15)" stroke="#4fc3f7" stroke-width="1.5"/><text x="110" y="100" fill="#4fc3f7" font-size="12" text-anchor="middle">十位</text><text x="110" y="120" fill="#e8e8ed" font-size="16" text-anchor="middle">5</text><rect x="190" y="80" width="120" height="50" rx="6" fill="rgba(76,175,80,0.15)" stroke="#4caf50" stroke-width="1.5"/><text x="250" y="100" fill="#4caf50" font-size="12" text-anchor="middle">个位</text><text x="250" y="120" fill="#e8e8ed" font-size="16" text-anchor="middle">7</text><text x="220" y="165" fill="#e8e8ed" font-size="13" text-anchor="middle">10个一 = 1个十</text><text x="220" y="190" fill="#6b7280" font-size="11" text-anchor="middle">满十进一，位值制记数</text></svg><div class="caption">100以内数的组成</div></div>
+<div class="group"><div class="group-header"><div class="group-icon">用</div><span class="group-title">应用组</span><span class="group-subtitle">迁移</span></div><ul class="example-list"><li><strong>读数写数</strong>：看到"47"读作"四十七"。</li><li><strong>比较大小</strong>：先比十位，十位大的数大；十位相同比个位。</li><li><strong>数数</strong>：从47数到53：47、48、49、50、51、52、53。</li></ul><p>100以内的位值制可以扩展到<span class="highlight">任意大的数</span>——千位、万位、亿位……每多一位，数值就扩大10倍。以后你还会学到<span class="highlight">小数</span>——小数点右边是十分位、百分位，位值制向右延伸。</p><p><strong>前导知识</strong>：<span class="map-node pending">认数10以内</span>——先认识0-10。</p><p><strong>后续知识</strong>：<span class="map-node pending">100以内加减法</span>——用位值制做加减法；<span class="map-node pending">认数万以内</span>——更大的数。</p></div>
+<div class="group"><div class="group-header"><div class="group-icon">验</div><span class="group-title">验证组</span><span class="group-subtitle">确认</span></div><div class="quiz-container"><div class="quiz-item"><div class="quiz-type">本质理解</div><div class="quiz-question">35和53，哪个大？为什么？</div><ul class="quiz-options"><li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">53大，因为十位5比3大</li><li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">35大，因为5比3大</li><li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">一样大</li></ul><div class="quiz-explanation">比较大小先看十位：53的十位是5，35的十位是3，5>3，所以53>35。十位决定了数的基本大小。</div></div><div class="quiz-item"><div class="quiz-type">概念辨析</div><div class="quiz-question">"35"中的3代表什么？</div><ul class="quiz-options"><li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">3个十（30）</li><li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">3个一（3）</li><li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">35</li></ul><div class="quiz-explanation">位值制：35中的3在十位，代表3个十，即30。5在个位，代表5个一，即5。35=30+5。</div></div></div></div>
+<div class="knowledge-map"><h3>知识地图</h3>
+<div class="map-section"><div class="map-section-title">前导知识</div><div class="map-nodes"><span class="map-node pending">认数10以内</span></div></div>
+<div class="map-section"><div class="map-nodes"><span class="map-arrow">→</span><span class="map-node current">认识100以内数</span><span class="map-arrow">→</span></div></div>
+<div class="map-section"><div class="map-section-title">后续延伸</div><div class="map-nodes"><span class="map-node pending">100以内加减法</span><span class="map-node pending">认数万以内</span></div></div>
+</div></div>
+<div class="footer">知本 KnowledgeRoot — 知识本质拆解系统</div>
+<script>function toggleDimension(h){const b=h.nextElementSibling;const t=h.querySelector('.dim-toggle');b.classList.toggle('collapsed');t.classList.toggle('collapsed')}
+function checkAnswer(el,correct,expl){const p=el.parentElement;const opts=p.querySelectorAll('li');opts.forEach(o=>{o.style.pointerEvents='none';});if(correct){el.classList.add('correct');}else{el.classList.add('wrong');opts.forEach(o=>{if(o.dataset.correct==='true')o.classList.add('correct');});}if(expl)expl.classList.add('visible')}</script></body></html>

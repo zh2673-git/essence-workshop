@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 解决问题的策略</title>
+<style>
+:root { --bg-primary:#0f1117; --bg-secondary:#1a1d27; --bg-card:#1e2130; --bg-card-hover:#252840; --text-primary:#e8e8ed; --text-secondary:#9ca3af; --text-muted:#6b7280; --border-color:#2d3148; --border-accent:var(--accent-color,#4fc3f7); --accent-color:#4fc3f7; --accent-glow:rgba(79,195,247,0.15); --success:#4caf50; --error:#ef5350; --warning:#ff9800; --radius:8px; --radius-lg:12px; --shadow:0 2px 8px rgba(0,0,0,0.3); --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);line-height:1.8;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:radial-gradient(circle at 20% 50%,var(--accent-glow) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,255,255,0.02) 0%,transparent 40%);pointer-events:none;z-index:0}
+.header{position:relative;z-index:1;padding:40px 24px 24px;max-width:800px;margin:0 auto;border-bottom:1px solid var(--border-color)}
+.header h1{font-size:2rem;font-weight:700;color:var(--text-primary);margin-bottom:8px}
+.header h1 .accent{color:var(--accent-color)}
+.header .meta{display:flex;gap:16px;align-items:center;color:var(--text-secondary);font-size:0.9rem}
+.header .meta .tag{background:var(--bg-card);border:1px solid var(--border-color);padding:2px 12px;border-radius:20px;font-size:0.85rem}
+.main{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:24px}
+.group{margin-bottom:32px}
+.group-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border-color)}
+.group-header .group-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;background:var(--accent-color);color:var(--bg-primary)}
+.group-header .group-title{font-size:1.1rem;font-weight:600;color:var(--text-primary)}
+.group-header .group-subtitle{font-size:0.85rem;color:var(--text-muted);margin-left:auto}
+.dimension-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;transition:border-color 0.2s}
+.dimension-card:hover{border-color:var(--border-accent)}
+.dimension-header{display:flex;align-items:center;padding:16px 20px;cursor:pointer;user-select:none;gap:12px}
+.dimension-header .dim-number{width:24px;height:24px;border-radius:50%;background:var(--bg-secondary);border:1px solid var(--border-color);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;color:var(--text-secondary);flex-shrink:0}
+.dimension-header .dim-title{font-weight:600;font-size:1rem;color:var(--text-primary)}
+.dimension-header .dim-question{font-size:0.85rem;color:var(--text-muted);margin-left:8px}
+.dimension-header .dim-toggle{margin-left:auto;color:var(--text-muted);font-size:0.8rem;transition:transform 0.2s;flex-shrink:0}
+.dimension-header .dim-toggle.collapsed{transform:rotate(-90deg)}
+.dimension-body{padding:0 20px 20px;color:var(--text-secondary);line-height:1.9}
+.dimension-body.collapsed{display:none}
+.dimension-body p{margin-bottom:12px}
+.dimension-body strong{color:var(--text-primary)}
+.dimension-body .highlight{color:var(--accent-color);font-weight:500}
+.dimension-body .story-box{background:var(--bg-secondary);border-left:3px solid var(--accent-color);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;margin:12px 0}
+.dimension-body .example-list{list-style:none;padding:0}
+.dimension-body .example-list li{padding:8px 0 8px 20px;position:relative}
+.dimension-body .example-list li::before{content:'';position:absolute;left:0;top:16px;width:8px;height:8px;border-radius:50%;background:var(--accent-color);opacity:0.6}
+.diagram{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:20px;margin:16px 0;text-align:center;overflow-x:auto}
+.diagram svg{max-width:100%;height:auto}
+.diagram svg text{font-family:var(--font-sans)}
+.diagram .caption{font-size:0.8rem;color:var(--text-muted);margin-top:8px}
+.knowledge-map{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px;margin-top:32px}
+.knowledge-map h3{font-size:1rem;color:var(--text-primary);margin-bottom:16px}
+.map-nodes{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.map-node{padding:6px 16px;border-radius:20px;font-size:0.85rem;border:1px solid var(--border-color);background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;transition:all 0.2s}
+.map-node:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.map-node.current{background:var(--accent-color);color:var(--bg-primary);border-color:var(--accent-color);font-weight:600}
+.map-node.pending{border-style:dashed;opacity:0.7}
+.map-node.linked{text-decoration:none;color:var(--text-secondary)}
+.map-node.linked:hover{color:var(--accent-color);border-color:var(--accent-color)}
+.map-arrow{color:var(--text-muted);font-size:0.9rem}
+.map-section{margin-top:16px}
+.map-section-title{font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.map-section .map-nodes{justify-content:flex-start}
+.quiz-item{margin-bottom:16px;padding:16px;background:var(--bg-secondary);border-radius:var(--radius);border:1px solid var(--border-color)}
+.quiz-item .quiz-question{font-weight:600;color:var(--text-primary);margin-bottom:12px}
+.quiz-item .quiz-type{font-size:0.75rem;color:var(--accent-color);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.quiz-options{list-style:none;padding:0}
+.quiz-options li{padding:10px 16px;margin-bottom:6px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;color:var(--text-secondary)}
+.quiz-options li:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.quiz-options li.correct{border-color:var(--success);background:rgba(76,175,80,0.1);color:var(--success)}
+.quiz-options li.wrong{border-color:var(--error);background:rgba(239,83,80,0.1);color:var(--error)}
+.quiz-explanation{display:none;margin-top:12px;padding:12px 16px;background:var(--bg-card);border-left:3px solid var(--accent-color);border-radius:0 var(--radius) var(--radius) 0;color:var(--text-secondary);font-size:0.9rem;line-height:1.7}
+.quiz-explanation.visible{display:block}
+.footer{position:relative;z-index:1;max-width:800px;margin:40px auto 0;padding:24px;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);font-size:0.8rem}
+@media(max-width:640px){.header{padding:24px 16px 16px}.header h1{font-size:1.5rem}.main{padding:16px}.dimension-header{padding:12px 16px}.dimension-body{padding:0 16px 16px}}
+@media print{body{background:white;color:black}body::before{display:none}.dimension-body.collapsed{display:block!important}.dimension-header .dim-toggle{display:none}.dimension-card{border:1px solid #ddd}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>知本 · <span class="accent">解决问题的策略</span></h1>
+  <div class="meta"><span class="tag">数学</span><span class="tag">四年级</span><span class="tag">形式科学族</span></div>
+</div>
+<div class="main">
+  <div class="group">
+    <div class="group-header"><div class="group-icon">认</div><span class="group-title">认知组</span><span class="group-subtitle">理解</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">1</span><span class="dim-title">定义锚点</span><span class="dim-question">它是什么？</span><span class="dim-toggle">▼</span></div>
+      <div class="dimension-body">
+        <p>解决问题的策略，就是面对一个数学问题时，<strong>选择合适的方法和步骤来找到答案</strong>。四年级重点学习的策略是<strong>画图法</strong>和<strong>列表法</strong>。</p>
+        <p>策略不是答案本身，而是<strong>找到答案的路径</strong>。就像去一个陌生的地方，你可以问路、看地图、用导航——这些都是"策略"。不同的策略适用于不同的问题。</p>
+        <div class="diagram">
+          <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+            <rect x="30" y="30" width="160" height="60" rx="8" fill="var(--bg-card)" stroke="var(--accent-color)" stroke-width="2"/>
+            <text x="110" y="55" text-anchor="middle" fill="var(--accent-color)" font-size="14" font-weight="700">画图法</text>
+            <text x="110" y="75" text-anchor="middle" fill="var(--text-secondary)" font-size="11">把文字变成图形</text>
+            <rect x="220" y="30" width="160" height="60" rx="8" fill="var(--bg-card)" stroke="var(--border-color)" stroke-width="1"/>
+            <text x="300" y="55" text-anchor="middle" fill="var(--text-primary)" font-size="14" font-weight="600">列表法</text>
+            <text x="300" y="75" text-anchor="middle" fill="var(--text-secondary)" font-size="11">把条件排成表格</text>
+            <rect x="410" y="30" width="160" height="60" rx="8" fill="var(--bg-card)" stroke="var(--border-color)" stroke-width="1"/>
+            <text x="490" y="55" text-anchor="middle" fill="var(--text-primary)" font-size="14" font-weight="600">逆推法</text>
+            <text x="490" y="75" text-anchor="middle" fill="var(--text-secondary)" font-size="11">从结果倒推条件</text>
+            <line x1="110" y1="100" x2="300" y2="140" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4"/>
+            <line x1="300" y1="100" x2="300" y2="140" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4"/>
+            <line x1="490" y1="100" x2="300" y2="140" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4"/>
+            <rect x="200" y="140" width="200" height="40" rx="8" fill="var(--accent-color)" opacity="0.15" stroke="var(--accent-color)" stroke-width="1.5"/>
+            <text x="300" y="165" text-anchor="middle" fill="var(--accent-color)" font-size="14" font-weight="700">找到答案</text>
+          </svg>
+          <div class="caption">不同策略通向同一个目标：解决问题</div>
+        </div>
+        <p><strong>生活锚点</strong>：你每天早上怎么安排时间才能不迟到？先穿衣服还是先刷牙？走哪条路去学校最快？这些都是"解决问题的策略"——在数学中，我们用更系统的方法来做同样的事。</p>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">2</span><span class="dim-title">历史溯源</span><span class="dim-question">它从哪来？</span><span class="dim-toggle">▼</span></div>
+      <div class="dimension-body">
+        <div class="story-box">
+          <p><strong>从"鸡兔同笼"到现代策略</strong>：大约1500年前，中国数学著作《孙子算经》中记载了著名的"鸡兔同笼"问题：笼子里有鸡和兔共35个头、94只脚，问鸡和兔各有多少只？这是世界上最早的"策略型"数学问题之一。</p>
+          <p>古人解决这个问题的方法是<strong>假设法</strong>：假设全是鸡，那么35个头应该有70只脚，但实际有94只脚，多出24只脚。每把一只鸡换成一只兔，脚数增加2，所以需要换12只。答案：兔12只，鸡23只。这个方法巧妙地把"两种未知量"的问题变成了"一种未知量"的问题。</p>
+          <p>在西方，古希腊数学家<strong>欧几里得</strong>（约公元前300年）在《几何原本》中展示了另一种策略——<strong>演绎推理</strong>：从已知公理出发，一步步推导出结论。而另一位古希腊数学家<strong>丢番图</strong>（约公元250年）被称为"代数之父"，他发明了用符号表示未知数的方法，开创了<strong>代数策略</strong>的先河。</p>
+          <p>9世纪，阿拉伯数学家<strong>花拉子密</strong>写了一本名为《还原与对消计算概要》的书，"还原"（al-jabr）就是后来"代数"（algebra）一词的来源。他系统地整理了解方程的策略——把复杂问题分解成简单步骤，逐步求解。这本书在欧洲被翻译和使用了几百年。</p>
+          <p>到了20世纪，匈牙利数学家<strong>波利亚</strong>在1945年出版了《怎样解题》，总结了四大解题策略：<strong>理解问题→制定计划→执行计划→回顾反思</strong>。这本书被翻译成20多种语言，至今仍是数学教育的经典。波利亚说："解题是一种实践艺术，就像游泳一样，只能通过模仿和练习来学会。"</p>
+          <p>策略的进化链条：<strong>直觉尝试 → 假设法（鸡兔同笼）→ 演绎推理（欧几里得）→ 代数方法（花拉子密）→ 系统策略（波利亚）→ 算法思维（计算机时代）</strong>。从"试一试"到"有方法地试"，是人类思维最根本的进步。</p>
+        </div>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">3</span><span class="dim-title">现实矛盾</span><span class="dim-question">为什么需要它？</span><span class="dim-toggle">▼</span></div>
+      <div class="dimension-body">
+        <p>很多数学问题，条件多、关系复杂，直接列算式根本无从下手。没有策略，你就像面对一团乱麻，不知道从哪里开始。</p>
+        <div class="diagram">
+          <svg viewBox="0 0 500 180" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="20" width="200" height="140" rx="10" fill="var(--bg-card)" stroke="var(--error)" stroke-width="2"/>
+            <text x="120" y="50" text-anchor="middle" fill="var(--error)" font-size="14" font-weight="700">没有策略</text>
+            <text x="120" y="75" text-anchor="middle" fill="var(--text-muted)" font-size="11">条件堆在一起</text>
+            <text x="120" y="95" text-anchor="middle" fill="var(--text-muted)" font-size="11">不知道从哪入手</text>
+            <text x="120" y="115" text-anchor="middle" fill="var(--text-muted)" font-size="11">试来试去容易错</text>
+            <text x="120" y="140" text-anchor="middle" fill="var(--error)" font-size="12">= 靠运气</text>
+            <rect x="280" y="20" width="200" height="140" rx="10" fill="var(--bg-card)" stroke="var(--success)" stroke-width="2"/>
+            <text x="380" y="50" text-anchor="middle" fill="var(--success)" font-size="14" font-weight="700">有策略</text>
+            <text x="380" y="75" text-anchor="middle" fill="var(--text-secondary)" font-size="11">画图理清关系</text>
+            <text x="380" y="95" text-anchor="middle" fill="var(--text-secondary)" font-size="11">列表有序尝试</text>
+            <text x="380" y="115" text-anchor="middle" fill="var(--text-secondary)" font-size="11">步骤清晰可检查</text>
+            <text x="380" y="140" text-anchor="middle" fill="var(--success)" font-size="12">= 靠方法</text>
+          </svg>
+          <div class="caption">有策略 vs 没有策略：从混乱到有序</div>
+        </div>
+        <div class="story-box">
+          <p><strong>困境时刻</strong>：小明带了50元去超市，买了3本笔记本和2支钢笔，找回8元。已知每支钢笔比每本笔记本贵4元。笔记本和钢笔各多少钱？</p>
+          <p>直接列算式？条件太多，关系复杂，容易搞混。但如果<strong>画线段图</strong>，把笔记本和钢笔的价格关系画出来，或者<strong>列表格</strong>把可能的组合一一尝试，问题就变得清晰了。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-header"><div class="group-icon">用</div><span class="group-title">应用组</span><span class="group-subtitle">迁移</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">4</span><span class="dim-title">应用场景</span><span class="dim-question">它能做什么？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <ul class="example-list">
+          <li><strong>行程问题（画图法）</strong>：甲乙两地相距360千米，A车每小时行60千米，B车每小时行40千米，两车同时从两地相向出发，几小时后相遇？画线段图，把360千米分成两段，一段是A走的（60×时间），一段是B走的（40×时间），合起来等于360，方程自然就出来了。</li>
+          <li><strong>购物问题（列表法）</strong>：用100元买5元和8元的笔记本共15本，各买几本？列表尝试：5元买0本→8元15本=120元（超了），5元买5本→8元10本=105元（还超），5元买7本→8元8本=99元（差1元），5元买8本→8元7本=96元（差4元）……直到找到正好100元的组合。</li>
+          <li><strong>工程问题（逆推法）</strong>：一堆砖，第一天搬了一半多10块，第二天搬了剩下的一半多10块，还剩30块。原来有多少块？从最后的结果倒推：第二天搬之前有 (30+10)×2=80块，第一天搬之前有 (80+10)×2=180块。</li>
+          <li><strong>动手验证</strong>：找一道你觉得"很难"的应用题，先用自己想到的方法做一遍，再用画图法或列表法做一遍。比较两种方法，哪种更不容易出错？</li>
+        </ul>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">5</span><span class="dim-title">思维延伸</span><span class="dim-question">它还能怎样？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p>画图法和列表法只是最基础的策略。数学中还有更多高级策略：<strong>假设法、消元法、换元法、分类讨论</strong>……这些方法在初中、高中会逐步学到。</p>
+        <p>更重要的是，解决问题的策略不仅适用于数学。<strong>编程中的"算法"就是解决问题的策略</strong>：把复杂问题分解成小步骤，逐步解决。生活中的时间管理、旅行规划、购物比价，也都需要"策略思维"。</p>
+        <p><strong>进阶思考</strong>：同一个问题，可能有多种策略都能解决。怎么判断哪种策略更好？（提示：考虑步骤多少、是否容易出错、是否适用于类似问题）</p>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">6</span><span class="dim-title">知识网络</span><span class="dim-question">它和什么关联？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p><strong>前导知识</strong>：</p>
+        <ul class="example-list">
+          <li><strong>四则运算</strong>：策略的执行需要计算能力支撑</li>
+          <li><strong>应用题基础</strong>（一至三年级）：简单问题的解题经验</li>
+          <li><strong>线段与图形</strong>：画图法的基础</li>
+        </ul>
+        <p><strong>后续知识</strong>：</p>
+        <ul class="example-list">
+          <li><strong>方程</strong>（五年级）：用字母表示未知数，策略升级为代数方法</li>
+          <li><strong>比例与方程组</strong>（初中）：更复杂问题的策略</li>
+          <li><strong>算法思维</strong>（信息技术）：策略的计算机化</li>
+        </ul>
+        <p><strong>平行关联</strong>：运算律（用运算律简化计算也是一种策略）、小数加法和减法（策略在小数问题中的应用）</p>
+      </div>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-header"><div class="group-icon">验</div><span class="group-title">验证组</span><span class="group-subtitle">确认</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">7</span><span class="dim-title">验证理解</span><span class="dim-question">真的懂了吗？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <div class="quiz-container">
+          <div class="quiz-item">
+            <div class="quiz-type">辨析题</div>
+            <div class="quiz-question">下面哪种情况最适合用"画图法"来解决？</div>
+            <ul class="quiz-options">
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">计算 234 × 56 的结果</li>
+              <li data-correct="true" onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">甲乙两人从A、B两地同时出发相向而行，几小时后相遇</li>
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">背诵乘法口诀表</li>
+            </ul>
+            <div class="quiz-explanation">画图法最适合解决"有空间关系或数量关系"的问题。行程问题中，两车相向而行的过程用线段图表示最直观。纯计算不需要画图，背诵更不需要。</div>
+          </div>
+          <div class="quiz-item">
+            <div class="quiz-type">实践题</div>
+            <div class="quiz-question">小明有5元和10元的纸币共8张，总共55元。5元和10元各几张？请用列表法解决。</div>
+            <ul class="quiz-options">
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">5元3张，10元5张</li>
+              <li data-correct="true" onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">5元5张，10元3张</li>
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">5元4张，10元4张</li>
+            </ul>
+            <div class="quiz-explanation">列表法：如果5元0张→10元8张=80元（超了），5元5张→10元3张=25+30=55元（正好！）。验证：5+3=8张，5×5+10×3=55元。正确。</div>
+          </div>
+          <div class="quiz-item">
+            <div class="quiz-type">选择题</div>
+            <div class="quiz-question">"解决问题的策略"最核心的价值是什么？</div>
+            <ul class="quiz-options">
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">让计算更快</li>
+              <li data-correct="true" onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">把复杂问题变成可操作的步骤，让思路清晰、可检查</li>
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">让答案一定正确</li>
+            </ul>
+            <div class="quiz-explanation">策略的核心价值不是"快"或"一定对"，而是"让思路清晰"。有了策略，你知道第一步做什么、第二步做什么，每一步都可以检查。没有策略，就像在黑暗中摸索，容易走弯路也容易出错。</div>
+          </div>
+          <div class="quiz-item">
+            <div class="quiz-type">思考题</div>
+            <div class="quiz-question">一个池塘里的睡莲面积每天扩大一倍，30天长满整个池塘。第几天睡莲正好覆盖池塘的一半？</div>
+            <ul class="quiz-options">
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">第15天</li>
+              <li data-correct="true" onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">第29天</li>
+              <li data-correct="false" onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">第10天</li>
+            </ul>
+            <div class="quiz-explanation">这道题需要"逆推"思维：每天面积扩大一倍，所以第30天是满的，第29天就是一半。很多人直觉选15天，是因为用了"线性思维"（30的一半是15），但睡莲的增长是"指数增长"（每天翻倍），需要用不同的策略来思考。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section">
+      <div class="map-section-title">前导知识</div>
+      <div class="map-nodes">
+        <span class="map-node pending">四则运算</span>
+        <span class="map-arrow">→</span>
+        <span class="map-node pending">简单应用题</span>
+        <span class="map-arrow">→</span>
+        <span class="map-node pending">线段与图形</span>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-nodes"><span class="map-node current">解决问题的策略</span></div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-section-title">后续延伸</div>
+      <div class="map-nodes">
+        <span class="map-node pending">方程</span>
+        <span class="map-arrow">|</span>
+        <span class="map-node pending">比例与方程组</span>
+        <span class="map-arrow">|</span>
+        <span class="map-node pending">算法思维</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="footer">知本 KnowledgeRoot — 知识本质拆解系统</div>
+<script>
+function toggleDimension(h){const b=h.nextElementSibling,t=h.querySelector('.dim-toggle');if(b.classList.contains('collapsed')){b.classList.remove('collapsed');t.classList.remove('collapsed')}else{b.classList.add('collapsed');t.classList.add('collapsed')}}
+function checkAnswer(o,c,e){const p=o.parentElement;p.querySelectorAll('li').forEach(x=>{x.style.pointerEvents='none'});if(c){o.classList.add('correct')}else{o.classList.add('wrong');p.querySelectorAll('li').forEach(x=>{if(x.dataset.correct==='true')x.classList.add('correct')})}if(e)e.classList.add('visible')}
+</script>
+</body>
+</html>

@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 三角函数</title>
+<style>
+/* ===== CSS变量体系 ===== */
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-card: #1e2130;
+  --bg-card-hover: #252840;
+  --text-primary: #e8e8ed;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #2d3148;
+  --border-accent: var(--accent-color, #4fc3f7);
+  --accent-color: #4fc3f7;
+  --accent-glow: rgba(79, 195, 247, 0.15);
+  --success: #4caf50;
+  --error: #ef5350;
+  --warning: #ff9800;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+}
+
+/* ===== 基础样式 ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.8;
+  min-height: 100vh;
+}
+
+/* 背景纹理 */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.02) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== 头部 ===== */
+.header {
+  position: relative;
+  z-index: 1;
+  padding: 40px 24px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.header h1 .accent {
+  color: var(--accent-color);
+}
+
+.header .meta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.header .meta .tag {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 2px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+/* ===== 主体 ===== */
+.main {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* ===== 维度组 ===== */
+.group {
+  margin-bottom: 32px;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.group-header .group-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: var(--accent-color);
+  color: var(--bg-primary);
+}
+
+.group-header .group-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.group-header .group-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+/* ===== 维度卡片 ===== */
+.dimension-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.dimension-card:hover {
+  border-color: var(--border-accent);
+}
+
+.dimension-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+  gap: 12px;
+}
+
+.dimension-header .dim-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.dimension-header .dim-title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.dimension-header .dim-question {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+
+.dimension-header .dim-toggle {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.dimension-header .dim-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+.dimension-body {
+  padding: 0 20px 20px;
+  color: var(--text-secondary);
+  line-height: 1.9;
+}
+
+.dimension-body.collapsed {
+  display: none;
+}
+
+.dimension-body p {
+  margin-bottom: 12px;
+}
+
+.dimension-body strong {
+  color: var(--text-primary);
+}
+
+.dimension-body .highlight {
+  color: var(--accent-color);
+  font-weight: 500;
+}
+
+.dimension-body .story-box {
+  background: var(--bg-secondary);
+  border-left: 3px solid var(--accent-color);
+  padding: 16px 20px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 12px 0;
+}
+
+.dimension-body .example-list {
+  list-style: none;
+  padding: 0;
+}
+
+.dimension-body .example-list li {
+  padding: 8px 0 8px 20px;
+  position: relative;
+}
+
+.dimension-body .example-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 16px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  opacity: 0.6;
+}
+
+/* ===== 图示容器 ===== */
+.diagram {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 16px 0;
+  text-align: center;
+  overflow-x: auto;
+}
+.diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+.diagram svg text {
+  font-family: var(--font-sans);
+}
+.diagram .caption {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* ===== 知识地图 ===== */
+.knowledge-map {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-top: 32px;
+}
+
+.knowledge-map h3 {
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.map-nodes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.map-node {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.map-node:hover {
+  border-color: var(--accent-color);
+  color: var(--text-primary);
+}
+
+.map-node.current {
+  background: var(--accent-color);
+  color: var(--bg-primary);
+  border-color: var(--accent-color);
+  font-weight: 600;
+}
+
+.map-node.pending {
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+.map-node.linked {
+  text-decoration: none;
+  color: var(--text-secondary);
+}
+
+.map-node.linked:hover {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.map-arrow {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.map-section {
+  margin-top: 16px;
+}
+
+.map-section-title {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.map-section .map-nodes {
+  justify-content: flex-start;
+}
+
+/* ===== 验证题目 ===== */
+.quiz-container {
+  padding: 0;
+}
+
+.quiz-item {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+}
+
+.quiz-item .quiz-question {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.quiz-item .quiz-type {
+  font-size: 0.75rem;
+  color: var(--accent-color);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.quiz-options {
+  list-style: none;
+  padding: 0;
+}
+
+.quiz-options li {
+  padding: 10px 16px;
+  margin-bottom: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+}
+
+.quiz-options li:hover {
+  border-color: var(--accent-color);
+  color: var(--text-primary);
+}
+
+.quiz-options li.correct {
+  border-color: var(--success);
+  background: rgba(76, 175, 80, 0.1);
+  color: var(--success);
+}
+
+.quiz-options li.wrong {
+  border-color: var(--error);
+  background: rgba(239, 83, 80, 0.1);
+  color: var(--error);
+}
+
+.quiz-explanation {
+  display: none;
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border-left: 3px solid var(--accent-color);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.quiz-explanation.visible {
+  display: block;
+}
+
+/* ===== 页脚 ===== */
+.footer {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 40px auto 0;
+  padding: 24px;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 640px) {
+  .header { padding: 24px 16px 16px; }
+  .header h1 { font-size: 1.5rem; }
+  .main { padding: 16px; }
+  .dimension-header { padding: 12px 16px; }
+  .dimension-body { padding: 0 16px 16px; }
+}
+
+/* ===== 打印样式 ===== */
+@media print {
+  body { background: white; color: black; }
+  body::before { display: none; }
+  .dimension-body.collapsed { display: block !important; }
+  .dimension-header .dim-toggle { display: none; }
+  .dimension-card { border: 1px solid #ddd; }
+}
+</style>
+</head>
+<body>
+
+<!-- 头部 -->
+<div class="header">
+  <h1>知本 · <span class="accent">三角函数</span></h1>
+  <div class="meta">
+    <span class="tag">数学</span>
+    <span class="tag">高中</span>
+    <span class="tag">形式科学族</span>
+  </div>
+</div>
+
+<!-- 主体 -->
+<div class="main">
+
+  <!-- 认知组 -->
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">认</div>
+      <span class="group-title">认知组</span>
+      <span class="group-subtitle">理解</span>
+    </div>
+
+    <!-- 维度1：定义锚点 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">1</span>
+        <span class="dim-title">定义锚点</span>
+        <span class="dim-question">它是什么？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p>你站在灯塔脚下，抬头望向塔顶。你的视线和水平地面之间张开了一个角度，灯塔的高度和你到灯塔的水平距离之间有一个确定的比值——这个比值就是 <strong class="highlight">tan（正切）</strong>。你不需要爬上灯塔，只要知道角度和其中一个距离，就能算出另一个。</p>
+
+        <p>三角函数就是<strong>角度与比值之间的对应关系</strong>。给定一个角，三角函数告诉你直角三角形中某两条边的比值是多少。六个三角函数分别对应六种不同的边比组合：</p>
+
+        <ul class="example-list">
+          <li><strong>sin</strong>（正弦）= 对边 / 斜边</li>
+          <li><strong>cos</strong>（余弦）= 邻边 / 斜边</li>
+          <li><strong>tan</strong>（正切）= 对边 / 邻边</li>
+          <li><strong>cot</strong>（余切）= 邻边 / 对边</li>
+          <li><strong>sec</strong>（正割）= 斜边 / 邻边</li>
+          <li><strong>csc</strong>（余割）= 斜边 / 对边</li>
+        </ul>
+
+        <p>但三角函数的概念边界远不止"三角形中的比值"。更本质地说，<strong>三角函数是圆的函数</strong>——它描述的是单位圆上，一个点绕圆心旋转时，其坐标随角度变化的规律。三角形只是截取了圆上一个切片的视角。</p>
+
+        <!-- 单位圆图示 -->
+        <div class="diagram">
+          <svg width="360" height="360" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+            <!-- 坐标轴 -->
+            <line x1="40" y1="180" x2="320" y2="180" stroke="#6b7280" stroke-width="1"/>
+            <line x1="180" y1="320" x2="180" y2="40" stroke="#6b7280" stroke-width="1"/>
+            <!-- 轴标签 -->
+            <text x="325" y="184" fill="#9ca3af" font-size="12">x</text>
+            <text x="184" y="38" fill="#9ca3af" font-size="12">y</text>
+            <!-- 单位圆 -->
+            <circle cx="180" cy="180" r="130" fill="none" stroke="#4fc3f7" stroke-width="2" opacity="0.6"/>
+            <!-- 角度线（θ≈40°） -->
+            <line x1="180" y1="180" x2="280" y2="96" stroke="#4fc3f7" stroke-width="2"/>
+            <!-- cos投影线（水平） -->
+            <line x1="180" y1="180" x2="280" y2="180" stroke="#4caf50" stroke-width="2" stroke-dasharray="6,3"/>
+            <!-- sin投影线（垂直） -->
+            <line x1="280" y1="180" x2="280" y2="96" stroke="#ff9800" stroke-width="2" stroke-dasharray="6,3"/>
+            <!-- 圆上的点 -->
+            <circle cx="280" cy="96" r="5" fill="#4fc3f7"/>
+            <!-- 角度弧 -->
+            <path d="M 210 180 A 30 30 0 0 0 203 156" fill="none" stroke="#e8e8ed" stroke-width="1.5"/>
+            <!-- 标注 -->
+            <text x="215" y="168" fill="#e8e8ed" font-size="13" font-style="italic">θ</text>
+            <text x="225" y="200" fill="#4caf50" font-size="13" font-weight="600">cos θ</text>
+            <text x="286" y="145" fill="#ff9800" font-size="13" font-weight="600">sin θ</text>
+            <text x="215" y="130" fill="#4fc3f7" font-size="12">r = 1</text>
+            <!-- 原点标注 -->
+            <text x="163" y="200" fill="#9ca3af" font-size="11">O</text>
+            <!-- 直角标记 -->
+            <polyline points="270,180 270,170 280,170" fill="none" stroke="#6b7280" stroke-width="1"/>
+          </svg>
+          <div class="caption">单位圆上的三角函数：cos θ 是水平坐标，sin θ 是垂直坐标</div>
+        </div>
+
+        <div class="story-box">
+          <strong>体验锚点</strong>：下次看到斜坡时，注意坡度标志牌上写的百分比数字——那就是 tan 值。8% 的坡度意味着每水平前进100米，高度上升8米。坡度越大，tan 值越大，直到90度悬崖时 tan 趋向无穷。
+        </div>
+      </div>
+    </div>
+
+    <!-- 维度2：历史溯源 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">2</span>
+        <span class="dim-title">历史溯源</span>
+        <span class="dim-question">它从哪来？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <div class="story-box">
+          <strong>公元前2世纪</strong>，古希腊天文学家<strong>喜帕恰斯</strong>（Hipparchus）面临一个棘手的问题：他需要预测天体在星空中的位置，但星星的运动是沿圆弧的，不是沿直线的。直线上的位置可以用加减法算，圆弧上的位置怎么算？<br><br>
+          喜帕恰斯的突破是制作了人类第一张<strong>"弦表"</strong>——把圆弧对应的弦长列成数值表格。给定一个圆心角，查表就能知道对应的弦有多长。这张表让他从"量角度"跨越到"算距离"。<br><br>
+          <strong>公元5世纪</strong>，印度数学家<strong>阿耶波多</strong>（Aryabhata）把弦改成了半弦——也就是今天说的正弦（sin）。这个改动看似微小，实则关键：半弦正好对应直角三角形中的"对边"，让三角函数和三角形的关系变得直接。<br><br>
+          <strong>公元10世纪</strong>，阿拉伯数学家<strong>阿布·瓦法</strong>引入了正割、余割等函数，把六个三角函数凑齐。<br><br>
+          <strong>1748年</strong>，瑞士数学家<strong>欧拉</strong>（Euler）在《无穷分析引论》中做了一个决定性的重新定义：把三角函数从"三角形的边之比"重新定义为<strong>"单位圆上的坐标"</strong>。这一步让三角函数彻底脱离了三角形的束缚，成为描述一切周期现象的通用工具。
+        </div>
+
+        <p>从弦表到正弦，从三角形到单位圆，三角函数的每一次演进都源于同一个动力：<strong>旧工具无法描述新问题</strong>。天文学需要圆弧计算，印度人需要更方便的三角形运算，欧拉需要统一的周期函数——三角函数是被需求一步步推着走的。</p>
+      </div>
+    </div>
+
+    <!-- 维度3：现实矛盾 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">3</span>
+        <span class="dim-title">现实矛盾</span>
+        <span class="dim-question">为什么需要它？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p><strong>困境时刻</strong>：你站在河的这边，想知道对岸那座塔有多远。你不能游过去拉皮尺。你只有一把量角器，知道从自己脚下到塔顶的仰角是37度，到塔底的水平距离是50米。没有三角函数，你手里只有一个角度和一个距离，它们之间没有任何运算能把第三个量算出来。</p>
+
+        <!-- 逻辑困境图 -->
+        <div class="diagram">
+          <svg width="380" height="260" viewBox="0 0 380 260" xmlns="http://www.w3.org/2000/svg">
+            <!-- 河面 -->
+            <rect x="0" y="190" width="380" height="70" fill="#1a3a5c" opacity="0.3" rx="4"/>
+            <text x="190" y="230" fill="#6b7280" font-size="12" text-anchor="middle">河流（不可直接测量）</text>
+            <!-- 地面线 -->
+            <line x1="30" y1="190" x2="350" y2="190" stroke="#6b7280" stroke-width="1"/>
+            <!-- 塔 -->
+            <rect x="300" y="60" width="20" height="130" fill="#4fc3f7" opacity="0.3" stroke="#4fc3f7" stroke-width="1.5"/>
+            <text x="310" y="50" fill="#4fc3f7" font-size="12" text-anchor="middle">塔高 h = ?</text>
+            <!-- 人 -->
+            <circle cx="80" cy="180" r="8" fill="#ff9800" opacity="0.8"/>
+            <line x1="80" y1="188" x2="80" y2="190" stroke="#ff9800" stroke-width="2"/>
+            <!-- 视线 -->
+            <line x1="80" y1="180" x2="300" y2="60" stroke="#ff9800" stroke-width="1.5" stroke-dasharray="6,3"/>
+            <!-- 水平线 -->
+            <line x1="80" y1="190" x2="300" y2="190" stroke="#4caf50" stroke-width="1.5"/>
+            <!-- 角度弧 -->
+            <path d="M 110 190 A 30 30 0 0 0 103 167" fill="none" stroke="#e8e8ed" stroke-width="1.5"/>
+            <text x="115" y="178" fill="#e8e8ed" font-size="13" font-style="italic">37°</text>
+            <!-- 距离标注 -->
+            <text x="190" y="207" fill="#4caf50" font-size="12" text-anchor="middle">50 m（已知）</text>
+            <!-- 问号框 -->
+            <rect x="145" y="100" width="90" height="40" fill="none" stroke="#ef5350" stroke-width="2" stroke-dasharray="5,3" rx="6"/>
+            <text x="190" y="125" fill="#ef5350" font-size="14" text-anchor="middle" font-weight="600">如何计算？</text>
+            <!-- 箭头 -->
+            <line x1="145" y1="120" x2="110" y2="170" stroke="#ef5350" stroke-width="1" marker-end="url(#arrowRed)"/>
+            <line x1="235" y1="120" x2="290" y2="100" stroke="#ef5350" stroke-width="1" marker-end="url(#arrowRed)"/>
+            <defs>
+              <marker id="arrowRed" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                <polygon points="0 0, 8 3, 0 6" fill="#ef5350"/>
+              </marker>
+            </defs>
+          </svg>
+          <div class="caption">逻辑困境：角度和距离是两种不同的量，四则运算无法建立它们之间的联系</div>
+        </div>
+
+        <p>你已经习惯了四则运算——知道两个数就能算出第三个。但<strong>角度和距离是两种完全不同的量</strong>，加、减、乘、除都无法在它们之间架起桥梁。37度加50米等于什么？没有意义。</p>
+
+        <p>三角函数就是这座桥梁。它把角度"翻译"成比值，比值再和已知距离做乘法，未知距离就出来了：<strong>h = 50 x tan 37°</strong>。没有三角函数，角度永远只是角度，距离永远只是距离，两者之间没有通道。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用组 -->
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">用</div>
+      <span class="group-title">应用组</span>
+      <span class="group-subtitle">迁移</span>
+    </div>
+
+    <!-- 维度4：应用场景 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">4</span>
+        <span class="dim-title">应用场景</span>
+        <span class="dim-question">它能做什么？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <ul class="example-list">
+          <li><strong>测量与导航</strong>：GPS定位的核心是三角测量。卫星发出信号，接收器根据信号到达的角度差和时间差计算自身位置。没有三角函数，你的手机地图无法知道你在哪。航海中，船长用六分仪测量星体仰角，再查三角函数表推算纬度——大航海时代的每一张海图背后都是三角函数。</li>
+          <li><strong>信号处理</strong>：你听到的每一段音乐、看到的每一张照片，都可以用正弦波的叠加来表示——这就是<strong>傅里叶分析</strong>。MP3压缩把声音拆成不同频率的正弦波分量，丢掉人耳听不到的部分；JPEG压缩对图像做同样的操作。你手机里存的上千首歌和照片，体积缩小了90%，背后全是三角函数。</li>
+          <li><strong>交流电与工程</strong>：家用电是50Hz正弦交流电，电压随时间按正弦规律变化：u(t) = 311 x sin(314t)。电表上写的220V是有效值，峰值其实是311V——这个换算依赖三角函数的均方根计算。电力工程师设计电网时，每一步计算都离不开三角函数。</li>
+        </ul>
+
+        <div class="story-box">
+          <strong>动手验证</strong>：找一根细绳和一个重物（螺母、钥匙都行），做成一个单摆。拉起一个小角度（不超过15度），松手让它摆动，用秒表记录摆动10次的时间，除以10得到周期T。用尺子量出绳长L（米），代入公式 T = 2π√(L/g)，其中 g ≈ 9.8 m/s²。对比你测量的T和公式算出的T——它们应该很接近。这个公式里的"2π"和正弦函数直接相关：单摆的运动方程的解就是正弦函数。
+        </div>
+      </div>
+    </div>
+
+    <!-- 维度5：思维延伸 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">5</span>
+        <span class="dim-title">思维延伸</span>
+        <span class="dim-question">它还能怎样？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p>三角函数从"三角形中的比值"延伸到"单位圆上的坐标"，再延伸到"周期函数"——它描述的是<strong>一切周期现象</strong>。</p>
+
+        <p>一旦把三角函数理解为周期函数，它的舞台就从几何拓展到了整个自然界：声波是正弦波，光波是正弦波，潮汐涨落近似正弦波，甚至股票的周期波动也可以用正弦函数的叠加来拟合。傅里叶定理告诉我们：<strong>任何周期函数都可以分解为正弦函数和余弦函数的叠加</strong>——三角函数是周期世界的"原子"。</p>
+
+        <p>更进一步的延伸：当角从实数推广到<strong>复数</strong>，三角函数和指数函数在欧拉公式 e<sup>iθ</sup> = cos θ + i sin θ 中合为一体。这是数学中最深刻的统一之一——三角函数、指数函数、对数函数，看似毫不相关，在复数域中竟是同一棵树上的枝干。</p>
+
+        <div class="story-box">
+          <strong>进阶问题</strong>：为什么 sin 和 cos 的图像是波浪形？如果你站在单位圆的旁边，看着一个点沿圆周匀速旋转，同时用笔记录这个点的 y 坐标随时间的变化——你画出来的就是正弦曲线。波浪形不是"规定"的，而是圆周运动投影到直线上的必然结果。那么问题来了：如果点不是匀速旋转，而是加速旋转呢？投影出来的曲线会变成什么形状？
+        </div>
+      </div>
+    </div>
+
+    <!-- 维度6：知识网络 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">6</span>
+        <span class="dim-title">知识网络</span>
+        <span class="dim-question">它和什么关联？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p><strong>前导知识</strong>（理解三角函数之前必须掌握的）：</p>
+        <ul class="example-list">
+          <li><strong>相似三角形</strong> — 三角函数的值只与角度有关、与三角形大小无关，这个性质来自相似三角形的比例关系</li>
+          <li><strong>直角三角形</strong> — 三角函数的初始定义场景，对边、邻边、斜边的概念从这里来</li>
+          <li><strong>勾股定理</strong> — sin²θ + cos²θ = 1 的几何来源，就是勾股定理在单位圆上的直接表现</li>
+          <li><strong>函数概念</strong> — 三角函数首先是"函数"，理解自变量（角度）和因变量（比值）的对应关系</li>
+          <li><a href="../../初中/图形与几何/三角形稳定性.html" class="map-node linked" style="display:inline;padding:2px 10px;font-size:0.85rem;">三角形稳定性</a> — 三角形的结构确定性是三角测量的物理基础</li>
+        </ul>
+
+        <p><strong>后续延伸</strong>（三角函数是它们的前导）：</p>
+        <ul class="example-list">
+          <li><span class="map-node pending" style="display:inline;padding:2px 10px;font-size:0.85rem;border-style:dashed;">三角恒等变换</span> — 用基本三角函数推导更复杂的等式关系</li>
+          <li><span class="map-node pending" style="display:inline;padding:2px 10px;font-size:0.85rem;border-style:dashed;">正弦定理与余弦定理</span> — 从直角三角形推广到任意三角形</li>
+          <li><span class="map-node pending" style="display:inline;padding:2px 10px;font-size:0.85rem;border-style:dashed;">向量</span> — 向量的分解和合成依赖三角函数</li>
+          <li><span class="map-node pending" style="display:inline;padding:2px 10px;font-size:0.85rem;border-style:dashed;">复数</span> — 欧拉公式将三角函数与指数函数统一</li>
+          <li><span class="map-node pending" style="display:inline;padding:2px 10px;font-size:0.85rem;border-style:dashed;">傅里叶分析</span> — 用三角函数的叠加表示任意周期函数</li>
+        </ul>
+
+        <p><strong>平行关联</strong>：</p>
+        <ul class="example-list">
+          <li><span class="map-node pending" style="display:inline;padding:2px 10px;font-size:0.85rem;border-style:dashed;">反三角函数</span> — 三角函数的反函数，从比值反推角度</li>
+          <li><span class="map-node pending" style="display:inline;padding:2px 10px;font-size:0.85rem;border-style:dashed;">极坐标</span> — 用角度和距离代替x和y描述位置，三角函数是两种坐标之间的翻译器</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 验证组 -->
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">验</div>
+      <span class="group-title">验证组</span>
+      <span class="group-subtitle">确认</span>
+    </div>
+
+    <!-- 维度7：验证理解 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">7</span>
+        <span class="dim-title">验证理解</span>
+        <span class="dim-question">真的懂了吗？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <div class="quiz-container">
+
+          <!-- 题目1：辨析题 -->
+          <div class="quiz-item">
+            <div class="quiz-type">辨析题</div>
+            <div class="quiz-question">有人说"sin 30° = 0.5，所以 sin 是一种乘法运算"。这个说法对吗？sin 到底是什么运算？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">A. 对，sin 就是把角度乘以一个系数</li>
+              <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)">B. 不对，sin 不是乘法，它是一种对应关系——给定角度，返回比值</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">C. 对，sin 本质上是除法，因为定义里有"对边/斜边"</li>
+            </ul>
+            <div class="quiz-explanation">sin 是一个函数，不是运算。函数的本质是"对应关系"：输入一个角度，输出一个比值。sin 30° = 0.5 的意思是"30度角对应的对边与斜边之比是0.5"，而不是"30乘以某个数等于0.5"。选项C的迷惑性在于定义中确实有除法，但 sin 作为函数，它的核心是"角度到比值的映射"，除法只是定义这个映射的手段。</div>
+          </div>
+
+          <!-- 题目2：思想实验 -->
+          <div class="quiz-item">
+            <div class="quiz-type">思想实验</div>
+            <div class="quiz-question">如果世界是平的（没有圆弧，一切都是直线），三角函数还有用吗？为什么？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">A. 没用了，三角函数只和圆有关</li>
+              <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)">B. 仍然有用，因为三角函数处理的是角度和距离的关系，即使没有圆弧，只要存在方向（角度）和距离，就需要三角函数</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">C. 没用了，平直世界中所有距离都能用勾股定理直接算</li>
+            </ul>
+            <div class="quiz-explanation">即使在平直世界中，你仍然会遇到"知道角度和一个距离，求另一个距离"的问题。比如你朝东北方向走100米，你向东走了多远？这需要 cos 45° 来回答。勾股定理只能处理已知两条直角边求斜边的情况，而三角函数处理的是已知角度和一条边求另一条边——这是勾股定理做不到的。</div>
+          </div>
+
+          <!-- 题目3：选择题 -->
+          <div class="quiz-item">
+            <div class="quiz-type">概念理解</div>
+            <div class="quiz-question">在单位圆上，角 θ 从 0 增加到 2π 的过程中，sin θ 的值经历了几次"从0到1再到0"的完整变化？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">A. 1次</li>
+              <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)">B. 2次</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">C. 3次</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">D. 0次</li>
+            </ul>
+            <div class="quiz-explanation">在单位圆上跟踪一个点的 y 坐标：θ 从 0 到 π/2，sin 从 0 升到 1（第1次上升）；θ 从 π/2 到 π，sin 从 1 降到 0（第1次下降）——这是第1次完整变化。θ 从 π 到 3π/2，sin 从 0 降到 -1；θ 从 3π/2 到 2π，sin 从 -1 升回 0——注意这次变化经过的是负值。如果严格按"从0到1再到0"的定义，只有第1次（0→1→0）算。但题目问的是"完整变化周期"，一个正弦波在 0 到 2π 内完成2个半周期（正半周期 + 负半周期），所以"从0经过极值再回到0"经历了2次。理解这个问题的关键是真正在脑中"播放"单位圆上点的运动，而不是背诵结论。</div>
+          </div>
+
+          <!-- 题目4：跨学科推理 -->
+          <div class="quiz-item">
+            <div class="quiz-type">跨学科推理</div>
+            <div class="quiz-question">吉他弦振动时，弦的形状近似一条正弦曲线。拨弦力度越大，声音越响，但音调（频率）不变。从三角函数的角度，"力度变大"对应的是正弦函数的哪个参数变化？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)">A. 振幅变大，频率不变</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">B. 频率变大，振幅不变</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">C. 振幅和频率同时变大</li>
+            </ul>
+            <div class="quiz-explanation">正弦函数的一般形式是 y = A sin(ωt)。A 是振幅，决定波的高低（响度）；ω 是角频率，决定波的疏密（音调）。拨弦力度大 → 弦振动幅度大 → A 变大 → 声音响。音调不变 → 振动频率不变 → ω 不变。这个题目检验你是否真正理解了正弦函数中每个参数的物理含义，而不是仅仅记住了公式。</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 知识地图 -->
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section">
+      <div class="map-section-title">前导知识</div>
+      <div class="map-nodes">
+        <span class="map-node pending">相似三角形</span>
+        <span class="map-node pending">直角三角形</span>
+        <span class="map-node pending">勾股定理</span>
+        <span class="map-node pending">函数概念</span>
+        <a href="../../初中/图形与几何/三角形稳定性.html" class="map-node linked">三角形稳定性</a>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-nodes">
+        <span class="map-arrow">→</span>
+        <span class="map-node current">三角函数</span>
+        <span class="map-arrow">→</span>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-section-title">后续延伸</div>
+      <div class="map-nodes">
+        <span class="map-node pending">三角恒等变换</span>
+        <span class="map-node pending">正弦定理与余弦定理</span>
+        <span class="map-node pending">向量</span>
+        <span class="map-node pending">复数</span>
+        <span class="map-node pending">傅里叶分析</span>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-section-title">平行关联</div>
+      <div class="map-nodes">
+        <span class="map-node pending">反三角函数</span>
+        <span class="map-node pending">极坐标</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 页脚 -->
+<div class="footer">
+  知本 KnowledgeRoot — 知识本质拆解系统
+</div>
+
+<script>
+function toggleDimension(header) {
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.dim-toggle');
+  if (body.classList.contains('collapsed')) {
+    body.classList.remove('collapsed');
+    toggle.classList.remove('collapsed');
+  } else {
+    body.classList.add('collapsed');
+    toggle.classList.add('collapsed');
+  }
+}
+
+function checkAnswer(optionEl, isCorrect, explanationEl) {
+  const parent = optionEl.parentElement;
+  const allOptions = parent.querySelectorAll('li');
+  allOptions.forEach(opt => {
+    opt.style.pointerEvents = 'none';
+  });
+  if (isCorrect) {
+    optionEl.classList.add('correct');
+  } else {
+    optionEl.classList.add('wrong');
+    allOptions.forEach(opt => {
+      if (opt.dataset.correct === 'true') {
+        opt.classList.add('correct');
+      }
+    });
+  }
+  if (explanationEl) {
+    explanationEl.classList.add('visible');
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,10 +1,11 @@
-# 输出目录
+# 输出目录（v3.0 三层架构路径）
 /output/
-/content-output/output/
-/content-output/serial-fiction/output/
-whiteboard-recorder/output/
-whiteboard-recorder/webapp/dist/
+/scenarios/serial-fiction/output/
+/platform-adapter/whiteboard-recorder/output/
+/platform-adapter/whiteboard-recorder/webapp/dist/
+/cognitive-engine/yijing-perspective/output/
 # 注意：distillation/output/ 下的蒸馏产物需要推送，不忽略
+# 注意：scenarios/k12-decomposition/output/ 下的HTML教学产物需要推送，不忽略
 
 # Python缓存
 __pycache__/

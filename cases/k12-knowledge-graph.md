@@ -61,21 +61,22 @@
 ## 技术架构
 
 ```
-knowledge/                          # 场景A2: K12知识拆解（知本）
+scenarios/k12-decomposition/        # 场景A2: K12知识拆解（知本）
 ├── A2-knowledge-decomposition.md   # Skill定义
 ├── SKILL.md                        # 路由
-├── docs/                           # 架构设计文档
-│   ├── 01-本质分析.md
-│   ├── 09-图示系统与知识图谱.md
-│   └── 10-项目式拆解与知识图谱感知.md
-├── templates/                      # HTML模板
-│   ├── decomposition.html          # 知识点模板
-│   ├── lecture.html                # 讲义模板
-│   └── project.html                # 项目式模板
-└── output/                         # 生成的HTML
-    ├── knowledge-graph.html        # 知识图谱
-    ├── knowledge-graph.json        # 图谱数据
-    ├── 小学/                       # 小学知识点
-    ├── 初中/                       # 初中知识点
-    └── 高中/                       # 高中知识点
+├── references/                     # 学科适配参考
+├── output/                         # 生成的HTML
+│   ├── knowledge-graph.html        # 知识图谱
+│   ├── knowledge-graph.json        # 图谱数据
+│   ├── 小学/                       # 小学知识点
+│   ├── 初中/                       # 初中知识点
+└── 高中/                            # 高中知识点
+
+cases/k12-design-docs/              # 架构设计文档（已归档到cases/）
+├── 01-本质分析.md
+├── 09-图示系统与知识图谱.md
+└── 10-项目式拆解与知识图谱感知.md
+
+# 注：HTML模板已迁移到 format-pipeline/html/templates/
+#     （decomposition.html / lecture.html / project.html）
 ```
