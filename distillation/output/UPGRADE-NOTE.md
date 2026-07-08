@@ -53,4 +53,4 @@
 
 ---
 
-*本说明由本质工坊 v2 方法论升级自动生成。详细方法论见 [../../exploration/references/methodology.md](../../exploration/references/methodology.md)*
+*本说明由本质工坊 v2 方法论升级自动生成。详细方法论见 [../../cognitive-engine/general-logic/references/methodology.md](../../cognitive-engine/general-logic/references/methodology.md)*
