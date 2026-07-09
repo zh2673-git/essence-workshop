@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · {{POINT_NAME}}</title>
+<style>
+/* ===== CSS变量体系 ===== */
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-card: #1e2130;
+  --bg-card-hover: #252840;
+  --text-primary: #e8e8ed;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #2d3148;
+  --border-accent: var(--accent-color, #4fc3f7);
+  --accent-color: #4fc3f7;
+  --accent-glow: rgba(79, 195, 247, 0.15);
+  --success: #4caf50;
+  --error: #ef5350;
+  --warning: #ff9800;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+}
+
+/* ===== 基础样式 ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.8;
+  min-height: 100vh;
+}
+
+/* 背景纹理 */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.02) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== 头部 ===== */
+.header {
+  position: relative;
+  z-index: 1;
+  padding: 40px 24px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.header h1 .accent {
+  color: var(--accent-color);
+}
+
+.header .meta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.header .meta .tag {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 2px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+/* ===== 主体 ===== */
+.main {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* ===== 维度组 ===== */
+.group {
+  margin-bottom: 32px;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.group-header .group-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: var(--accent-color);
+  color: var(--bg-primary);
+}
+
+.group-header .group-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.group-header .group-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+/* ===== 维度卡片 ===== */
+.dimension-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.dimension-card:hover {
+  border-color: var(--border-accent);
+}
+
+.dimension-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+  gap: 12px;
+}
+
+.dimension-header .dim-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.dimension-header .dim-title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.dimension-header .dim-question {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+
+.dimension-header .dim-toggle {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.dimension-header .dim-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+.dimension-body {
+  padding: 0 20px 20px;
+  color: var(--text-secondary);
+  line-height: 1.9;
+}
+
+.dimension-body.collapsed {
+  display: none;
+}
+
+.dimension-body p {
+  margin-bottom: 12px;
+}
+
+.dimension-body strong {
+  color: var(--text-primary);
+}
+
+.dimension-body .highlight {
+  color: var(--accent-color);
+  font-weight: 500;
+}
+
+.dimension-body .story-box {
+  background: var(--bg-secondary);
+  border-left: 3px solid var(--accent-color);
+  padding: 16px 20px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 12px 0;
+}
+
+.dimension-body .example-list {
+  list-style: none;
+  padding: 0;
+}
+
+.dimension-body .example-list li {
+  padding: 8px 0 8px 20px;
+  position: relative;
+}
+
+.dimension-body .example-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 16px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  opacity: 0.6;
+}
+
+/* ===== 图示容器 ===== */
+.diagram {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 16px 0;
+  text-align: center;
+  overflow-x: auto;
+}
+.diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+.diagram svg text {
+  font-family: var(--font-sans);
+}
+.diagram .caption {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* ===== 知识地图 ===== */
+.knowledge-map {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-top: 32px;
+}
+
+.knowledge-map h3 {
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.map-nodes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.map-node {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.map-node:hover {
+  border-color: var(--accent-color);
+  color: var(--text-primary);
+}
+
+.map-node.current {
+  background: var(--accent-color);
+  color: var(--bg-primary);
+  border-color: var(--accent-color);
+  font-weight: 600;
+}
+
+.map-node.pending {
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+.map-node.linked {
+  text-decoration: none;
+  color: var(--text-secondary);
+}
+
+.map-node.linked:hover {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.map-arrow {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.map-section {
+  margin-top: 16px;
+}
+
+.map-section-title {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.map-section .map-nodes {
+  justify-content: flex-start;
+}
+
+/* ===== 验证题目 ===== */
+.quiz-container {
+  padding: 0;
+}
+
+.quiz-item {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+}
+
+.quiz-item .quiz-question {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.quiz-item .quiz-type {
+  font-size: 0.75rem;
+  color: var(--accent-color);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.quiz-options {
+  list-style: none;
+  padding: 0;
+}
+
+.quiz-options li {
+  padding: 10px 16px;
+  margin-bottom: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+}
+
+.quiz-options li:hover {
+  border-color: var(--accent-color);
+  color: var(--text-primary);
+}
+
+.quiz-options li.correct {
+  border-color: var(--success);
+  background: rgba(76, 175, 80, 0.1);
+  color: var(--success);
+}
+
+.quiz-options li.wrong {
+  border-color: var(--error);
+  background: rgba(239, 83, 80, 0.1);
+  color: var(--error);
+}
+
+.quiz-explanation {
+  display: none;
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border-left: 3px solid var(--accent-color);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.quiz-explanation.visible {
+  display: block;
+}
+
+/* ===== 页脚 ===== */
+.footer {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 40px auto 0;
+  padding: 24px;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 640px) {
+  .header { padding: 24px 16px 16px; }
+  .header h1 { font-size: 1.5rem; }
+  .main { padding: 16px; }
+  .dimension-header { padding: 12px 16px; }
+  .dimension-body { padding: 0 16px 16px; }
+}
+
+/* ===== 打印样式 ===== */
+@media print {
+  body { background: white; color: black; }
+  body::before { display: none; }
+  .dimension-body.collapsed { display: block !important; }
+  .dimension-header .dim-toggle { display: none; }
+  .dimension-card { border: 1px solid #ddd; }
+}
+</style>
+</head>
+<body>
+
+<!-- 头部 -->
+<div class="header">
+  <h1>知本 · <span class="accent">{{POINT_NAME}}</span></h1>
+  <div class="meta">
+    <span class="tag">{{SUBJECT_NAME}}</span>
+    <span class="tag">{{GRADE_NAME}}</span>
+    <span class="tag">{{PARADIGM_FAMILY}}</span>
+  </div>
+</div>
+
+<!-- 主体 -->
+<div class="main">
+
+  <!-- 认知组 -->
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">认</div>
+      <span class="group-title">认知组</span>
+      <span class="group-subtitle">理解</span>
+    </div>
+
+    <!-- 维度1：定义锚点 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">1</span>
+        <span class="dim-title">定义锚点</span>
+        <span class="dim-question">它是什么？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        {{DEFINITION_CONTENT}}
+      </div>
+    </div>
+
+    <!-- 维度2：历史溯源 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">2</span>
+        <span class="dim-title">历史溯源</span>
+        <span class="dim-question">它从哪来？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        {{ORIGIN_CONTENT}}
+      </div>
+    </div>
+
+    <!-- 维度3：现实矛盾 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">3</span>
+        <span class="dim-title">现实矛盾</span>
+        <span class="dim-question">为什么需要它？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        {{CONTRADICTION_CONTENT}}
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用组 -->
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">用</div>
+      <span class="group-title">应用组</span>
+      <span class="group-subtitle">迁移</span>
+    </div>
+
+    <!-- 维度4：应用场景 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">4</span>
+        <span class="dim-title">应用场景</span>
+        <span class="dim-question">它能做什么？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        {{APPLICATION_CONTENT}}
+      </div>
+    </div>
+
+    <!-- 维度5：思维延伸 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">5</span>
+        <span class="dim-title">思维延伸</span>
+        <span class="dim-question">它还能怎样？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        {{EXTENSION_CONTENT}}
+      </div>
+    </div>
+
+    <!-- 维度6：知识网络 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">6</span>
+        <span class="dim-title">知识网络</span>
+        <span class="dim-question">它和什么关联？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        {{NETWORK_CONTENT}}
+      </div>
+    </div>
+  </div>
+
+  <!-- 验证组 -->
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">验</div>
+      <span class="group-title">验证组</span>
+      <span class="group-subtitle">确认</span>
+    </div>
+
+    <!-- 维度7：验证理解 -->
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">7</span>
+        <span class="dim-title">验证理解</span>
+        <span class="dim-question">真的懂了吗？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        {{VALIDATION_CONTENT}}
+      </div>
+    </div>
+  </div>
+
+  <!-- 知识地图 -->
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section">
+      <div class="map-section-title">前导知识</div>
+      <div class="map-nodes">
+        {{PREREQUISITE_NODES}}
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-nodes">
+        {{PREREQUISITE_ARROWS}}
+        <span class="map-node current">{{POINT_NAME}}</span>
+        {{SUBSEQUENT_ARROWS}}
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-section-title">后续延伸</div>
+      <div class="map-nodes">
+        {{SUBSEQUENT_NODES}}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 页脚 -->
+<div class="footer">
+  知本 KnowledgeRoot — 知识本质拆解系统
+</div>
+
+<script>
+function toggleDimension(header) {
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.dim-toggle');
+  if (body.classList.contains('collapsed')) {
+    body.classList.remove('collapsed');
+    toggle.classList.remove('collapsed');
+  } else {
+    body.classList.add('collapsed');
+    toggle.classList.add('collapsed');
+  }
+}
+
+function checkAnswer(optionEl, isCorrect, explanationEl) {
+  const parent = optionEl.parentElement;
+  const allOptions = parent.querySelectorAll('li');
+  allOptions.forEach(opt => {
+    opt.style.pointerEvents = 'none';
+  });
+  if (isCorrect) {
+    optionEl.classList.add('correct');
+  } else {
+    optionEl.classList.add('wrong');
+    allOptions.forEach(opt => {
+      if (opt.dataset.correct === 'true') {
+        opt.classList.add('correct');
+      }
+    });
+  }
+  if (explanationEl) {
+    explanationEl.classList.add('visible');
+  }
+}
+</script>
+
+</body>
+</html>

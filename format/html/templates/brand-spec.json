@@ -1,0 +1,52 @@
+{
+  "brand": {
+    "name": "",
+    "tagline": "",
+    "description": ""
+  },
+  "colors": {
+    "primary": "#0F766E",
+    "accent": "#E94560",
+    "bg": "#FAFAFA",
+    "fg": "#1A1A1A",
+    "muted": "#7A7A9E",
+    "border": "#E5E7EB",
+    "success": "#4ECDC4",
+    "warning": "#FFE66D"
+  },
+  "derived": {
+    "primary-dim": "rgba(15,118,110,0.08)",
+    "accent-dim": "rgba(233,69,96,0.08)",
+    "card-bg": "rgba(255,255,255,0.7)",
+    "card-border": "rgba(0,0,0,0.06)",
+    "primary-rgb": "15,118,110",
+    "accent-rgb": "233,69,96"
+  },
+  "fonts": {
+    "display": "'Noto Serif SC', Georgia, serif",
+    "body": "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', sans-serif",
+    "mono": "'JetBrains Mono', 'Fira Code', monospace"
+  },
+  "spacing": {
+    "page-padding": "60px 80px",
+    "section-gap": "48px",
+    "content-max-width": "900px",
+    "card-radius": 8,
+    "card-padding": 20
+  },
+  "animation": {
+    "default_easing": "expoOut",
+    "enter_duration": 0.5,
+    "exit_duration": 0.4,
+    "stagger_delay": 0.25
+  },
+  "rules": {
+    "no_gradient_text": true,
+    "no_emoji_icons": true,
+    "no_purple_primary": true,
+    "max_colors_per_slide": 3,
+    "min_contrast_ratio": 4.5,
+    "card_must_have_border": true,
+    "background_must_have_texture": true
+  }
+}

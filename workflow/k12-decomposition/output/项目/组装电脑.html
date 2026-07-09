@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 组装电脑</title>
+<style>
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-card: #1e2130;
+  --text-primary: #e8e8ed;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #2d3148;
+  --border-accent: var(--accent-color, #42a5f5);
+  --accent-color: #42a5f5;
+  --accent-glow: rgba(66, 165, 245, 0.12);
+  --success: #4caf50;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --color-it: #42a5f5;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.8; min-height: 100vh; }
+body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.02) 0%, transparent 40%); pointer-events: none; z-index: 0; }
+
+.header { position: relative; z-index: 1; padding: 40px 24px 24px; max-width: 800px; margin: 0 auto; border-bottom: 1px solid var(--border-color); }
+.header .project-badge { display: inline-block; background: var(--accent-color); color: var(--bg-primary); padding: 2px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; }
+.header h1 { font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.header h1 .accent { color: var(--accent-color); }
+.header .meta { display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 0.9rem; flex-wrap: wrap; }
+.header .meta .tag { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 12px; border-radius: 20px; font-size: 0.85rem; }
+
+.main { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px; }
+
+.question-overview { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+.question-overview h2 { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 12px; }
+.question-overview p { color: var(--text-secondary); line-height: 1.9; }
+
+.learning-path { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+.learning-path h2 { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 16px; }
+.learning-path svg { max-width: 100%; height: auto; }
+.learning-path svg text { font-family: var(--font-sans); }
+
+.kp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.kp-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; transition: border-color 0.2s; position: relative; }
+.kp-card:hover { border-color: var(--border-accent); }
+.kp-card .kp-number { position: absolute; top: 12px; right: 16px; width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
+.kp-card .kp-subject { font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-bottom: 8px; background: rgba(66,165,245,0.15); color: var(--color-it); }
+.kp-card .kp-name { font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.kp-card .kp-role { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; }
+.kp-card .kp-status { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+.kp-card .kp-status.generated { color: var(--success); }
+.kp-card .kp-status .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+.kp-card .kp-status.generated .status-dot { background: var(--success); }
+.kp-card .kp-link { display: inline-block; margin-top: 8px; padding: 4px 12px; border-radius: 16px; font-size: 0.8rem; text-decoration: none; transition: all 0.2s; }
+.kp-card .kp-link.view { background: rgba(76,175,80,0.1); border: 1px solid var(--success); color: var(--success); }
+.kp-card .kp-link.view:hover { background: rgba(76,175,80,0.2); }
+
+.synthesis { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+.synthesis h2 { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 12px; }
+.synthesis p { color: var(--text-secondary); line-height: 1.9; margin-bottom: 12px; }
+.synthesis .highlight { color: var(--accent-color); font-weight: 500; }
+
+.extensions { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+.extensions h2 { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 12px; }
+.extensions ul { list-style: none; padding: 0; }
+.extensions ul li { padding: 8px 0 8px 20px; position: relative; color: var(--text-secondary); }
+.extensions ul li::before { content: ''; position: absolute; left: 0; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-color); opacity: 0.6; }
+
+.footer { position: relative; z-index: 1; max-width: 800px; margin: 40px auto 0; padding: 24px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+@media (max-width: 640px) { .header { padding: 24px 16px 16px; } .header h1 { font-size: 1.5rem; } .main { padding: 16px; } .kp-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="project-badge">项目式学习</span>
+  <h1>知本 · <span class="accent">组装电脑</span></h1>
+  <div class="meta">
+    <span class="tag">信息技术</span>
+    <span class="tag">初中</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- 问题概述 -->
+  <div class="question-overview">
+    <h2>问题</h2>
+    <p>如何从零开始组装一台电脑？你需要理解电脑里有哪些零件、它们如何连接通信、大脑如何运算、数据如何存储、如何供电散热，以及最后如何让这堆零件"活"起来——装上操作系统。这6个知识点按依赖关系排列，学完你就能独立完成一台电脑的组装。</p>
+  </div>
+
+  <!-- 学习路径图 -->
+  <div class="learning-path">
+    <h2>学习路径</h2>
+    <svg width="720" height="320" viewBox="0 0 720 320">
+      <!-- 节点 -->
+      <rect x="20" y="20" width="140" height="50" rx="8" fill="rgba(66,165,245,0.15)" stroke="#42a5f5" stroke-width="2"/>
+      <text x="90" y="42" text-anchor="middle" fill="#42a5f5" font-size="12" font-weight="600">1. 电脑硬件组成</text>
+      <text x="90" y="58" text-anchor="middle" fill="var(--text-muted)" font-size="9">认识零件</text>
+
+      <rect x="200" y="20" width="140" height="50" rx="8" fill="rgba(76,175,80,0.15)" stroke="#4caf50" stroke-width="2"/>
+      <text x="270" y="42" text-anchor="middle" fill="#4caf50" font-size="12" font-weight="600">2. 主板与总线</text>
+      <text x="270" y="58" text-anchor="middle" fill="var(--text-muted)" font-size="9">零件如何通信</text>
+
+      <rect x="380" y="20" width="140" height="50" rx="8" fill="rgba(66,165,245,0.15)" stroke="#42a5f5" stroke-width="2"/>
+      <text x="450" y="42" text-anchor="middle" fill="#42a5f5" font-size="12" font-weight="600">3. CPU工作原理</text>
+      <text x="450" y="58" text-anchor="middle" fill="var(--text-muted)" font-size="9">大脑如何运算</text>
+
+      <rect x="20" y="110" width="140" height="50" rx="8" fill="rgba(255,152,0,0.15)" stroke="#ff9800" stroke-width="2"/>
+      <text x="90" y="132" text-anchor="middle" fill="#ff9800" font-size="12" font-weight="600">4. 内存与存储</text>
+      <text x="90" y="148" text-anchor="middle" fill="var(--text-muted)" font-size="9">临时与永久</text>
+
+      <rect x="200" y="110" width="140" height="50" rx="8" fill="rgba(239,83,80,0.15)" stroke="#ef5350" stroke-width="2"/>
+      <text x="270" y="132" text-anchor="middle" fill="#ef5350" font-size="12" font-weight="600">5. 电源与散热</text>
+      <text x="270" y="148" text-anchor="middle" fill="var(--text-muted)" font-size="9">供电与降温</text>
+
+      <rect x="380" y="110" width="140" height="50" rx="8" fill="rgba(156,204,101,0.15)" stroke="#9ccc65" stroke-width="2"/>
+      <text x="450" y="132" text-anchor="middle" fill="#9ccc65" font-size="12" font-weight="600">6. 系统安装与启动</text>
+      <text x="450" y="148" text-anchor="middle" fill="var(--text-muted)" font-size="9">从零件到可用</text>
+
+      <!-- 依赖箭头 -->
+      <line x1="160" y1="45" x2="200" y2="45" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#pathArr)"/>
+      <line x1="340" y1="45" x2="380" y2="45" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#pathArr)"/>
+      <line x1="90" y1="70" x2="90" y2="110" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#pathArr)"/>
+      <line x1="270" y1="70" x2="270" y2="110" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#pathArr)"/>
+      <line x1="450" y1="70" x2="450" y2="110" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#pathArr)"/>
+      <line x1="160" y1="135" x2="200" y2="135" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#pathArr)"/>
+      <line x1="340" y1="135" x2="380" y2="135" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#pathArr)"/>
+
+      <!-- 跨层依赖 -->
+      <path d="M160 55 Q180 90 200 120" fill="none" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#pathArr)"/>
+      <path d="M340 55 Q360 90 380 120" fill="none" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#pathArr)"/>
+
+      <!-- 最终目标 -->
+      <rect x="220" y="210" width="280" height="60" rx="10" fill="rgba(66,165,245,0.1)" stroke="var(--accent-color)" stroke-width="2"/>
+      <text x="360" y="237" text-anchor="middle" fill="var(--accent-color)" font-size="14" font-weight="700">组装一台可用的电脑</text>
+      <text x="360" y="257" text-anchor="middle" fill="var(--text-muted)" font-size="10">选件 → 组装 → 启动 → 装系统</text>
+
+      <!-- 汇聚箭头 -->
+      <line x1="90" y1="160" x2="280" y2="210" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#pathArr)"/>
+      <line x1="270" y1="160" x2="340" y2="210" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#pathArr)"/>
+      <line x1="450" y1="160" x2="400" y2="210" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#pathArr)"/>
+
+      <defs><marker id="pathArr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--text-muted)"/></marker></defs>
+    </svg>
+  </div>
+
+  <!-- 知识点卡片 -->
+  <h2 style="font-size:1.1rem;color:var(--text-primary);margin-bottom:12px;">知识点</h2>
+  <div class="kp-grid">
+    <div class="kp-card">
+      <span class="kp-number">1</span>
+      <span class="kp-subject">信息技术</span>
+      <div class="kp-name">电脑硬件组成</div>
+      <div class="kp-role">入门：认识零件</div>
+      <div class="kp-status generated"><span class="status-dot"></span>已生成</div>
+      <a href="电脑硬件组成.html" class="kp-link view">查看详情</a>
+    </div>
+    <div class="kp-card">
+      <span class="kp-number">2</span>
+      <span class="kp-subject">信息技术</span>
+      <div class="kp-name">主板与总线</div>
+      <div class="kp-role">连接：零件如何通信</div>
+      <div class="kp-status generated"><span class="status-dot"></span>已生成</div>
+      <a href="主板与总线.html" class="kp-link view">查看详情</a>
+    </div>
+    <div class="kp-card">
+      <span class="kp-number">3</span>
+      <span class="kp-subject">信息技术</span>
+      <div class="kp-name">CPU工作原理</div>
+      <div class="kp-role">核心：大脑如何运算</div>
+      <div class="kp-status generated"><span class="status-dot"></span>已生成</div>
+      <a href="CPU工作原理.html" class="kp-link view">查看详情</a>
+    </div>
+    <div class="kp-card">
+      <span class="kp-number">4</span>
+      <span class="kp-subject">信息技术</span>
+      <div class="kp-name">内存与存储</div>
+      <div class="kp-role">数据：临时与永久</div>
+      <div class="kp-status generated"><span class="status-dot"></span>已生成</div>
+      <a href="内存与存储.html" class="kp-link view">查看详情</a>
+    </div>
+    <div class="kp-card">
+      <span class="kp-number">5</span>
+      <span class="kp-subject">信息技术</span>
+      <div class="kp-name">电源与散热</div>
+      <div class="kp-role">保障：供电与降温</div>
+      <div class="kp-status generated"><span class="status-dot"></span>已生成</div>
+      <a href="电源与散热.html" class="kp-link view">查看详情</a>
+    </div>
+    <div class="kp-card">
+      <span class="kp-number">6</span>
+      <span class="kp-subject">信息技术</span>
+      <div class="kp-name">系统安装与启动</div>
+      <div class="kp-role">完成：从零件到可用</div>
+      <div class="kp-status generated"><span class="status-dot"></span>已生成</div>
+      <a href="系统安装与启动.html" class="kp-link view">查看详情</a>
+    </div>
+  </div>
+
+  <!-- 综合思考 -->
+  <div class="synthesis">
+    <h2>综合思考</h2>
+    <p>组装一台电脑，本质上是把6个知识点串联成一条完整的行动链：</p>
+    <p>先<span class="highlight">认识零件</span>（硬件组成），理解它们<span class="highlight">如何连接</span>（主板与总线），知道<span class="highlight">谁在运算</span>（CPU）、<span class="highlight">数据在哪</span>（内存与存储）、<span class="highlight">能量怎么来</span>（电源与散热），最后<span class="highlight">注入灵魂</span>（系统安装与启动）。</p>
+    <p>每个知识点都不是孤立的——CPU通过总线读写内存，内存的数据来自硬盘，硬盘里的系统由BIOS引导加载，整个过程中电源持续供电、散热器持续排热。理解了这些关联，你就不再是在"照着教程装"，而是真正知道每一步在做什么、为什么这么做。</p>
+    <p>组装电脑的过程也是理解"系统工程"的过程：多个独立部件通过标准化接口协作，形成远超任何单一部件能力的整体。这个思想从IBM PC时代延续至今，也是现代工程的核心方法论。</p>
+  </div>
+
+  <!-- 延伸问题 -->
+  <div class="extensions">
+    <h2>延伸问题</h2>
+    <ul>
+      <li>如果预算有限（3000元），应该如何在各部件之间分配预算？哪些部件可以省、哪些不能省？</li>
+      <li>笔记本电脑和台式机的硬件架构有什么不同？为什么笔记本不能像台式机那样自由升级？</li>
+      <li>未来的电脑可能不再需要"组装"——芯片集成度越来越高（如苹果M系列CPU/GPU/内存一体化），这对"组装电脑"这个概念意味着什么？</li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="footer">
+  知本 KnowledgeRoot — 知识本质拆解系统
+</div>
+
+</body>
+</html>

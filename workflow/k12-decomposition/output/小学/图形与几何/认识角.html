@@ -1,0 +1,106 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>知本 · 认识角</title><style>:root{--bg-primary:#0f1117;--bg-secondary:#1a1d27;--bg-card:#1e2130;--text-primary:#e8e8ed;--text-secondary:#9ca3af;--text-muted:#6b7280;--border-color:#2d3148;--border-accent:var(--accent-color,#4fc3f7);--accent-color:#4fc3f7;--accent-glow:rgba(79,195,247,0.12);--success:#4caf50;--error:#ef5350;--radius:8px;--radius-lg:12px;--font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);line-height:1.8;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:radial-gradient(circle at 20% 50%,var(--accent-glow) 0%,transparent 50%);pointer-events:none;z-index:0}
+.header{position:relative;z-index:1;padding:40px 24px 24px;max-width:800px;margin:0 auto;border-bottom:1px solid var(--border-color)}
+.header h1{font-size:2rem;font-weight:700}.header h1 .accent{color:var(--accent-color)}
+.header .meta{display:flex;gap:16px;align-items:center;color:var(--text-secondary);font-size:0.9rem;flex-wrap:wrap}
+.header .meta .tag{background:var(--bg-card);border:1px solid var(--border-color);padding:2px 12px;border-radius:20px;font-size:0.85rem}
+.main{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:24px}
+.group{margin-bottom:32px}
+.group-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border-color)}
+.group-header .group-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;background:var(--accent-color);color:var(--bg-primary)}
+.group-header .group-title{font-size:1.1rem;font-weight:600}.group-header .group-subtitle{font-size:0.85rem;color:var(--text-muted);margin-left:auto}
+.dimension-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;transition:border-color 0.2s}
+.dimension-card:hover{border-color:var(--border-accent)}
+.dimension-header{display:flex;align-items:center;padding:16px 20px;cursor:pointer;user-select:none;gap:12px}
+.dimension-header .dim-number{width:24px;height:24px;border-radius:50%;background:var(--bg-secondary);border:1px solid var(--border-color);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;color:var(--text-secondary);flex-shrink:0}
+.dimension-header .dim-title{font-weight:600}.dimension-header .dim-question{font-size:0.85rem;color:var(--text-muted);margin-left:8px}
+.dimension-header .dim-toggle{margin-left:auto;color:var(--text-muted);font-size:0.8rem;transition:transform 0.2s;flex-shrink:0}
+.dimension-header .dim-toggle.collapsed{transform:rotate(-90deg)}
+.dimension-body{padding:0 20px 20px;color:var(--text-secondary);line-height:1.9}
+.dimension-body.collapsed{display:none}.dimension-body p{margin-bottom:12px}
+.dimension-body strong{color:var(--text-primary)}.dimension-body .highlight{color:var(--accent-color);font-weight:500}
+.dimension-body .story-box{background:var(--bg-secondary);border-left:3px solid var(--accent-color);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;margin:12px 0}
+.dimension-body .example-list{list-style:none;padding:0}.dimension-body .example-list li{padding:8px 0 8px 20px;position:relative}
+.dimension-body .example-list li::before{content:'';position:absolute;left:0;top:16px;width:8px;height:8px;border-radius:50%;background:var(--accent-color);opacity:0.6}
+.diagram{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:20px;margin:16px 0;text-align:center;overflow-x:auto}
+.diagram svg{max-width:100%;height:auto}.diagram svg text{font-family:var(--font-sans)}
+.diagram .caption{font-size:0.8rem;color:var(--text-muted);margin-top:8px}
+.quiz-container{padding:0}.quiz-item{margin-bottom:16px;padding:16px;background:var(--bg-secondary);border-radius:var(--radius);border:1px solid var(--border-color)}
+.quiz-item .quiz-question{font-weight:600;color:var(--text-primary);margin-bottom:12px}
+.quiz-item .quiz-type{font-size:0.75rem;color:var(--accent-color);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.quiz-options{list-style:none;padding:0}.quiz-options li{padding:10px 16px;margin-bottom:6px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;color:var(--text-secondary)}
+.quiz-options li:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.quiz-options li.correct{border-color:var(--success);background:rgba(76,175,80,0.1);color:var(--success)}
+.quiz-options li.wrong{border-color:var(--error);background:rgba(239,83,80,0.1);color:var(--error)}
+.quiz-explanation{display:none;margin-top:12px;padding:12px 16px;background:var(--bg-card);border-left:3px solid var(--accent-color);border-radius:0 var(--radius) var(--radius) 0;color:var(--text-secondary);font-size:0.9rem;line-height:1.7}
+.quiz-explanation.visible{display:block}
+.map-node{padding:6px 16px;border-radius:20px;font-size:0.85rem;border:1px solid var(--border-color);background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;transition:all 0.2s;display:inline-block;text-decoration:none}
+.map-node:hover{border-color:var(--accent-color);color:var(--text-primary)}
+.map-node.current{background:var(--accent-color);color:var(--bg-primary);border-color:var(--accent-color);font-weight:600}
+.map-node.pending{border-style:dashed;opacity:0.7}
+.map-node.linked{border-color:var(--accent-color);color:var(--accent-color)}
+.knowledge-map{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px;margin-top:32px}
+.knowledge-map h3{font-size:1rem;margin-bottom:16px}
+.map-section{margin-top:12px}.map-section-title{font-size:0.8rem;color:var(--text-muted);margin-bottom:8px}
+.map-nodes{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.map-arrow{color:var(--text-muted);font-size:0.9rem}
+.footer{position:relative;z-index:1;max-width:800px;margin:40px auto 0;padding:24px;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);font-size:0.8rem}:root{--accent-color:#4fc3f7;--accent-glow:#4fc3f720;--border-accent:#4fc3f7}</style></head><body>
+<div class="header"><h1>知本 · <span class="accent">认识角</span></h1><div class="meta"><span class="tag">数学</span><span class="tag">2年级</span><span class="tag">图形与几何</span></div></div>
+<div class="main">
+<div class="group"><div class="group-header"><div class="group-icon">认</div><span class="group-title">认知组</span><span class="group-subtitle">理解</span></div>
+<div class="dimension-card"><div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">1</span><span class="dim-title">定义锚点</span><span class="dim-question">它是什么？</span><span class="dim-toggle">▼</span></div><div class="dimension-body"><p><strong>角</strong>是由一个<strong>顶点</strong>和两条<strong>边</strong>组成的图形。角的大小取决于两条边张开的程度，和边的长短无关。</p>
+<p>生活锚点：</p>
+<ul class="example-list">
+<li><strong>张开的剪刀</strong>——剪刀张开的角度就是角。张开越大，角越大；张开越小，角越小。</li>
+<li><strong>钟表的指针</strong>——3点整时，时针和分针组成<span class="highlight">直角</span>（90度）。12点整时，两针重合，角是0度。</li>
+</ul>
+<p>概念边界：角的大小看<strong>张开程度</strong>，不看边的长短。一个边很短但张得很开的角，比一个边很长但张得很小的角更大。</p>
+<div class="diagram">
+<svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
+  <text x="70" y="15" fill="var(--text-secondary)" font-size="12" text-anchor="middle">锐角（比直角小）</text>
+  <line x1="30" y1="90" x2="110" y2="90" stroke="var(--accent-color)" stroke-width="2"/>
+  <line x1="30" y1="90" x2="70" y2="50" stroke="var(--accent-color)" stroke-width="2"/>
+  <circle cx="30" cy="90" r="3" fill="var(--accent-color)"/>
+  <text x="200" y="15" fill="var(--text-secondary)" font-size="12" text-anchor="middle">直角（90度）</text>
+  <line x1="160" y1="90" x2="240" y2="90" stroke="var(--success)" stroke-width="2"/>
+  <line x1="160" y1="90" x2="160" y2="40" stroke="var(--success)" stroke-width="2"/>
+  <rect x="160" y="80" width="10" height="10" fill="none" stroke="var(--success)" stroke-width="1.5"/>
+  <text x="330" y="15" fill="var(--text-secondary)" font-size="12" text-anchor="middle">钝角（比直角大）</text>
+  <line x1="290" y1="90" x2="370" y2="90" stroke="var(--error)" stroke-width="2"/>
+  <line x1="290" y1="90" x2="340" y2="45" stroke="var(--error)" stroke-width="2"/>
+  <circle cx="290" cy="90" r="3" fill="var(--error)"/>
+</svg>
+<div class="caption">三种角：锐角 < 直角 < 钝角</div>
+</div></div></div>
+<div class="dimension-card"><div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">2</span><span class="dim-title">历史溯源</span><span class="dim-question">它从哪来？</span><span class="dim-toggle collapsed">▼</span></div><div class="dimension-body collapsed"><div class="story-box">
+<p>古埃及人建金字塔时就需要量角度。他们用一根绳子折成3:4:5的比例拉成三角形，就能得到一个直角——这是最早的"量角器"。</p>
+<p>古希腊人泰勒斯证明了"圆的直径所对的角是直角"。后来欧几里得在《几何原本》中系统地研究了角的性质。角从此成为几何学最基本的概念之一。</p>
+</div></div></div>
+<div class="dimension-card"><div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">3</span><span class="dim-title">现实矛盾</span><span class="dim-question">为什么需要它？</span><span class="dim-toggle collapsed">▼</span></div><div class="dimension-body collapsed"><p><strong>困境时刻</strong>：你要告诉别人"这个角有多大"，但怎么说？</p>
+<p>用手比划"这么大"？每个人理解不一样。角需要一个<strong>精确的度量方式</strong>——度数。直角=90度，比直角小的叫锐角，比直角大的叫钝角。有了度数，角的"大小"就有了统一标准。</p></div></div></div>
+<div class="group"><div class="group-header"><div class="group-icon">用</div><span class="group-title">应用组</span><span class="group-subtitle">迁移</span></div>
+<div class="dimension-card"><div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">4</span><span class="dim-title">应用场景</span><span class="dim-question">它能做什么？</span><span class="dim-toggle collapsed">▼</span></div><div class="dimension-body collapsed"><ul class="example-list">
+<li><strong>找角</strong>：三角尺上有3个角——1个直角、2个锐角。动手验证：用三角尺的直角去比一比书本的角，是不是直角？</li>
+<li><strong>折角</strong>：把一张纸对折再对折，展开后折痕组成4个直角。</li>
+<li><strong>看钟表</strong>：3点整和9点整，时针分针成直角；6点整，成平角（180度）。</li>
+</ul></div></div>
+<div class="dimension-card"><div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">5</span><span class="dim-title">思维延伸</span><span class="dim-question">它还能怎样？</span><span class="dim-toggle collapsed">▼</span></div><div class="dimension-body collapsed"><p>角不只是数学概念，它无处不在。三角形三个角的和永远是180度，四边形四个角的和永远是360度——这是几何学最神奇的发现之一。</p>
+<p>进阶问题：把一个长方形沿对角线剪开，得到两个三角形。每个三角形的三个角加起来是多少度？</p></div></div>
+<div class="dimension-card"><div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">6</span><span class="dim-title">知识网络</span><span class="dim-question">它和什么关联？</span><span class="dim-toggle">▼</span></div><div class="dimension-body"><p><strong>前导知识</strong>：<span class="map-node pending">（暂无）</span>——认识图形是理解角的基础。</p>
+<p><strong>后续知识</strong>：<span class="map-node pending">（暂无）</span>——角是更系统的角度学习。</p></div></div></div>
+<div class="group"><div class="group-header"><div class="group-icon">验</div><span class="group-title">验证组</span><span class="group-subtitle">确认</span></div>
+<div class="dimension-card"><div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">7</span><span class="dim-title">验证理解</span><span class="dim-question">真的懂了吗？</span><span class="dim-toggle collapsed">▼</span></div><div class="dimension-body collapsed"><div class="quiz-container">
+<div class="quiz-item"><div class="quiz-type">概念辨析</div><div class="quiz-question">下面哪个说法正确？</div><ul class="quiz-options"><li onclick="checkAnswer(this,false,expl1)">A. 边越长的角越大</li><li onclick="checkAnswer(this,true,expl1)" data-correct="true">B. 张开越大的角越大</li><li onclick="checkAnswer(this,false,expl1)">C. 顶点越大的角越大</li></ul><div class="quiz-explanation" id="expl1">角的大小只看两条边张开的程度。边画得再长，如果张开没变，角的大小也不变。就像剪刀，不管剪刀多长，张开的角度一样大。</div></div>
+<div class="quiz-item"><div class="quiz-type">动手验证</div><div class="quiz-question">用两根小棒（或铅笔）摆出一个锐角、一个直角、一个钝角。</div><ul class="quiz-options"><li onclick="checkAnswer(this,true,expl2)" data-correct="true">A. 锐角比直角小，钝角比直角大，可以用三角尺的直角来比较</li><li onclick="checkAnswer(this,false,expl2)">B. 三种角的大小差不多</li></ul><div class="quiz-explanation" id="expl2">用三角尺的直角去比：比直角小的是锐角，比直角大的是钝角，和直角一样大的是直角。</div></div>
+<div class="quiz-item"><div class="quiz-type">本质理解</div><div class="quiz-question">为什么角的大小和边的长短无关？</div><ul class="quiz-options"><li onclick="checkAnswer(this,false,expl3)">A. 因为边可以无限延伸</li><li onclick="checkAnswer(this,true,expl3)" data-correct="true">B. 因为角是两条边"张开"的程度，边只是方向线，长短不影响张开程度</li><li onclick="checkAnswer(this,false,expl3)">C. 因为数学规定</li></ul><div class="quiz-explanation" id="expl3">想象手电筒的光——光束张开的角度是固定的，不管照到1米远的墙还是10米远的墙，角度不变。角的两条边就像光束，长短只是照射距离，不影响角度。</div></div>
+</div></div></div></div>
+<div class="knowledge-map"><h3>知识地图</h3>
+<div class="map-section"><div class="map-section-title">前导知识</div><div class="map-nodes"><span class="map-node pending">（暂无）</span></div></div>
+<div class="map-section"><div class="map-nodes"><span class="map-arrow">→</span><span class="map-node current">认识角</span><span class="map-arrow">→</span></div></div>
+<div class="map-section"><div class="map-section-title">后续延伸</div><div class="map-nodes"><span class="map-node pending">（暂无）</span></div></div>
+</div></div>
+<div class="footer">知本 KnowledgeRoot — 知识本质拆解系统</div>
+<script>function toggleDimension(h){const b=h.nextElementSibling;const t=h.querySelector('.dim-toggle');b.classList.toggle('collapsed');t.classList.toggle('collapsed')}
+function checkAnswer(el,correct,expl){const p=el.parentElement;const opts=p.querySelectorAll('li');opts.forEach(o=>{o.style.pointerEvents='none';});if(correct){el.classList.add('correct');}else{el.classList.add('wrong');opts.forEach(o=>{if(o.dataset.correct==='true')o.classList.add('correct');});}if(expl)expl.classList.add('visible')}</script></body></html>

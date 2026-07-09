@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · CPU工作原理</title>
+<style>
+:root { --bg-primary: #0f1117; --bg-secondary: #1a1d27; --bg-card: #1e2130; --bg-card-hover: #252840; --text-primary: #e8e8ed; --text-secondary: #9ca3af; --text-muted: #6b7280; --border-color: #2d3148; --border-accent: var(--accent-color, #42a5f5); --accent-color: #42a5f5; --accent-glow: rgba(66, 165, 245, 0.15); --success: #4caf50; --error: #ef5350; --warning: #ff9800; --radius: 8px; --radius-lg: 12px; --shadow: 0 2px 8px rgba(0,0,0,0.3); --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.8; min-height: 100vh; }
+body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.02) 0%, transparent 40%); pointer-events: none; z-index: 0; }
+.header { position: relative; z-index: 1; padding: 40px 24px 24px; max-width: 800px; margin: 0 auto; border-bottom: 1px solid var(--border-color); }
+.header h1 { font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.header h1 .accent { color: var(--accent-color); }
+.header .meta { display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 0.9rem; flex-wrap: wrap; }
+.header .meta .tag { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 12px; border-radius: 20px; font-size: 0.85rem; }
+.main { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px; }
+.group { margin-bottom: 32px; }
+.group-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+.group-header .group-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; background: var(--accent-color); color: var(--bg-primary); }
+.group-header .group-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+.group-header .group-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-left: auto; }
+.dimension-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s; }
+.dimension-card:hover { border-color: var(--border-accent); }
+.dimension-header { display: flex; align-items: center; padding: 16px 20px; cursor: pointer; user-select: none; gap: 12px; }
+.dimension-header .dim-number { width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
+.dimension-header .dim-title { font-weight: 600; font-size: 1rem; color: var(--text-primary); }
+.dimension-header .dim-question { font-size: 0.85rem; color: var(--text-muted); margin-left: 8px; }
+.dimension-header .dim-toggle { margin-left: auto; color: var(--text-muted); font-size: 0.8rem; transition: transform 0.2s; flex-shrink: 0; }
+.dimension-header .dim-toggle.collapsed { transform: rotate(-90deg); }
+.dimension-body { padding: 0 20px 20px; color: var(--text-secondary); line-height: 1.9; }
+.dimension-body.collapsed { display: none; }
+.dimension-body p { margin-bottom: 12px; }
+.dimension-body strong { color: var(--text-primary); }
+.dimension-body .highlight { color: var(--accent-color); font-weight: 500; }
+.dimension-body .story-box { background: var(--bg-secondary); border-left: 3px solid var(--accent-color); padding: 16px 20px; border-radius: 0 var(--radius) var(--radius) 0; margin: 12px 0; }
+.dimension-body .example-list { list-style: none; padding: 0; }
+.dimension-body .example-list li { padding: 8px 0 8px 20px; position: relative; }
+.dimension-body .example-list li::before { content: ''; position: absolute; left: 0; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-color); opacity: 0.6; }
+.diagram { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
+.diagram svg { max-width: 100%; height: auto; }
+.diagram svg text { font-family: var(--font-sans); }
+.diagram .caption { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+.knowledge-map { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-top: 32px; }
+.knowledge-map h3 { font-size: 1rem; color: var(--text-primary); margin-bottom: 16px; }
+.map-nodes { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.map-node { padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+.map-node:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.map-node.current { background: var(--accent-color); color: var(--bg-primary); border-color: var(--accent-color); font-weight: 600; }
+.map-node.pending { border-style: dashed; opacity: 0.7; }
+.map-node.linked { text-decoration: none; color: var(--text-secondary); display: inline-block; }
+.map-node.linked:hover { color: var(--accent-color); border-color: var(--accent-color); text-decoration: none; }
+.map-arrow { color: var(--text-muted); font-size: 0.9rem; }
+.map-section { margin-top: 16px; }
+.map-section-title { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.map-section .map-nodes { justify-content: flex-start; }
+.quiz-container { padding: 0; }
+.quiz-item { margin-bottom: 16px; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border-color); }
+.quiz-item .quiz-question { font-weight: 600; color: var(--text-primary); margin-bottom: 12px; }
+.quiz-item .quiz-type { font-size: 0.75rem; color: var(--accent-color); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.quiz-options { list-style: none; padding: 0; }
+.quiz-options li { padding: 10px 16px; margin-bottom: 6px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; transition: all 0.2s; color: var(--text-secondary); }
+.quiz-options li:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.quiz-options li.correct { border-color: var(--success); background: rgba(76, 175, 80, 0.1); color: var(--success); }
+.quiz-options li.wrong { border-color: var(--error); background: rgba(239, 83, 80, 0.1); color: var(--error); }
+.quiz-explanation { display: none; margin-top: 12px; padding: 12px 16px; background: var(--bg-card); border-left: 3px solid var(--accent-color); border-radius: 0 var(--radius) var(--radius) 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7; }
+.quiz-explanation.visible { display: block; }
+.footer { position: relative; z-index: 1; max-width: 800px; margin: 40px auto 0; padding: 24px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+@media (max-width: 640px) { .header { padding: 24px 16px 16px; } .header h1 { font-size: 1.5rem; } .main { padding: 16px; } .dimension-header { padding: 12px 16px; } .dimension-body { padding: 0 16px 16px; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>知本 · <span class="accent">CPU工作原理</span></h1>
+  <div class="meta">
+    <span class="tag">信息技术</span>
+    <span class="tag">初中</span>
+    <span class="tag">形式科学族</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">认</div>
+      <span class="group-title">认知组</span>
+      <span class="group-subtitle">理解</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">1</span>
+        <span class="dim-title">定义锚点</span>
+        <span class="dim-question">它是什么？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p>CPU（Central Processing Unit，中央处理器）是电脑的<strong>"大脑"</strong>——它不存储数据，不显示画面，但它<span class="highlight">决定做什么、怎么做、按什么顺序做</span>。</p>
+        <p>CPU内部有三大核心部件：</p>
+        <ul class="example-list">
+          <li><strong>控制器（CU）</strong>——"指挥官"，从内存取指令、解码、发出控制信号</li>
+          <li><strong>运算器（ALU）</strong>——"执行者"，做加减乘除和逻辑判断</li>
+          <li><strong>寄存器</strong>——"手边工具箱"，存放当前正在处理的少量数据</li>
+        </ul>
+        <p>CPU的工作就是不断重复<strong>取指→译码→执行</strong>这个循环，每秒执行数十亿次。就像厨师不断重复"看菜谱→理解步骤→动手做菜"。</p>
+
+        <div class="diagram">
+          <svg width="460" height="200" viewBox="0 0 460 200">
+            <!-- CPU外框 -->
+            <rect x="10" y="10" width="440" height="180" rx="10" fill="rgba(66,165,245,0.08)" stroke="var(--accent-color)" stroke-width="2"/>
+            <text x="230" y="32" text-anchor="middle" fill="var(--accent-color)" font-size="13" font-weight="700">CPU</text>
+
+            <!-- 控制器 -->
+            <rect x="30" y="50" width="120" height="80" rx="6" fill="rgba(255,152,0,0.15)" stroke="#ff9800" stroke-width="1.5"/>
+            <text x="90" y="80" text-anchor="middle" fill="#ff9800" font-size="13" font-weight="600">控制器</text>
+            <text x="90" y="100" text-anchor="middle" fill="var(--text-muted)" font-size="10">取指 + 译码</text>
+            <text x="90" y="118" text-anchor="middle" fill="var(--text-muted)" font-size="9">指挥官</text>
+
+            <!-- 运算器 -->
+            <rect x="170" y="50" width="120" height="80" rx="6" fill="rgba(239,83,80,0.15)" stroke="#ef5350" stroke-width="1.5"/>
+            <text x="230" y="80" text-anchor="middle" fill="#ef5350" font-size="13" font-weight="600">运算器</text>
+            <text x="230" y="100" text-anchor="middle" fill="var(--text-muted)" font-size="10">算术 + 逻辑</text>
+            <text x="230" y="118" text-anchor="middle" fill="var(--text-muted)" font-size="9">执行者</text>
+
+            <!-- 寄存器 -->
+            <rect x="310" y="50" width="120" height="80" rx="6" fill="rgba(76,175,80,0.15)" stroke="#4caf50" stroke-width="1.5"/>
+            <text x="370" y="80" text-anchor="middle" fill="#4caf50" font-size="13" font-weight="600">寄存器</text>
+            <text x="370" y="100" text-anchor="middle" fill="var(--text-muted)" font-size="10">临时数据</text>
+            <text x="370" y="118" text-anchor="middle" fill="var(--text-muted)" font-size="9">手边工具箱</text>
+
+            <!-- 循环箭头 -->
+            <path d="M90 135 L90 155 L230 155 L230 135" fill="none" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+            <path d="M230 155 L370 155 L370 135" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>
+            <text x="230" y="172" text-anchor="middle" fill="var(--text-muted)" font-size="10">取指 → 译码 → 执行 → 循环</text>
+            <defs><marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--text-muted)"/></marker></defs>
+          </svg>
+          <div class="caption">CPU三大核心部件与指令执行循环</div>
+        </div>
+      </div>
+    
+<p>生活锚点：<span class="highlight">厨房做菜</span>——CPU像厨师：取指令（看菜谱）→译码（理解步骤）→执行（动手做菜）。<span class="highlight">流水线</span>——一条指令执行时，下一条已经开始取指，像工厂流水线。</p>
+</div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">2</span>
+        <span class="dim-title">历史溯源</span>
+        <span class="dim-question">它从哪来？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <div class="story-box">
+          <p>1971年，Intel的工程师费金面临一个挑战：<strong>如何把一整台计算机的运算核心塞进一块芯片？</strong>当时的计算机需要一整个房间的电路板才能完成运算。费金的方案是把控制器、运算器和寄存器集成到一块硅片上——这就是Intel 4004，世界上第一颗微处理器。</p>
+          <p>4004只有2300个晶体管，主频740kHz（不到1MHz），每秒只能执行9万条指令。但它证明了一个关键点：<span class="highlight">所有计算都可以在一块芯片上完成</span>。</p>
+          <p>此后CPU按"摩尔定律"进化：晶体管数量每18-24个月翻一倍。今天的CPU有上百亿个晶体管，主频超过5GHz，每秒执行数千亿条指令。但核心架构没变——取指、译码、执行，这个循环从4004延续至今。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">3</span>
+        <span class="dim-title">现实矛盾</span>
+        <span class="dim-question">为什么需要它？</span>
+        <span class="dim-toggle">▼</span>
+      </div>
+      <div class="dimension-body">
+        <p><strong>困境时刻</strong>：如果没有CPU，电脑里每个部件都在"自说自话"——内存里存着数据，硬盘里存着程序，显卡等着画面指令，但没有人告诉它们"先做什么、后做什么、数据从哪搬到哪"。</p>
+        <p>就像一个工厂有仓库（内存）、车间（运算器）、运输队（总线），但<strong>没有厂长</strong>——<span class="highlight">所有资源都在，但没人调度，什么也生产不出来</span>。CPU就是那个"厂长"，它从内存读取指令，理解指令要做什么，然后指挥各部件协作完成。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">用</div>
+      <span class="group-title">应用组</span>
+      <span class="group-subtitle">迁移</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">4</span>
+        <span class="dim-title">应用场景</span>
+        <span class="dim-question">它能做什么？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <ul class="example-list">
+          <li><strong>选CPU</strong>：看CPU参数时，核心数=同时干几件事，主频=每件事干多快。写文档上网4核够用，视频剪辑需要8核以上，3D渲染选16核+。不是核心数越多越好——软件得能利用多核才行。</li>
+          <li><strong>判断瓶颈</strong>：打游戏帧数低，先看是CPU瓶颈还是显卡瓶颈。如果降低分辨率帧数不变，说明CPU来不及给显卡发指令（CPU瓶颈）；如果降低分辨率帧数明显上升，说明显卡处理不过来（显卡瓶颈）。</li>
+          <li><strong>超频</strong>：提高CPU主频可以让它每秒执行更多指令，但发热也更多，需要更好的散热。理解"取指-译码-执行"循环后，你就知道超频本质是加快这个循环的速度。</li>
+        </ul>
+        <p><strong>动手验证</strong>：打开任务管理器→性能→CPU，观察CPU使用率和速度。打开一个程序，看使用率飙升；关闭程序，看使用率回落——这就是CPU在"忙"和"闲"之间的切换。</p>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">5</span>
+        <span class="dim-title">思维延伸</span>
+        <span class="dim-question">它还能怎样？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p>CPU的"取指-译码-执行"循环是所有计算设备的底层逻辑——手机芯片、路由器芯片、甚至微波炉的控制芯片，都在做同样的事。区别只是速度和复杂度。</p>
+        <p><strong>进阶问题</strong>：CPU主频已经接近物理极限（5-6GHz），再提高会导致发热失控。那未来CPU性能提升靠什么？多核？异构计算（CPU+GPU融合）？还是全新的计算架构（量子计算）？</p>
+      </div>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">6</span>
+        <span class="dim-title">知识网络</span>
+        <span class="dim-question">它和什么关联？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <p><strong>前导知识</strong>：<a href="电脑硬件组成.html" class="map-node linked">电脑硬件组成</a>——CPU是六大核心部件之一；<a href="主板与总线.html" class="map-node linked">主板与总线</a>——CPU通过总线与内存通信。</p>
+        <p><strong>后续知识</strong>：</p>
+        <ul class="example-list">
+          <li><a href="内存与存储.html" class="map-node linked">内存与存储</a>——CPU从内存取指令和数据</li>
+          <li><a href="电源与散热.html" class="map-node linked">电源与散热</a>——CPU是发热量最大的部件</li>
+        </ul>
+        <p><strong>平行知识</strong>：GPU工作原理——GPU是"大量简单核心并行"，CPU是"少量复杂核心串行"，设计哲学完全不同。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-header">
+      <div class="group-icon">验</div>
+      <span class="group-title">验证组</span>
+      <span class="group-subtitle">确认</span>
+    </div>
+
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)">
+        <span class="dim-number">7</span>
+        <span class="dim-title">验证理解</span>
+        <span class="dim-question">真的懂了吗？</span>
+        <span class="dim-toggle collapsed">▼</span>
+      </div>
+      <div class="dimension-body collapsed">
+        <div class="quiz-container">
+          <div class="quiz-item">
+            <div class="quiz-type">辨析题</div>
+            <div class="quiz-question">CPU主频5GHz意味着每秒执行50亿条指令，这个说法准确吗？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">A. 准确，5GHz = 每秒50亿个时钟周期 = 50亿条指令</li>
+              <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">B. 不准确，5GHz是时钟频率，但一条指令可能需要多个周期，现代CPU也可能一个周期执行多条指令</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">C. 不准确，GHz是存储单位不是速度单位</li>
+            </ul>
+            <div class="quiz-explanation">主频5GHz表示每秒50亿个时钟周期，但指令执行不是"一个周期一条指令"这么简单。有些复杂指令需要多个周期，而现代CPU有流水线和超标量设计，可以一个周期执行多条指令。所以"5GHz=50亿条指令"过于简化。</div>
+          </div>
+
+          <div class="quiz-item">
+            <div class="quiz-type">实践题</div>
+            <div class="quiz-question">你要组装一台主要用来直播游戏的电脑，CPU应该优先选多核心还是高主频？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">A. 高主频，游戏只需要单核快</li>
+              <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">B. 多核心+较高主频，因为游戏占一部分核心，直播编码需要另一部分核心</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">C. 核心数越多越好，主频无所谓</li>
+            </ul>
+            <div class="quiz-explanation">直播游戏需要同时做两件事：运行游戏（需要高主频和部分核心）+ 视频编码推流（需要额外核心）。如果只有4核，游戏和编码抢核心会互相拖慢。8核以上才能让游戏和编码各用一部分核心，互不干扰。</div>
+          </div>
+
+          <div class="quiz-item">
+            <div class="quiz-type">推理题</div>
+            <div class="quiz-question">CPU里的寄存器只有几十个，内存有几十GB，为什么CPU不直接从内存读写数据，还需要寄存器？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this, true, this.parentElement.nextElementSibling)" data-correct="true">A. 因为寄存器在CPU内部，读写速度比内存快100倍以上，CPU需要极速暂存中间结果</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">B. 因为内存太贵，寄存器便宜</li>
+              <li onclick="checkAnswer(this, false, this.parentElement.nextElementSibling)">C. 因为寄存器容量大，存的数据多</li>
+            </ul>
+            <div class="quiz-explanation">寄存器是CPU内部最快的存储，读写只需0.x纳秒，而内存需要几十纳秒。CPU做运算时需要极快地暂存中间结果，如果每次都读写内存，就像厨师每切一刀菜都要走到仓库拿——太慢了。寄存器就是"手边案板"，伸手就到。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section">
+      <div class="map-section-title">前导知识</div>
+      <div class="map-nodes">
+        <a href="电脑硬件组成.html" class="map-node linked">电脑硬件组成</a>
+        <a href="主板与总线.html" class="map-node linked">主板与总线</a>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-nodes">
+        <span class="map-arrow">→</span>
+        <span class="map-node current">CPU工作原理</span>
+        <span class="map-arrow">→</span>
+      </div>
+    </div>
+    <div class="map-section" style="margin-top:12px;">
+      <div class="map-section-title">后续延伸</div>
+      <div class="map-nodes">
+        <a href="内存与存储.html" class="map-node linked">内存与存储</a>
+        <a href="电源与散热.html" class="map-node linked">电源与散热</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">知本 KnowledgeRoot — 知识本质拆解系统</div>
+
+<script>
+function toggleDimension(header) { const body = header.nextElementSibling; const toggle = header.querySelector('.dim-toggle'); if (body.classList.contains('collapsed')) { body.classList.remove('collapsed'); toggle.classList.remove('collapsed'); } else { body.classList.add('collapsed'); toggle.classList.add('collapsed'); } }
+function checkAnswer(optionEl, isCorrect, explanationEl) { const parent = optionEl.parentElement; const allOptions = parent.querySelectorAll('li'); allOptions.forEach(opt => { opt.style.pointerEvents = 'none'; }); if (isCorrect) { optionEl.classList.add('correct'); } else { optionEl.classList.add('wrong'); allOptions.forEach(opt => { if (opt.dataset.correct === 'true') { opt.classList.add('correct'); } }); } if (explanationEl) { explanationEl.classList.add('visible'); } }
+</script>
+
+</body>
+</html>

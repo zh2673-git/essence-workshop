@@ -3,7 +3,7 @@ name: Skill优化
 description: |
   自主优化循环：评估→改进→验证→确认→保留或回滚，生成评分卡。
   基于Darwin Skill 2.0的hill-climbing优化循环 + Karpathy autoresearch的自主实验思想。
-  可优化本质工坊任意层的skill（cognitive-engine/format-pipeline/platform-adapter/scenarios）以及蒸馏产出的人物skill。
+  可优化本质工坊任意层的skill（cognitive/format/workflow/scenarios）以及蒸馏产出的人物skill。
   9+1维度评分体系（结构65分+效果35分+一致性10分），LLM-as-judge准确率46.4%，重要决策必须人审。
   触发词：「优化skill」「skill评分」「达尔文」「darwin」「帮我改改skill」「skill怎么样」。
 version: 2.0
@@ -26,10 +26,10 @@ scene: F
 
 | 层级 | 示例 | 路径 |
 |------|------|------|
-| 认知引擎 | 通用逻辑/易经/法条/寓言 | cognitive-engine/*/SKILL.md |
-| 格式管线 | markdown/html/notebook/ppt/video | format-pipeline/*/SKILL.md |
-| 平台适配 | wechat/reveal/whiteboard-recorder | platform-adapter/*/SKILL.md |
-| 场景编排 | 知识探索/K12/项目开发 | scenarios/*/SKILL.md |
+| 认知引擎 | 通用逻辑/易经/法条/寓言 | cognitive/*/SKILL.md |
+| 格式管线 | markdown/html/notebook/ppt/video | format/*/SKILL.md |
+| 平台适配 | wechat/reveal/whiteboard-recorder | workflow/*/SKILL.md |
+| 场景编排 | 知识探索/K12/项目开发 | content-framework/*/框架.md |
 | 蒸馏产物 | 老子/达尔文/孔子... | distillation/output/*/SKILL.md |
 | 本身 | 本质工坊主路由 | SKILL.md |
 
@@ -54,7 +54,7 @@ Phase 5: 收敛 → 改进后总分必须严格高于改进前才保留，否则
 4. 检查点设计（6分）— 🔴CHECKPOINT / 🔵AUTO-CHECK
 5. 可执行具体性（17分）— 禁止"建议/可以考虑/根据情况"等软化措辞
 6. 资源整合度（4分）
-7. 整体架构（7分）— 与v3.0三层架构一致
+7. 整体架构（7分）— 与v3.0四层架构一致
 
 **效果维度（35分）— 需实测**：
 8. 实测表现（23分）— 用测试prompt跑一遍
@@ -77,7 +77,7 @@ Phase 5: 收敛 → 改进后总分必须严格高于改进前才保留，否则
 
 - **上游**：蒸馏（distillation）完成后触发质量门控评分
 - **作用对象**：任意层skill（含认知引擎/格式管线/平台适配/场景编排/蒸馏产物）
-- **方法论基础**：[cognitive-engine/general-logic/SKILL.md](../cognitive-engine/general-logic/SKILL.md) — 三阶合一框架
+- **方法论基础**：[cognitive/general-logic/SKILL.md](../cognitive/general-logic/SKILL.md) — 三阶合一框架
 
 ## 输出
 

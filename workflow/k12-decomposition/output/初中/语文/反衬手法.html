@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知本 · 反衬手法</title>
+<style>
+:root { --bg-primary: #0f1117; --bg-secondary: #1a1d27; --bg-card: #1e2130; --text-primary: #e8e8ed; --text-secondary: #9ca3af; --text-muted: #6b7280; --border-color: #2d3148; --border-accent: var(--accent-color, #ef5350); --accent-color: #ef5350; --accent-glow: rgba(239,83,80,0.12); --radius: 8px; --radius-lg: 12px; --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.8; min-height: 100vh; }
+body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+.header { position: relative; z-index: 1; padding: 40px 24px 24px; max-width: 800px; margin: 0 auto; border-bottom: 1px solid var(--border-color); }
+.header h1 { font-size: 2rem; font-weight: 700; }
+.header h1 .accent { color: var(--accent-color); }
+.header .meta { display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 0.9rem; flex-wrap: wrap; }
+.header .meta .tag { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 12px; border-radius: 20px; font-size: 0.85rem; }
+.main { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px; }
+.group { margin-bottom: 32px; }
+.group-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+.group-header .group-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; background: var(--accent-color); color: var(--bg-primary); }
+.group-header .group-title { font-size: 1.1rem; font-weight: 600; }
+.group-header .group-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-left: auto; }
+.dimension-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s; }
+.dimension-card:hover { border-color: var(--border-accent); }
+.dimension-header { display: flex; align-items: center; padding: 16px 20px; cursor: pointer; user-select: none; gap: 12px; }
+.dimension-header .dim-number { width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
+.dimension-header .dim-title { font-weight: 600; }
+.dimension-header .dim-question { font-size: 0.85rem; color: var(--text-muted); margin-left: 8px; }
+.dimension-header .dim-toggle { margin-left: auto; color: var(--text-muted); font-size: 0.8rem; transition: transform 0.2s; flex-shrink: 0; }
+.dimension-header .dim-toggle.collapsed { transform: rotate(-90deg); }
+.dimension-body { padding: 0 20px 20px; color: var(--text-secondary); line-height: 1.9; }
+.dimension-body.collapsed { display: none; }
+.dimension-body p { margin-bottom: 12px; }
+.dimension-body strong { color: var(--text-primary); }
+.dimension-body .highlight { color: var(--accent-color); font-weight: 500; }
+.dimension-body .story-box { background: var(--bg-secondary); border-left: 3px solid var(--accent-color); padding: 16px 20px; border-radius: 0 var(--radius) var(--radius) 0; margin: 12px 0; }
+.map-node { padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+.map-node:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.map-node.current { background: var(--accent-color); color: var(--bg-primary); border-color: var(--accent-color); font-weight: 600; }
+.map-node.pending { border-style: dashed; opacity: 0.7; }
+.map-node.linked { text-decoration: none; color: var(--text-secondary); display: inline-block; }
+.map-node.linked:hover { color: var(--accent-color); border-color: var(--accent-color); text-decoration: none; }
+.knowledge-map { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-top: 32px; }
+.knowledge-map h3 { font-size: 1rem; margin-bottom: 16px; }
+.map-section { margin-top: 12px; }
+.map-section-title { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
+.map-nodes { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.map-arrow { color: var(--text-muted); font-size: 0.9rem; }
+.footer { position: relative; z-index: 1; max-width: 800px; margin: 40px auto 0; padding: 24px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+.diagram { margin: 16px 0; text-align: center; }
+.diagram svg { max-width: 100%; height: auto; }
+.diagram .caption { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; font-style: italic; }
+.quiz-container { margin-top: 8px; }
+.quiz-item { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.quiz-type { display: inline-block; background: var(--accent-color); color: var(--bg-primary); font-size: 0.75rem; font-weight: 600; padding: 2px 10px; border-radius: 10px; margin-bottom: 8px; }
+.quiz-question { font-weight: 600; color: var(--text-primary); margin-bottom: 10px; }
+.quiz-options { list-style: none; padding: 0; }
+.quiz-options li { padding: 8px 14px; margin-bottom: 6px; border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+.quiz-options li:hover { border-color: var(--accent-color); }
+.quiz-options li.correct { background: rgba(76,175,80,0.15); border-color: #4caf50; color: #81c784; }
+.quiz-options li.wrong { background: rgba(244,67,54,0.15); border-color: #f44336; color: #ef9a9a; }
+.quiz-explanation { display: none; margin-top: 8px; padding: 10px; background: var(--bg-card); border-radius: var(--radius); font-size: 0.85rem; color: var(--text-secondary); border-left: 3px solid var(--accent-color); }
+.quiz-explanation.show { display: block; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>知本 · <span class="accent">反衬手法</span></h1>
+  <div class="meta"><span class="tag">语文</span><span class="tag">初二</span><span class="tag">人文学科族</span></div>
+</div>
+<div class="main">
+  <div class="group">
+    <div class="group-header"><div class="group-icon">认</div><span class="group-title">认知组</span><span class="group-subtitle">理解</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">1</span><span class="dim-title">定义锚点</span><span class="dim-question">它是什么？</span><span class="dim-toggle">▼</span></div>
+      <div class="dimension-body">
+        <p><strong>反衬</strong>是用与主体情感相反的景象或事物来衬托主体情感的手法。<span class="highlight">以乐衬哀、以动衬静、以明衬暗</span>——反差越大，情感越强烈。</p>
+        <div class="diagram">
+          <svg viewBox="0 0 520 160" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="30" width="140" height="100" rx="8" fill="var(--bg-secondary)" stroke="var(--accent-color)" stroke-width="1.5"/>
+            <text x="110" y="55" text-anchor="middle" fill="var(--accent-color)" font-size="11" font-weight="600">正衬</text>
+            <text x="110" y="75" text-anchor="middle" fill="var(--text-secondary)" font-size="9">以哀衬哀</text>
+            <text x="110" y="95" text-anchor="middle" fill="var(--text-muted)" font-size="8">同向强化</text>
+            <rect x="110" y="100" width="20" height="15" rx="2" fill="var(--accent-color)" opacity="0.3"/>
+            <rect x="130" y="100" width="20" height="15" rx="2" fill="var(--accent-color)" opacity="0.3"/>
+            <text x="130" y="112" text-anchor="middle" fill="var(--text-muted)" font-size="7">哀+哀</text>
+            <rect x="200" y="30" width="140" height="100" rx="8" fill="var(--bg-secondary)" stroke="var(--accent-color)" stroke-width="2"/>
+            <text x="270" y="55" text-anchor="middle" fill="var(--accent-color)" font-size="12" font-weight="700">反衬</text>
+            <text x="270" y="75" text-anchor="middle" fill="var(--text-secondary)" font-size="9">以乐衬哀</text>
+            <text x="270" y="95" text-anchor="middle" fill="var(--accent-color)" font-size="8" font-weight="600">反向增强</text>
+            <rect x="240" y="100" width="20" height="15" rx="2" fill="#81c784" opacity="0.4"/>
+            <rect x="270" y="100" width="20" height="15" rx="2" fill="#ef9a9a" opacity="0.4"/>
+            <text x="265" y="112" text-anchor="middle" fill="var(--text-muted)" font-size="7">乐+哀</text>
+            <rect x="360" y="30" width="140" height="100" rx="8" fill="var(--bg-secondary)" stroke="var(--text-muted)" stroke-width="1"/>
+            <text x="430" y="55" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-weight="600">对比</text>
+            <text x="430" y="75" text-anchor="middle" fill="var(--text-secondary)" font-size="9">并列展示</text>
+            <text x="430" y="95" text-anchor="middle" fill="var(--text-muted)" font-size="8">无主次</text>
+            <rect x="400" y="100" width="20" height="15" rx="2" fill="var(--text-muted)" opacity="0.3"/>
+            <rect x="430" y="100" width="20" height="15" rx="2" fill="var(--text-muted)" opacity="0.3"/>
+            <text x="425" y="112" text-anchor="middle" fill="var(--text-muted)" font-size="7">A | B</text>
+            <text x="260" y="150" text-anchor="middle" fill="var(--text-muted)" font-size="9">手法定位：正衬（同向）| 反衬（反向，有主次）| 对比（并列，无主次）</text>
+          </svg>
+          <div class="caption">反衬与正衬、对比的区别：反衬有主次关系，用对立面衬托主体</div>
+  
+<p>生活锚点：<span class="highlight">静夜一声</span>——万籁俱寂时突然一声鸟叫，反衬出更深的安静。<span class="highlight">乱世佳人</span>——在混乱的背景中，美好的人事更加珍贵。</p>      </div>
+        <p>概念边界：反衬≠对比。对比是并列展示两个对立面，没有主次；反衬有主次——主体是被衬托的，衬体是工具。</p>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">2</span><span class="dim-title">历史溯源</span><span class="dim-question">它从哪来？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <div class="story-box">
+          <p>8世纪杜甫《春望》"感时花溅泪，恨别鸟惊心"——花本悦人，鸟本悦耳，但在战乱离别的诗人眼中，花在流泪、鸟在惊心。这就是以乐景衬哀情的经典。17世纪王夫之总结："以乐景写哀，以哀景写乐，一倍增其哀乐。"</p>
+        </div>
+        <div class="diagram">
+          <svg viewBox="0 0 520 100" xmlns="http://www.w3.org/2000/svg">
+            <line x1="40" y1="50" x2="480" y2="50" stroke="var(--text-muted)" stroke-width="1.5"/>
+            <circle cx="120" cy="50" r="6" fill="var(--accent-color)"/>
+            <text x="120" y="35" text-anchor="middle" fill="var(--accent-color)" font-size="9" font-weight="600">杜甫《春望》</text>
+            <text x="120" y="72" text-anchor="middle" fill="var(--text-muted)" font-size="8">花溅泪·鸟惊心</text>
+            <circle cx="300" cy="50" r="6" fill="var(--accent-color)"/>
+            <text x="300" y="35" text-anchor="middle" fill="var(--accent-color)" font-size="9" font-weight="600">王夫之</text>
+            <text x="300" y="72" text-anchor="middle" fill="var(--text-muted)" font-size="8">"一倍增其哀乐"</text>
+            <circle cx="440" cy="50" r="6" fill="var(--accent-color)"/>
+            <text x="440" y="35" text-anchor="middle" fill="var(--accent-color)" font-size="9" font-weight="600">现代文学</text>
+            <text x="440" y="72" text-anchor="middle" fill="var(--text-muted)" font-size="8">反衬成为核心技法</text>
+            <text x="260" y="95" text-anchor="middle" fill="var(--text-muted)" font-size="9">反衬手法发展：从杜甫的直觉运用到王夫之的理论总结</text>
+          </svg>
+          <div class="caption">杜甫直觉运用反衬，王夫之将其上升为理论——"一倍增其哀乐"</div>
+        </div>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">3</span><span class="dim-title">现实矛盾</span><span class="dim-question">为什么需要它？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p><strong>困境时刻</strong>：纯写悲伤，读者会麻木——"又来了"。但如果写满眼欢庆的烟花下，一个人独自流泪，<span class="highlight">反差让悲伤更刺眼</span>。反衬解决的是"情感疲劳"问题——用对立面制造张力，让情感表达更有效。</p>
+      </div>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-header"><div class="group-icon">用</div><span class="group-title">应用组</span><span class="group-subtitle">迁移</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">4</span><span class="dim-title">应用场景</span><span class="dim-question">它能做什么？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p>古诗词鉴赏中的"以乐景衬哀情"分析；记叙文中用热闹场景反衬孤独；电影中用欢快音乐配悲剧画面制造反差感。</p>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">5</span><span class="dim-title">思维延伸</span><span class="dim-question">它还能怎样？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p>反衬的本质是"对比增强"——在视觉设计（黑白对比）、音乐（强弱对比）、演讲（先扬后抑）中都有应用。任何需要"突出"的场景，都可以用反衬。</p>
+      </div>
+    </div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">6</span><span class="dim-title">知识网络</span><span class="dim-question">它和什么关联？</span><span class="dim-toggle collapsed">▼</span></div>
+      <div class="dimension-body collapsed">
+        <p><strong>前导知识</strong>：<a href="借景抒情.html" class="map-node linked">借景抒情</a>——反衬是借景抒情的特殊技法；<a href="以乐景衬哀情.html" class="map-node linked">以乐景衬哀情</a>——反衬的经典类型。</p>
+        <p><strong>平行知识</strong>：正衬——用同性质的事物衬托（以哀衬哀），效果是强化而非反差。</p>
+      </div>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-header"><div class="group-icon">验</div><span class="group-title">验证组</span><span class="group-subtitle">确认</span></div>
+    <div class="dimension-card">
+      <div class="dimension-header" onclick="toggleDimension(this)"><span class="dim-number">7</span><span class="dim-title">验证理解</span><span class="dim-question">真的懂了吗？</span><span class="dim-toggle">▼</span></div>
+      <div class="dimension-body">
+        <div class="quiz-container">
+          <div class="quiz-item">
+            <div class="quiz-type">感受辨析</div>
+            <div class="quiz-question">"满街的鞭炮声中，他独自站在角落"——这属于反衬还是对比？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">对比，因为热闹和孤独并列展示</li>
+              <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">反衬，热闹是衬体，孤独是主体，有主次关系</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">正衬，因为都是写同一个人</li>
+            </ul>
+            <div class="quiz-explanation">"独自"是重点（主体），鞭炮声是衬托（衬体）。热闹是为了突出孤独，不是平等并列——有主次就是反衬，无主次才是对比。</div>
+    
+<div class="story-box"><p>反衬手法最经典的例子是<span class="highlight">王籍的"蝉噪林逾静，鸟鸣山更幽"</span>——用蝉噪和鸟鸣来反衬山林的幽静。声音反而让安静更明显，这是反衬的绝妙运用。</p><p>鲁迅在《祝福》中写祥林嫂的死，特意安排在除夕夜——<span class="highlight">万家团圆时一个人孤独死去</span>，热闹反衬出更深的悲凉。</p></div>      </div>
+          <div class="quiz-item">
+            <div class="quiz-type">仿写</div>
+            <div class="quiz-question">用反衬手法写"失去亲人的悲痛"，以下哪个最有效？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">天阴沉沉的，雨一直下，我非常难过</li>
+              <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">阳光正好，邻居家的孩子在院子里笑着追蝴蝶</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">我哭了很久，眼泪止不住</li>
+            </ul>
+            <div class="quiz-explanation">第一个是正衬（阴雨衬悲伤），第三个是直抒胸臆。第二个用阳光、笑声反衬悲痛——别人的快乐让悲伤更刺骨，这才是反衬。</div>
+          </div>
+          <div class="quiz-item">
+            <div class="quiz-type">选择</div>
+            <div class="quiz-question">反衬为什么比正衬更有冲击力？</div>
+            <ul class="quiz-options">
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">因为反衬用的词更强烈</li>
+              <li onclick="checkAnswer(this,true,this.parentElement.nextElementSibling)">因为反差制造了情感张力，对立面越强，主体越突出</li>
+              <li onclick="checkAnswer(this,false,this.parentElement.nextElementSibling)">因为反衬的文字更多</li>
+            </ul>
+            <div class="quiz-explanation">反衬的力量来自"反差"——衬体越强，主体越突出。就像白纸上的黑点比灰纸上的黑点更显眼。正衬只是叠加，反衬是碰撞。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="knowledge-map">
+    <h3>知识地图</h3>
+    <div class="map-section"><div class="map-section-title">前导知识</div><div class="map-nodes"><a href="借景抒情.html" class="map-node linked">借景抒情</a><a href="以乐景衬哀情.html" class="map-node linked">以乐景衬哀情</a></div></div>
+    <div class="map-section"><div class="map-nodes"><span class="map-arrow">→</span><span class="map-node current">反衬手法</span><span class="map-arrow">→</span></div></div>
+  </div>
+</div>
+<div class="footer">知本 KnowledgeRoot — 知识本质拆解系统</div>
+<script>function toggleDimension(h){const b=h.nextElementSibling;const t=h.querySelector('.dim-toggle');b.classList.toggle('collapsed');t.classList.toggle('collapsed');}
+function checkAnswer(el,isCorrect,explanation){if(el.classList.contains('correct')||el.classList.contains('wrong'))return;el.classList.add(isCorrect?'correct':'wrong');explanation.classList.add('show');}</script>
+</body>
+</html>
