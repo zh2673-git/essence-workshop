@@ -1,14 +1,11 @@
 """
-本质工坊 · Markdown → 微信公众号 HTML 转换器（形式层）
+本质工坊 · Markdown → 微信公众号 HTML 转换器（平台适配层）
 
 核心原则：微信草稿箱会剥离 <style> 标签和 class 属性，
 因此所有样式必须 100% 内联，绝不使用 CSS 类或 <style> 块。
 
-配色策略：由上层 --brand-spec 指定，未指定时使用默认陶土色方案。
-
-本模块属于形式层（format/），负责 Markdown → HTML 的形式转换：
-- 内联样式注入、HTML 压缩、Frontmatter 解析、标题去重
-- 内容编排预处理（图片/参考文献限量）委托给内容框架层 content_postprocess
+v2.0：只做平台格式适配（内联样式、HTML压缩、Frontmatter解析、标题去重），
+不干预内容风格/字数/配图。参考文献限量保留（防止HTML超20000字符上限）。
 """
 
 import json
@@ -18,13 +15,8 @@ from html.parser import HTMLParser
 
 from markdown_it import MarkdownIt
 
-# 内容编排预处理（图片/参考文献限量）— 同目录模块
-from content_postprocess import (
-    _distribute_images_evenly,
-    _prioritize_gifs,
-    _limit_references,
-    _limit_images,
-)
+# 平台约束相关后处理 — 同目录模块
+from content_postprocess import _limit_references
 
 
 # ─── 默认配色方案 ───────────────────────────────────────────
@@ -262,10 +254,12 @@ class _StyleInjector(HTMLParser):
                     inner_content = bq_inner
 
                 # 生成引言装饰 HTML
+                # inner_content 本身已包含 <p> 标签，直接放入 section 避免嵌套
                 cfg = self.intro_config
+                inner_content = re.sub(r'<p\b[^>]*>', f'<p style="{cfg["text"]}">', inner_content)
                 intro_html = (
                     f'<section style="{cfg["wrapper"]}">'
-                    f'<p style="{cfg["text"]}">{inner_content}</p>'
+                    f'{inner_content}'
                     f'</section>'
                 )
                 self.output.append(intro_html)
@@ -626,12 +620,7 @@ def convert_markdown(file_path="", markdown="", theme=None,
     if effective_title:
         md_content = _strip_duplicate_title(md_content, effective_title)
 
-    md_content = _prioritize_gifs(md_content)
-    # _distribute_images_evenly 已禁用：该函数会覆盖 Markdown 中手动指定的图片位置，
-    # 导致多张图片被重新分配到相邻章节而贴在一起
-    # md_content = _distribute_images_evenly(md_content)
     md_content = _limit_references(md_content)
-    md_content = _limit_images(md_content)
 
     md_parser = MarkdownIt("default", {"html": True})
     body_html = md_parser.render(md_content)
@@ -652,7 +641,7 @@ def convert_markdown(file_path="", markdown="", theme=None,
     # 外层容器 + 压缩（绝不使用 <style> 或 class）
     # 先加外层容器，再整体压缩——紧凑模式会在超限时自动移除它
     wrapped_html = (
-        f'<section style="max-width:680px;margin:0 auto;padding:24px 16px;background:{bg_color};">'
+        f'<section style="max-width:680px;margin:0 auto;padding:8px 16px 24px;background:{bg_color};">'
         '<article>'
         f'{styled_html}'
         '</article>'

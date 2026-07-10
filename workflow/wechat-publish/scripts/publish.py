@@ -1,23 +1,21 @@
 """
-本质工坊 · 公众号发布管线
-一键发布：Markdown → HTML 转换 + 封面生成 + 图片上传 + 推送草稿箱
+本质工坊 · 公众号发布管线 v2.0
 
-封面策略：由大模型生成 SVG，再用 svg_to_png 转 PNG。
-  如果元素层已有封面 SVG（output/elements/cover.svg），直接使用。
-  否则返回 None，由调用方（大模型）负责生成封面 SVG。
+一键发布：Markdown → HTML 转换 + 图片上传 + 推送草稿箱
+v2.0：移除风格分流字数/配图检查，只做平台硬性约束检查。
+内容风格、字数、配图由内容框架层决定。
 
 用法:
-  python wechat_publish.py article.md
-  python wechat_publish.py article.md --auto-cover
-  python wechat_publish.py article.md --cover cover.png
-  python wechat_publish.py article.md --no-upload-images
+  python publish.py article.md --cover cover.png
+  python publish.py article.md --cover cover.png --author "公众号名"
+  python publish.py article.md --check-only
+  python publish.py article.md --no-upload-images
 """
 
 import argparse
 import json
 import os
 import re
-import tempfile
 from pathlib import Path
 
 try:
@@ -27,64 +25,13 @@ except ImportError:
     from client import WeChatClient
     from converter import convert_markdown, inspect_article
 
-# 风格约束配置（同目录模块）
-from style_constraints import (  # noqa: E402
-    STYLE_CONSTRAINTS,
-    DEFAULT_STYLE,
-    _detect_style,
-    _get_style_constraint,
-)
-
-# ─── 封面生成 ───────────────────────────────────────────────
-# 封面由大模型生成 SVG，本函数负责查找已有 SVG 并转为 PNG
-
-def generate_cover_png(title, subtitle="", author="", output_path="", elements_dir=""):
-    """查找元素层封面SVG并转为PNG，或返回None由大模型生成。
-
-    查找顺序：
-    1. elements_dir/cover.svg（元素层已有封面）
-    2. output/elements/cover.svg（默认元素目录）
-    找到则用 svg_to_png 转 PNG，否则返回 None。
-    """
-    # 查找封面 SVG
-    cover_svg = None
-    search_paths = []
-    if elements_dir:
-        search_paths.append(os.path.join(elements_dir, "cover.svg"))
-    search_paths.append(os.path.join(os.path.dirname(output_path) if output_path else "", "cover.svg"))
-    search_paths.append(os.path.join(os.getcwd(), "output", "elements", "cover.svg"))
-
-    for path in search_paths:
-        if os.path.isfile(path):
-            cover_svg = path
-            break
-
-    if not cover_svg:
-        return None
-
-    # SVG → PNG
-    if not output_path:
-        output_dir = Path.cwd() / "output" / "images"
-        output_dir.mkdir(parents=True, exist_ok=True)
-        safe_title = "".join(ch for ch in title[:20] if ch.isalnum() or ch in " _-") or "cover"
-        output_path = str(output_dir / f"cover_{safe_title}.png")
-
-    try:
-        from scripts.elements.svg_to_png import svg_to_png
-        svg_to_png(cover_svg, output_path, dpi=2)
-        return output_path
-    except Exception as e:
-        print(f"  WARNING: Cover SVG→PNG failed: {e}")
-        return None
+from style_constraints import MAX_HTML_CHARS  # noqa: E402
 
 
 # ─── 文章检查 ───────────────────────────────────────────────
 
-def check_article(file_path, check_plain_text=True, check_images=True, json_output=False, style=None):
-    """只执行质量检查（字数+配图），不转换不推送。
-
-    若未指定 style，自动从文件 frontmatter 解析。
-    """
+def check_article(file_path, json_output=False):
+    """只执行平台硬性约束检查，不转换不推送。"""
     file_path = Path(file_path)
     if not file_path.exists():
         print(f"ERROR: 文件不存在: {file_path}")
@@ -93,66 +40,54 @@ def check_article(file_path, check_plain_text=True, check_images=True, json_outp
     md_content = file_path.read_text(encoding="utf-8")
     md_no_frontmatter = re.sub(r'^---.*?---', '', md_content, flags=re.DOTALL).strip()
 
-    if style is None:
-        style = _detect_style(md_content)
-    constraint = _get_style_constraint(style)
-    min_words, max_words = constraint["words"]
-    target_images = constraint["images"]
-    target_png = constraint["png"]
-    target_gif = constraint["gif"]
-
-    if not json_output:
-        print(f"检测风格: {constraint['display']} ({style})")
-
     result = {
         "success": True,
-        "style": style,
-        "style_display": constraint["display"],
         "plain_text_count": 0,
         "image_count": 0,
-        "png_count": 0,
-        "gif_count": 0,
+        "checks": [],
     }
 
-    if check_plain_text:
-        md_no_img = re.sub(r'!\[.*?\]\(.*?\)', '', md_no_frontmatter)
-        md_no_md = re.sub(r'[#*>\-|=`~\[\](){}]', '', md_no_img)
-        chinese_chars = len(re.findall(r'[\u4e00-\u9fff]', md_no_md))
-        english_words = len(re.findall(r'[a-zA-Z]+', md_no_md))
-        plain_text_count = chinese_chars + english_words
-        result["plain_text_count"] = plain_text_count
+    # 检查 frontmatter title
+    fm_match = re.match(r'^---\s*\n(.*?)\n---\s*\n', md_content, re.DOTALL)
+    title = ""
+    if fm_match:
+        for line in fm_match.group(1).split("\n"):
+            if line.strip().lower().startswith("title:"):
+                title = line.split(":", 1)[1].strip()
+    if not title:
+        result["checks"].append({"level": "error", "message": "frontmatter 缺少 title，推送后标题将显示为「未命名文章」"})
+        result["success"] = False
+    elif len(title) > 64:
+        result["checks"].append({"level": "warning", "message": f"标题超长 ({len(title)}/64)"})
 
-        if min_words > 0 and plain_text_count < min_words:
-            print(f"FAIL: 纯文本仅 {plain_text_count} 字，未达 {constraint['display']} 的 {min_words} 字要求（差 {min_words - plain_text_count} 字）")
-            result["success"] = False
-        elif max_words > 0 and plain_text_count > max_words:
-            print(f"WARN: 纯文本 {plain_text_count} 字，超过 {constraint['display']} 的 {max_words} 字上限，建议精简")
-        else:
-            target_label = f"{min_words}-{max_words}" if max_words > 0 else "不限"
-            print(f"PASS: 纯文本 {plain_text_count} 字（目标 {target_label}）")
+    # 统计纯文本字数（仅报告，不按风格约束判定）
+    md_no_img = re.sub(r'!\[.*?\]\(.*?\)', '', md_no_frontmatter)
+    md_no_md = re.sub(r'[#*>\-|=`~\[\](){}]', '', md_no_img)
+    chinese_chars = len(re.findall(r'[\u4e00-\u9fff]', md_no_md))
+    english_words = len(re.findall(r'[a-zA-Z]+', md_no_md))
+    plain_text_count = chinese_chars + english_words
+    result["plain_text_count"] = plain_text_count
 
-    if check_images:
-        img_tags = re.findall(r'!\[.*?\]\(.*?\)', md_no_frontmatter)
-        png_count = sum(1 for t in img_tags if '.png' in t.lower())
-        gif_count = sum(1 for t in img_tags if '.gif' in t.lower())
-        total_images = len(img_tags)
-        result["image_count"] = total_images
-        result["png_count"] = png_count
-        result["gif_count"] = gif_count
+    # 统计配图数量（仅报告，不按风格约束判定）
+    img_tags = re.findall(r'!\[.*?\]\(.*?\)', md_no_frontmatter)
+    png_count = sum(1 for t in img_tags if '.png' in t.lower())
+    gif_count = sum(1 for t in img_tags if '.gif' in t.lower())
+    result["image_count"] = len(img_tags)
 
-        if target_images > 0 and total_images < target_images:
-            print(f"FAIL: 配图仅 {total_images} 张，未达 {constraint['display']} 的 {target_images} 张要求")
-            result["success"] = False
-        if target_png > 0 and png_count < target_png:
-            print(f"FAIL: PNG 配图仅 {png_count} 张，{constraint['display']} 至少需要 {target_png} 张 PNG")
-            result["success"] = False
-        if target_gif > 0 and gif_count < target_gif:
-            print(f"FAIL: 缺少 GIF 动图，{constraint['display']} 至少需要 {target_gif} 张 GIF")
-            result["success"] = False
-        if result["success"] and target_images > 0:
-            print(f"PASS: 配图 {png_count} PNG + {gif_count} GIF = {total_images} 张")
-        elif target_images == 0:
-            print(f"PASS: {constraint['display']} 不强制配图要求")
+    # 检查平台禁止项
+    if re.search(r'^:::', md_no_frontmatter, re.MULTILINE):
+        result["checks"].append({"level": "error", "message": "包含 :::block 容器，微信草稿箱会剥离容器样式"})
+        result["success"] = False
+
+    if re.search(r'^#\s+', md_no_frontmatter, re.MULTILINE):
+        result["checks"].append({"level": "warning", "message": "正文包含 # H1，微信中 H1 由标题栏占用"})
+
+    if not json_output:
+        print(f"纯文本: {plain_text_count} 字")
+        print(f"配图: {png_count} PNG + {gif_count} GIF = {len(img_tags)} 张")
+        for c in result["checks"]:
+            level = c["level"].upper()
+            print(f"  [{level}] {c['message']}")
 
     if json_output:
         print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -166,66 +101,11 @@ def check_article(file_path, check_plain_text=True, check_images=True, json_outp
 # ─── 发布主函数 ─────────────────────────────────────────────
 
 def publish(file_path, cover="", title="", author="",
-            auto_cover=False, max_chars=20000, upload_images=True, json_output=False,
-            check_plain_text=True, check_images=True):
+            max_chars=MAX_HTML_CHARS, upload_images=True, json_output=False):
     file_path = Path(file_path)
     if not file_path.exists():
         print(f"ERROR: 文件不存在: {file_path}")
         return {"success": False, "error": f"文件不存在: {file_path}"}
-
-    md_content = file_path.read_text(encoding="utf-8")
-    style = _detect_style(md_content)
-    constraint = _get_style_constraint(style)
-    min_words, max_words = constraint["words"]
-    target_images = constraint["images"]
-    target_png = constraint["png"]
-    target_gif = constraint["gif"]
-
-    if not json_output:
-        print(f"检测风格: {constraint['display']} ({style})")
-
-    if check_plain_text:
-        md_no_frontmatter = re.sub(r'^---.*?---', '', md_content, flags=re.DOTALL).strip()
-        md_no_img = re.sub(r'!\[.*?\]\(.*?\)', '', md_no_frontmatter)
-        md_no_md = re.sub(r'[#*>\-|`~\[\](){}]', '', md_no_img)
-        chinese_chars = len(re.findall(r'[\u4e00-\u9fff]', md_no_md))
-        english_words = len(re.findall(r'[a-zA-Z]+', md_no_md))
-        plain_text_count = chinese_chars + english_words
-        if min_words > 0 and plain_text_count < min_words:
-            print(f"WARNING: 纯文本仅 {plain_text_count} 字，未达 {constraint['display']} 的 {min_words} 字要求")
-            print(f"  可用 --skip-plain-check 跳过检查")
-            if not json_output:
-                return {"success": False, "error": f"纯文本仅 {plain_text_count} 字，{constraint['display']} 需 >= {min_words} 字",
-                        "plain_text_count": plain_text_count, "style": style}
-        elif max_words > 0 and plain_text_count > max_words:
-            print(f"WARNING: 纯文本 {plain_text_count} 字，超过 {constraint['display']} 的 {max_words} 字上限，建议精简")
-
-    if check_images:
-        img_tags = re.findall(r'!\[.*?\]\(.*?\)', md_no_frontmatter if check_plain_text else md_content)
-        png_count = sum(1 for t in img_tags if '.png' in t.lower())
-        gif_count = sum(1 for t in img_tags if '.gif' in t.lower())
-        total_images = len(img_tags)
-        if target_images > 0 and total_images < target_images:
-            print(f"WARNING: 配图仅 {total_images} 张，未达 {constraint['display']} 的 {target_images} 张要求")
-            if not json_output:
-                return {"success": False, "error": f"配图仅 {total_images} 张，{constraint['display']} 需 {target_images} 张",
-                        "image_count": total_images, "png_count": png_count, "gif_count": gif_count, "style": style}
-        if target_png > 0 and png_count < target_png:
-            print(f"WARNING: PNG 配图仅 {png_count} 张，{constraint['display']} 至少需要 {target_png} 张 PNG")
-            if not json_output:
-                return {"success": False, "error": f"PNG 配图仅 {png_count} 张，{constraint['display']} 需 >= {target_png} 张",
-                        "image_count": total_images, "png_count": png_count, "gif_count": gif_count, "style": style}
-        if target_gif > 0 and gif_count < target_gif:
-            print(f"WARNING: 缺少 GIF 动图，{constraint['display']} 至少需要 {target_gif} 张 GIF")
-            if not json_output:
-                return {"success": False, "error": f"{constraint['display']} 缺少 GIF 动图，需 >= {target_gif} 张",
-                        "image_count": total_images, "png_count": png_count, "gif_count": gif_count, "style": style}
-        if target_png > 0 and target_gif > 0 and (png_count > target_png or gif_count > target_gif):
-            print(f"INFO: 配图超出 {constraint['display']} 限制（{png_count} PNG + {gif_count} GIF），将截断为 {target_png} PNG + {target_gif} GIF")
-        if target_images > 0:
-            print(f"  配图检查通过: {png_count} PNG + {gif_count} GIF = {total_images} 张")
-        else:
-            print(f"  {constraint['display']} 不强制配图要求")
 
     result = convert_markdown(
         file_path=str(file_path),
@@ -256,18 +136,6 @@ def publish(file_path, cover="", title="", author="",
         if not json_output:
             return {"success": False, "error": f"HTML 总字符 {html_size}，需 <= {max_chars} 字符",
                     "html_size": html_size, "max_chars": max_chars}
-
-    cover_path = cover
-    if not cover_path and auto_cover:
-        print("Generating cover...")
-        png_result = generate_cover_png(
-            title=article_title,
-            subtitle=article_digest,
-            author=article_author,
-        )
-        if png_result:
-            cover_path = png_result
-            print(f"  Cover generated: {cover_path}")
 
     img_replacements = []
     if upload_images:
@@ -330,9 +198,9 @@ def publish(file_path, cover="", title="", author="",
             print("  Create ~/.config/essence-workshop/config.yaml with app_id and app_secret")
         else:
             thumb_media_id = ""
-            if cover_path:
+            if cover:
                 print("Uploading cover...")
-                upload = client.upload_image(cover_path, "thumb")
+                upload = client.upload_image(cover, "thumb")
                 thumb_media_id = upload.media_id
                 print(f"  Cover media_id: {thumb_media_id}")
 
@@ -360,7 +228,7 @@ def publish(file_path, cover="", title="", author="",
         "images_uploaded": img_count,
         "draft_created": bool(draft_media_id),
         "draft_media_id": draft_media_id,
-        "cover_used": cover_path or "",
+        "cover_used": cover or "",
         "title": article_title,
     }
 
@@ -373,8 +241,8 @@ def publish(file_path, cover="", title="", author="",
             print(f"  Images uploaded: {img_count}")
         if draft_media_id:
             print(f"  Draft media_id: {draft_media_id}")
-        if cover_path:
-            print(f"  Cover: {cover_path}")
+        if cover:
+            print(f"  Cover: {cover}")
         print(f"  HTML size: {len(html)} chars")
 
     return output
@@ -386,23 +254,15 @@ def main():
     parser.add_argument("--cover", default="", help="封面图片路径")
     parser.add_argument("--title", default="", help="覆盖标题")
     parser.add_argument("--author", default="", help="覆盖作者")
-    parser.add_argument("--auto-cover", action="store_true", help="自动生成封面")
-    parser.add_argument("--max-chars", type=int, default=20000, help="HTML总字符上限（微信草稿箱限制）")
+    parser.add_argument("--max-chars", type=int, default=MAX_HTML_CHARS, help="HTML总字符上限")
     parser.add_argument("--no-upload-images", action="store_true", help="不上传正文图片")
     parser.add_argument("--json", action="store_true", help="JSON 格式输出")
-    parser.add_argument("--skip-plain-check", action="store_true", help="跳过纯文本字数检查")
-    parser.add_argument("--skip-image-check", action="store_true", help="跳过配图数量检查")
-    parser.add_argument("--check-only", action="store_true", help="只执行质量检查（字数+配图），不转换不推送")
+    parser.add_argument("--check-only", action="store_true", help="只执行平台检查，不转换不推送")
 
     args = parser.parse_args()
 
     if args.check_only:
-        check_article(
-            file_path=args.file,
-            check_plain_text=not args.skip_plain_check,
-            check_images=not args.skip_image_check,
-            json_output=args.json,
-        )
+        check_article(file_path=args.file, json_output=args.json)
         return
 
     publish(
@@ -410,12 +270,9 @@ def main():
         cover=args.cover,
         title=args.title,
         author=args.author,
-        auto_cover=args.auto_cover,
         max_chars=args.max_chars,
         upload_images=not args.no_upload_images,
         json_output=args.json,
-        check_plain_text=not args.skip_plain_check,
-        check_images=not args.skip_image_check,
     )
 
 

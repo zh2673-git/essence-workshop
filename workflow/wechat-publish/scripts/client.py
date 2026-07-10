@@ -135,11 +135,12 @@ class WeChatClient:
         if path.stat().st_size > 5 * 1024 * 1024:
             raise ValueError(f"图片超过 5MB 限制: {file_path}")
 
+        mime_type = "image/png" if path.suffix.lower() == ".png" else "image/jpeg"
         with open(path, "rb") as f:
             resp = httpx.post(
                 f"{self._base}/cgi-bin/material/add_material",
                 params={"access_token": token, "type": image_type},
-                files={"media": (path.name, f, "image/jpeg")},
+                files={"media": (path.name, f, mime_type)},
                 timeout=30,
             )
 
