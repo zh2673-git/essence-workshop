@@ -1,8 +1,8 @@
-import { RecordingSettings, RecordingStatus } from '../types';
-import { createRecordingStream, getSupportedMimeType } from '../utils/mediaUtils';
+import { RecordingSettings, RecordingStatus, getResolutionDimensions } from '../types';
+import { getSupportedMimeType } from '../utils/mediaUtils';
 
 interface RecordingControllerOptions {
-  getCanvas: () => HTMLCanvasElement;
+  getVideoStream: () => Promise<MediaStream> | MediaStream;
   getAudioStream: () => MediaStream | null;
   onStatusChange?: (status: RecordingStatus) => void;
   onTimeUpdate?: (elapsedSeconds: number) => void;
@@ -40,32 +40,44 @@ export class RecordingController {
       throw new Error(`Cannot start recording from status: ${this.status}`);
     }
 
-    this.setStatus('countdown');
     this.recordedChunks = [];
     this.totalPausedDuration = 0;
 
-    await new Promise((resolve) => {
-      setTimeout(resolve, this.settings.countdownSeconds * 1000);
-    });
-
-    if ((this.status as RecordingStatus) !== 'countdown') {
-      return;
-    }
-
     try {
-      const canvas = this.options.getCanvas();
+      const videoStream = await this.options.getVideoStream();
       const audioStream = this.settings.audioEnabled ? this.options.getAudioStream() : null;
-      this.stream = createRecordingStream(canvas, audioStream, this.settings.framerate);
+
+      this.stream = new MediaStream();
+      videoStream.getVideoTracks().forEach((track) => {
+        this.stream!.addTrack(track);
+      });
+      if (audioStream) {
+        audioStream.getAudioTracks().forEach((track) => {
+          this.stream!.addTrack(track);
+        });
+      }
 
       const mimeType = getSupportedMimeType();
       if (!mimeType) {
         throw new Error('MediaRecorder is not supported in this browser');
       }
 
+      const { width, height } = getResolutionDimensions(this.settings.resolution);
+      const pixelCount = width * height;
+      let videoBitsPerSecond: number;
+      if (pixelCount >= 3840 * 2160) {
+        videoBitsPerSecond = 25000000;
+      } else if (pixelCount >= 2560 * 1440) {
+        videoBitsPerSecond = 12000000;
+      } else if (pixelCount >= 1920 * 1080) {
+        videoBitsPerSecond = 8000000;
+      } else {
+        videoBitsPerSecond = 5000000;
+      }
+
       this.mediaRecorder = new MediaRecorder(this.stream, {
         mimeType,
-        videoBitsPerSecond: this.settings.resolution === '2k' ? 8000000 : 
-                           this.settings.resolution === '1080p' ? 5000000 : 2500000,
+        videoBitsPerSecond,
       });
 
       this.mediaRecorder.ondataavailable = (e) => {

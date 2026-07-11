@@ -4,12 +4,28 @@ export class MediaCapture {
   private audioStream: MediaStream | null = null;
   private videoPermission: PermissionState = 'prompt';
   private audioPermission: PermissionState = 'prompt';
+  private captureResolution: { width: number; height: number } = { width: 1280, height: 720 };
 
   constructor(videoElement: HTMLVideoElement) {
     this.videoElement = videoElement;
     this.videoElement.muted = true;
     this.videoElement.playsInline = true;
     this.videoElement.autoplay = true;
+  }
+
+  setCaptureResolution(width: number, height: number): void {
+    this.captureResolution = { width, height };
+  }
+
+  private getVideoConstraints(): MediaTrackConstraints {
+    const { width, height } = this.captureResolution;
+    return {
+      width: { ideal: Math.min(width, 1280) },
+      height: { ideal: Math.min(height, 960) },
+      aspectRatio: { ideal: 4 / 3 },
+      frameRate: { ideal: 30 },
+      facingMode: 'user',
+    };
   }
 
   async requestPermissions(
@@ -22,12 +38,7 @@ export class MediaCapture {
     try {
       if (enableVideo) {
         this.webcamStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            frameRate: { ideal: 30 },
-            facingMode: 'user',
-          },
+          video: this.getVideoConstraints(),
           audio: false,
         });
         this.videoElement.srcObject = this.webcamStream;

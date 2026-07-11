@@ -1,6 +1,6 @@
 import { X, Video, MousePointer, FileText, Settings, Hand } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
-import type { WebcamSettings, CursorSettings, GestureSettings, TeleprompterSettings, RecordingSettings } from '../types';
+import type { WebcamSettings, CursorSettings, GestureSettings, TeleprompterSettings, RecordingSettings, WebcamCameraLayout } from '../types';
 
 export function SettingsPanel() {
   const {
@@ -254,11 +254,21 @@ function RecordingSettingsPanel({ settings, onChange }: RecordingSettingsPanelPr
           options={[
             { value: 'whiteboard', label: '白板讲解' },
             { value: 'camera', label: '摄像头口播' },
+            { value: 'screen', label: '屏幕演示' },
           ]}
           onChange={(mode) => onChange({ mode })}
         />
         <p className="text-xs text-gray-500 -mt-2">
           摄像头口播模式下，摄像头画面会占满整个录制区域，适合自拍式讲解。
+          屏幕演示模式下会弹出窗口选择器，录制选中的屏幕或窗口，摄像头以小窗叠加。
+        </p>
+        <Toggle
+          label="录制完整界面"
+          checked={settings.recordFullInterface}
+          onChange={(recordFullInterface) => onChange({ recordFullInterface })}
+        />
+        <p className="text-xs text-gray-500 -mt-2">
+          白板讲解模式下开启后，会录制整个浏览器标签页，包括工具栏、设置面板等完整操作过程。
         </p>
         <Toggle
           label="连续滚动所有字幕"
@@ -275,12 +285,17 @@ function RecordingSettingsPanel({ settings, onChange }: RecordingSettingsPanelPr
           label="分辨率"
           value={settings.resolution}
           options={[
-            { value: '720p', label: '720p (推荐)' },
-            { value: '1080p', label: '1080p' },
-            { value: '2k', label: '2K' },
+            { value: 'auto', label: '自动 (推荐)' },
+            { value: '4k', label: '4K (3840×2160)' },
+            { value: '2k', label: '2K (2560×1440)' },
+            { value: '1080p', label: '1080p (1920×1080)' },
+            { value: '720p', label: '720p (1280×720)' },
           ]}
           onChange={(resolution) => onChange({ resolution })}
         />
+        <p className="text-xs text-gray-500 -mt-2">
+          自动模式下以 1080p 录制，摄像头会根据硬件能力自动匹配最佳采集分辨率。
+        </p>
         <Select
           label="帧率"
           value={String(settings.framerate) as '30' | '60'}
@@ -329,6 +344,21 @@ function WebcamSettingsPanel({ settings, onChange }: WebcamSettingsPanelProps) {
           checked={settings.mirror}
           onChange={(mirror) => onChange({ mirror })}
         />
+        <Select<WebcamCameraLayout>
+          label="口播布局"
+          value={settings.cameraLayout}
+          options={[
+            { value: 'fullscreen', label: '全屏填充' },
+            { value: '16:9', label: '16:9 宽屏' },
+            { value: '9:16', label: '9:16 竖屏（手机）' },
+            { value: '4:3', label: '4:3 标准' },
+            { value: '1:1', label: '1:1 方形' },
+          ]}
+          onChange={(cameraLayout) => onChange({ cameraLayout })}
+        />
+        <p className="text-xs text-gray-500 -mt-2">
+          仅在“摄像头口播”模式下生效。选择非全屏比例时，录制输出尺寸会按目标比例从全屏画面中中心裁剪，不放大不缩小。
+        </p>
       </SettingSection>
       <SettingSection title="画面效果">
         <Select
@@ -349,6 +379,29 @@ function WebcamSettingsPanel({ settings, onChange }: WebcamSettingsPanelProps) {
           unit="px"
           onChange={(borderRadius) => onChange({ borderRadius })}
         />
+      </SettingSection>
+      <SettingSection title="摄像头框尺寸">
+        <Slider
+          label="宽度"
+          value={settings.bounds.width}
+          min={120}
+          max={800}
+          step={10}
+          unit="px"
+          onChange={(width) => onChange({ bounds: { ...settings.bounds, width } })}
+        />
+        <Slider
+          label="高度"
+          value={settings.bounds.height}
+          min={90}
+          max={600}
+          step={10}
+          unit="px"
+          onChange={(height) => onChange({ bounds: { ...settings.bounds, height } })}
+        />
+        <p className="text-xs text-gray-500 -mt-2">
+          也可以直接在白板上拖动摄像头框调整位置。
+        </p>
       </SettingSection>
     </div>
   );

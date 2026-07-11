@@ -35,3 +35,11 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }
+
+/* 让 Excalidraw 画布容器占满录制区域，但 canvas 本身的 CSS 尺寸
+   必须由 Excalidraw 根据视觉尺寸自行设置，以保证内部缓冲与 CSS 尺寸
+   一致，避免鼠标坐标映射出现偏移。 */
+.excalidraw__canvas-wrapper {
+  width: 100% !important;
+  height: 100% !important;
+}

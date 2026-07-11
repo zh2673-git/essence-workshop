@@ -9,9 +9,10 @@ interface WorkItem {
 
 interface WorkSelectorProps {
   onSelect: (workId: string) => void;
+  onClose?: () => void;
 }
 
-export function WorkSelector({ onSelect }: WorkSelectorProps) {
+export function WorkSelector({ onSelect, onClose }: WorkSelectorProps) {
   const [works, setWorks] = useState<WorkItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,13 +53,21 @@ export function WorkSelector({ onSelect }: WorkSelectorProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-100 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl mx-4">
+    <div className="fixed inset-0 bg-gray-100/90 z-50 flex items-center justify-center">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl mx-4 relative">
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-sm px-2 py-1"
+          >
+            关闭
+          </button>
+        )}
         <div className="flex items-center gap-3 mb-2">
           <span className="text-3xl">🎨</span>
           <h1 className="text-2xl font-bold text-gray-800">WhiteboardCaster</h1>
         </div>
-        <p className="text-gray-500 mb-6">请选择一个作品加载到白板</p>
+        <p className="text-gray-500 mb-6">请选择一个作品加载到白板，或直接关闭使用空白白板</p>
 
         {works.length === 0 ? (
           <div className="bg-gray-50 rounded-xl p-8 text-center">
@@ -91,8 +100,18 @@ export function WorkSelector({ onSelect }: WorkSelectorProps) {
           </div>
         )}
 
-        <div className="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-400">
-          作品目录：whiteboard-recorder/output/作品名/作品名.whiteboard.json
+        <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+          <span className="text-xs text-gray-400">
+            作品目录：whiteboard-recorder/output/作品名/作品名.whiteboard.json
+          </span>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              使用空白白板 →
+            </button>
+          )}
         </div>
       </div>
     </div>

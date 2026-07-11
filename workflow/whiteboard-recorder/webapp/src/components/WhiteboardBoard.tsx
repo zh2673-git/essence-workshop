@@ -65,6 +65,8 @@ export function WhiteboardBoard({ mode = 'whiteboard', onCanvasReady, onExcalidr
           appState: {
             viewBackgroundColor: '#ffffff',
             gridSize: null,
+            currentItemFontFamily: 2,
+            currentItemFontSize: 28,
           },
         }}
         theme="light"

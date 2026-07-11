@@ -1,4 +1,4 @@
-import type { Bounds } from '../types';
+import type { Bounds, WebcamCameraLayout } from '../types';
 
 export class CompositionRenderer {
   private canvas: HTMLCanvasElement;
@@ -10,6 +10,7 @@ export class CompositionRenderer {
   private renderFullComposition = false;
 
   private whiteboardCanvas: HTMLCanvasElement | null = null;
+  private screenVideoElement: HTMLVideoElement | null = null;
   private webcamCanvas: HTMLCanvasElement | null = null;
   private cursorCanvas: HTMLCanvasElement | null = null;
 
@@ -18,7 +19,8 @@ export class CompositionRenderer {
   private webcamBorderRadius = 16;
   private webcamEnabled = true;
   private cursorEnabled = true;
-  private webcamFullscreen = false;
+  private webcamCameraMode = false;
+  private webcamCameraLayout: WebcamCameraLayout = 'fullscreen';
 
   constructor(canvas: HTMLCanvasElement, width: number, height: number, renderFullComposition = false) {
     this.canvas = canvas;
@@ -33,11 +35,13 @@ export class CompositionRenderer {
   setSources(
     whiteboard: HTMLCanvasElement | null,
     webcam: HTMLCanvasElement | null,
-    cursor: HTMLCanvasElement | null
+    cursor: HTMLCanvasElement | null,
+    screenVideo: HTMLVideoElement | null = null
   ): void {
     this.whiteboardCanvas = whiteboard;
     this.webcamCanvas = webcam;
     this.cursorCanvas = cursor;
+    this.screenVideoElement = screenVideo;
   }
 
   setWebcamBounds(bounds: Bounds): void {
@@ -60,8 +64,12 @@ export class CompositionRenderer {
     this.cursorEnabled = enabled;
   }
 
-  setWebcamFullscreen(enabled: boolean): void {
-    this.webcamFullscreen = enabled;
+  setWebcamCameraMode(enabled: boolean): void {
+    this.webcamCameraMode = enabled;
+  }
+
+  setWebcamCameraLayout(layout: WebcamCameraLayout): void {
+    this.webcamCameraLayout = layout;
   }
 
   setResolution(width: number, height: number): void {
@@ -95,13 +103,19 @@ export class CompositionRenderer {
     const { ctx, width, height } = this;
     ctx.clearRect(0, 0, width, height);
 
-    if (this.webcamFullscreen && this.webcamCanvas) {
-      ctx.drawImage(this.webcamCanvas, 0, 0, width, height);
+    if (this.webcamCameraMode && this.webcamCanvas) {
+      if (this.webcamCameraLayout === 'fullscreen') {
+        ctx.drawImage(this.webcamCanvas, 0, 0, width, height);
+      } else {
+        this.drawWebcamWithLayout(width, height);
+      }
+    } else if (this.screenVideoElement && this.screenVideoElement.readyState >= 2) {
+      this.drawScreenVideo(width, height);
     } else if (this.renderFullComposition && this.whiteboardCanvas) {
       ctx.drawImage(this.whiteboardCanvas, 0, 0, width, height);
     }
 
-    if (this.webcamEnabled && this.webcamCanvas && !this.webcamFullscreen) {
+    if (this.webcamEnabled && this.webcamCanvas && !this.webcamCameraMode) {
       this.drawWebcam();
     }
 
@@ -111,6 +125,63 @@ export class CompositionRenderer {
 
     this.rafId = requestAnimationFrame(this.render);
   };
+
+  private drawScreenVideo(width: number, height: number): void {
+    if (!this.screenVideoElement) return;
+    const { ctx } = this;
+    const videoWidth = this.screenVideoElement.videoWidth;
+    const videoHeight = this.screenVideoElement.videoHeight;
+    if (!videoWidth || !videoHeight) return;
+
+    const scale = Math.max(width / videoWidth, height / videoHeight);
+    const drawWidth = videoWidth * scale;
+    const drawHeight = videoHeight * scale;
+    const drawX = (width - drawWidth) / 2;
+    const drawY = (height - drawHeight) / 2;
+    ctx.drawImage(this.screenVideoElement, drawX, drawY, drawWidth, drawHeight);
+  }
+
+  private drawWebcamWithLayout(width: number, height: number): void {
+    if (!this.webcamCanvas) return;
+    const { ctx } = this;
+
+    // 1:1 像素映射：canvas 尺寸已由 App.tsx 按目标比例裁剪好，
+    // 这里只需从全屏摄像头画面的中心裁剪出同等尺寸的区域，不放大不缩小。
+    const sourceWidth = width;
+    const sourceHeight = height;
+    const sourceX = (this.webcamCanvas.width - sourceWidth) / 2;
+    const sourceY = (this.webcamCanvas.height - sourceHeight) / 2;
+
+    if (this.webcamMirror) {
+      ctx.save();
+      ctx.translate(width / 2, height / 2);
+      ctx.scale(-1, 1);
+      ctx.drawImage(
+        this.webcamCanvas,
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        -width / 2,
+        -height / 2,
+        width,
+        height
+      );
+      ctx.restore();
+    } else {
+      ctx.drawImage(
+        this.webcamCanvas,
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        0,
+        0,
+        width,
+        height
+      );
+    }
+  }
 
   private drawWebcam(): void {
     if (!this.webcamCanvas) return;

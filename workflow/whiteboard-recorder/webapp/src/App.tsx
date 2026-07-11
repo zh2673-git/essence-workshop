@@ -12,12 +12,13 @@ import { WorkSelector } from './components/WorkSelector';
 import { CompositionRenderer } from './modules/CompositionRenderer';
 import { MediaCapture } from './modules/MediaCapture';
 import { WebcamModule } from './modules/WebcamModule';
+import { ScreenCaptureModule } from './modules/ScreenCaptureModule';
 import { HandGestureModule } from './modules/HandGestureModule';
 import { CursorEffects } from './modules/CursorEffects';
 import { RecordingController } from './modules/RecordingController';
 import { sceneManager } from './modules/SceneManager';
 import { useAppStore } from './store/useAppStore';
-import { RESOLUTION_MAP } from './types';
+import { getResolutionDimensions, getCameraLayoutDimensions } from './types';
 import { getSupportedMimeType } from './utils/mediaUtils';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types/types';
 import type { WhiteboardProject } from './types';
@@ -43,6 +44,7 @@ function App() {
   const webcamCanvasRef = useRef<HTMLCanvasElement>(null);
   const cursorCanvasRef = useRef<HTMLCanvasElement>(null);
   const hiddenVideoRef = useRef<HTMLVideoElement>(null);
+  const screenVideoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const recordingAreaRef = useRef<HTMLDivElement>(null);
 
@@ -50,14 +52,17 @@ function App() {
   const recordingRendererRef = useRef<CompositionRenderer | null>(null);
   const mediaCaptureRef = useRef<MediaCapture | null>(null);
   const webcamModuleRef = useRef<WebcamModule | null>(null);
+  const screenCaptureRef = useRef<ScreenCaptureModule | null>(null);
   const handGestureModuleRef = useRef<HandGestureModule | null>(null);
   const cursorEffectsRef = useRef<CursorEffects | null>(null);
   const recordingControllerRef = useRef<RecordingController | null>(null);
+  const fullUIStreamRef = useRef<MediaStream | null>(null);
 
   const [countdownActive, setCountdownActive] = useState(false);
   const [renderScale, setRenderScale] = useState(1);
   const [autoLoaded, setAutoLoaded] = useState(false);
   const [selectedWorkId, setSelectedWorkId] = useState<string | null>(null);
+  const [showWorkSelector, setShowWorkSelector] = useState(false);
   const [gestureStatus, setGestureStatus] = useState<{ status: string; message: string }>({
     status: 'idle',
     message: '',
@@ -70,6 +75,7 @@ function App() {
     const workParam = urlParams.get('work');
     if (workParam) {
       setSelectedWorkId(workParam);
+      setShowWorkSelector(false);
     }
   }, []);
 
@@ -166,7 +172,10 @@ function App() {
   useEffect(() => {
     if (!previewCanvasRef.current || !recordingCanvasRef.current || !webcamCanvasRef.current || !cursorCanvasRef.current || !hiddenVideoRef.current) return;
 
-    const resolution = RESOLUTION_MAP[recording.resolution];
+    const baseResolution = getResolutionDimensions(recording.resolution);
+    const resolution = recording.mode === 'camera'
+      ? getCameraLayoutDimensions(webcam.cameraLayout, baseResolution.width, baseResolution.height)
+      : baseResolution;
 
     const previewRenderer = new CompositionRenderer(
       previewCanvasRef.current,
@@ -184,8 +193,15 @@ function App() {
     );
     recordingRendererRef.current = recordingRenderer;
 
+    const captureResolution = { width: baseResolution.width, height: baseResolution.height };
+    mediaCaptureRef.current?.setCaptureResolution(captureResolution.width, captureResolution.height);
+    webcamModuleRef.current?.setTargetResolution(captureResolution.width, captureResolution.height);
+
     const mediaCapture = new MediaCapture(hiddenVideoRef.current);
     mediaCaptureRef.current = mediaCapture;
+
+    const screenCapture = new ScreenCaptureModule(screenVideoRef.current || hiddenVideoRef.current);
+    screenCaptureRef.current = screenCapture;
 
     const handGestureModule = new HandGestureModule({
       videoElement: hiddenVideoRef.current,
@@ -208,6 +224,7 @@ function App() {
       recordingRenderer.destroy();
       mediaCapture.destroy();
       webcamModule.destroy();
+      screenCapture.destroy();
       handGestureModule.destroy();
       recordingControllerRef.current?.destroy();
       cursorEffectsRef.current?.destroy();
@@ -217,15 +234,18 @@ function App() {
   useEffect(() => {
     if (!previewRendererRef.current || !recordingRendererRef.current || !webcamModuleRef.current) return;
 
-    const resolution = RESOLUTION_MAP[recording.resolution];
+    const baseResolution = getResolutionDimensions(recording.resolution);
+    const resolution = recording.mode === 'camera'
+      ? getCameraLayoutDimensions(webcam.cameraLayout, baseResolution.width, baseResolution.height)
+      : baseResolution;
     previewRendererRef.current.setResolution(resolution.width, resolution.height);
     recordingRendererRef.current.setResolution(resolution.width, resolution.height);
 
-    if (webcamCanvasRef.current) {
-      webcamCanvasRef.current.width = webcam.bounds.width;
-      webcamCanvasRef.current.height = webcam.bounds.height;
-      webcamModuleRef.current.setBounds(webcam.bounds);
-    }
+    mediaCaptureRef.current?.setCaptureResolution(baseResolution.width, baseResolution.height);
+    screenCaptureRef.current?.setCaptureResolution(baseResolution.width, baseResolution.height);
+    webcamModuleRef.current?.setTargetResolution(baseResolution.width, baseResolution.height);
+
+    webcamModuleRef.current.setBounds(webcam.bounds);
 
     previewRendererRef.current.setWebcamBounds(webcam.bounds);
     previewRendererRef.current.setWebcamMirror(webcam.mirror);
@@ -261,7 +281,10 @@ function App() {
       if (!containerRef.current) return;
       const containerWidth = containerRef.current.clientWidth;
       const containerHeight = containerRef.current.clientHeight;
-      const resolution = RESOLUTION_MAP[recording.resolution];
+      const baseResolution = getResolutionDimensions(recording.resolution);
+      const resolution = recording.mode === 'camera'
+        ? getCameraLayoutDimensions(webcam.cameraLayout, baseResolution.width, baseResolution.height)
+        : baseResolution;
       const scaleX = containerWidth / resolution.width;
       const scaleY = containerHeight / resolution.height;
       setRenderScale(Math.min(scaleX, scaleY, 1));
@@ -270,7 +293,7 @@ function App() {
     updateScale();
     window.addEventListener('resize', updateScale);
     return () => window.removeEventListener('resize', updateScale);
-  }, [recording.resolution]);
+  }, [recording.resolution, recording.mode, webcam.cameraLayout]);
 
   const handleWhiteboardCanvasReady = useCallback((canvas: HTMLCanvasElement | null) => {
     whiteboardCanvasRef.current = canvas;
@@ -284,7 +307,10 @@ function App() {
     if (canvas && recordingAreaRef.current && !cursorEffectsRef.current && cursorCanvasRef.current) {
       const cursorEffects = new CursorEffects(cursorCanvasRef.current, recordingAreaRef.current);
       cursorEffectsRef.current = cursorEffects;
-      const resolution = RESOLUTION_MAP[recording.resolution];
+      const baseResolution = getResolutionDimensions(recording.resolution);
+      const resolution = recording.mode === 'camera'
+        ? getCameraLayoutDimensions(webcam.cameraLayout, baseResolution.width, baseResolution.height)
+        : baseResolution;
       cursorEffects.setSize(resolution.width, resolution.height);
       cursorEffects.setStyle({
         color: cursor.color,
@@ -318,12 +344,52 @@ function App() {
 
   useEffect(() => {
     const isCameraMode = recording.mode === 'camera';
-    previewRendererRef.current?.setWebcamFullscreen(isCameraMode);
-    recordingRendererRef.current?.setWebcamFullscreen(isCameraMode);
-  }, [recording.mode]);
+    previewRendererRef.current?.setWebcamCameraMode(isCameraMode);
+    previewRendererRef.current?.setWebcamCameraLayout(webcam.cameraLayout);
+    recordingRendererRef.current?.setWebcamCameraMode(isCameraMode);
+    recordingRendererRef.current?.setWebcamCameraLayout(webcam.cameraLayout);
+
+    const isScreenMode = recording.mode === 'screen';
+    if (isScreenMode && screenCaptureRef.current) {
+      screenCaptureRef.current.requestScreen().then((granted) => {
+        if (granted) {
+          screenCaptureRef.current?.start();
+          previewRendererRef.current?.setSources(
+            whiteboardCanvasRef.current,
+            webcamCanvasRef.current,
+            cursorCanvasRef.current,
+            screenCaptureRef.current?.getVideoElement() || null
+          );
+          recordingRendererRef.current?.setSources(
+            whiteboardCanvasRef.current,
+            webcamCanvasRef.current,
+            cursorCanvasRef.current,
+            screenCaptureRef.current?.getVideoElement() || null
+          );
+        } else {
+          setError('屏幕捕获被拒绝，已切换到白板讲解模式');
+          useAppStore.getState().updateRecordingSettings({ mode: 'whiteboard' });
+        }
+      });
+    } else if (!isScreenMode && screenCaptureRef.current) {
+      screenCaptureRef.current.stop();
+      previewRendererRef.current?.setSources(
+        whiteboardCanvasRef.current,
+        webcamCanvasRef.current,
+        cursorCanvasRef.current,
+        null
+      );
+      recordingRendererRef.current?.setSources(
+        whiteboardCanvasRef.current,
+        webcamCanvasRef.current,
+        cursorCanvasRef.current,
+        null
+      );
+    }
+  }, [recording.mode, webcam.cameraLayout]);
 
   useEffect(() => {
-    if (recording.mode === 'camera' && !webcam.enabled) {
+    if ((recording.mode === 'camera' || recording.mode === 'screen') && !webcam.enabled) {
       updateWebcamSettings({ enabled: true });
     }
   }, [recording.mode, webcam.enabled, updateWebcamSettings]);
@@ -371,27 +437,79 @@ function App() {
     if (!recordingRendererRef.current || !mediaCaptureRef.current) return;
 
     try {
+      if (recording.mode === 'whiteboard' && recording.recordFullInterface) {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            displaySurface: 'browser',
+            preferCurrentTab: true,
+            selfBrowserSurface: 'include',
+          } as MediaTrackConstraints,
+          audio: false,
+        });
+        fullUIStreamRef.current = stream;
+        if (screenVideoRef.current) {
+          screenVideoRef.current.srcObject = stream;
+          screenVideoRef.current.play().catch(() => {});
+        }
+        stream.getVideoTracks().forEach((track) => {
+          track.onended = () => {
+            fullUIStreamRef.current = null;
+            if (screenVideoRef.current) {
+              screenVideoRef.current.srcObject = null;
+            }
+          };
+        });
+      }
+
+      let permissionResult = { videoGranted: false, audioGranted: false };
       if (recording.audioEnabled) {
-        await mediaCaptureRef.current.requestPermissions(webcam.enabled, true);
+        permissionResult = await mediaCaptureRef.current.requestPermissions(webcam.enabled, true);
       } else if (webcam.enabled) {
-        await mediaCaptureRef.current.requestPermissions(true, false);
+        permissionResult = await mediaCaptureRef.current.requestPermissions(true, false);
+      }
+
+      const needVideo = recording.mode === 'camera' || (recording.mode === 'screen' && !recording.recordFullInterface) || webcam.enabled;
+      const needAudio = recording.audioEnabled;
+      if ((needVideo && !permissionResult.videoGranted) || (needAudio && !permissionResult.audioGranted)) {
+        if (fullUIStreamRef.current) {
+          fullUIStreamRef.current.getTracks().forEach((t) => t.stop());
+          fullUIStreamRef.current = null;
+        }
+        setError('需要摄像头/麦克风权限才能继续录制');
+        return;
       }
 
       setCountdownActive(true);
       setStatus('countdown');
     } catch (err) {
+      if (fullUIStreamRef.current) {
+        fullUIStreamRef.current.getTracks().forEach((t) => t.stop());
+        fullUIStreamRef.current = null;
+      }
       setError(err instanceof Error ? err.message : '启动录制失败');
     }
-  }, [recording.audioEnabled, webcam.enabled, setStatus, setError]);
+  }, [recording.audioEnabled, recording.mode, recording.recordFullInterface, webcam.enabled, setStatus, setError]);
 
   const handleCountdownComplete = useCallback(() => {
     setCountdownActive(false);
 
     if (!recordingRendererRef.current || !mediaCaptureRef.current) return;
 
+    const useFullUI = recording.mode === 'whiteboard' && recording.recordFullInterface && fullUIStreamRef.current;
+    if (useFullUI) {
+      recordingRendererRef.current.stop();
+    } else {
+      recordingRendererRef.current.start();
+    }
+
     const controller = new RecordingController(
       {
-        getCanvas: () => recordingRendererRef.current!.getCanvas(),
+        getVideoStream: () => {
+          if (useFullUI) {
+            return fullUIStreamRef.current!;
+          }
+          return recordingRendererRef.current!.getCanvas().captureStream(recording.framerate);
+        },
         getAudioStream: () => mediaCaptureRef.current!.getAudioStream(),
         onStatusChange: (status) => {
           if (status !== 'processing') {
@@ -430,6 +548,9 @@ function App() {
       const blob = await recordingControllerRef.current.stopRecording();
       setRecordedBlob(blob);
       setStatus('done');
+      if (screenVideoRef.current) {
+        screenVideoRef.current.srcObject = null;
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '录制失败');
       setStatus('error');
@@ -442,6 +563,14 @@ function App() {
       recordingControllerRef.current.destroy();
       recordingControllerRef.current = null;
     }
+    if (fullUIStreamRef.current) {
+      fullUIStreamRef.current.getTracks().forEach((t) => t.stop());
+      fullUIStreamRef.current = null;
+    }
+    if (screenVideoRef.current) {
+      screenVideoRef.current.srcObject = null;
+    }
+    recordingRendererRef.current?.start();
     if (useAppStore.getState().recordedUrl) {
       URL.revokeObjectURL(useAppStore.getState().recordedUrl!);
     }
@@ -452,22 +581,29 @@ function App() {
     setError(null);
   }, [setRecordedBlob, setRecordedUrl, setElapsedTime, setStatus, setError]);
 
-  const resolution = RESOLUTION_MAP[recording.resolution];
+  const baseResolution = getResolutionDimensions(recording.resolution);
+  const resolution = recording.mode === 'camera'
+    ? getCameraLayoutDimensions(webcam.cameraLayout, baseResolution.width, baseResolution.height)
+    : baseResolution;
 
   const handleSelectWork = useCallback((workId: string) => {
     setSelectedWorkId(workId);
+    setShowWorkSelector(false);
     if (excalidrawAPIRef.current) {
       loadWorkProject(excalidrawAPIRef.current, workId);
     }
   }, [loadWorkProject]);
 
+  const handleCloseWorkSelector = useCallback(() => {
+    setShowWorkSelector(false);
+  }, []);
+
   return (
     <div className="w-full h-full relative bg-gray-100 overflow-hidden">
-      {!selectedWorkId && !autoLoaded && <WorkSelector onSelect={handleSelectWork} />}
-      <div ref={containerRef} className="absolute inset-0 flex items-center justify-center">
+      {showWorkSelector && <WorkSelector onSelect={handleSelectWork} onClose={handleCloseWorkSelector} />}
+      <div ref={containerRef} className="absolute inset-0 flex items-center justify-center overflow-hidden">
         <div
-          ref={recordingAreaRef}
-          className="relative bg-white shadow-2xl"
+          className="relative"
           style={{
             width: resolution.width,
             height: resolution.height,
@@ -475,6 +611,14 @@ function App() {
             transformOrigin: 'center center',
           }}
         >
+          <div
+            ref={recordingAreaRef}
+            className="relative bg-white shadow-2xl"
+            style={{
+              width: resolution.width,
+              height: resolution.height,
+            }}
+          >
           <WhiteboardBoard mode={recording.mode} onCanvasReady={handleWhiteboardCanvasReady} onExcalidrawReady={handleExcalidrawReady} />
 
           <canvas
@@ -487,8 +631,8 @@ function App() {
           <canvas
             ref={webcamCanvasRef}
             className="hidden"
-            width={webcam.bounds.width}
-            height={webcam.bounds.height}
+            width={resolution.width}
+            height={resolution.height}
           />
 
           <canvas
@@ -512,7 +656,8 @@ function App() {
               zIndex: 11,
             }}
           >
-            <WebcamDragHandle renderScale={1} />
+            <WebcamDragHandle renderScale={renderScale} />
+          </div>
           </div>
         </div>
       </div>
@@ -563,6 +708,17 @@ function App() {
           <span className="text-2xl">🎨</span>
           WhiteboardCaster
         </h1>
+        <div className="mt-2 flex items-center gap-2">
+          <button
+            onClick={() => setShowWorkSelector(true)}
+            className="text-xs bg-white/80 hover:bg-white text-gray-700 px-2 py-1 rounded border border-gray-200 shadow-sm transition-colors"
+          >
+            加载作品
+          </button>
+          {selectedWorkId && (
+            <span className="text-xs text-gray-500">已加载: {selectedWorkId}</span>
+          )}
+        </div>
         {gesture.enabled && gestureStatus.message && (
           <div className="mt-2 flex items-center gap-2 text-sm">
             <span className={`w-2 h-2 rounded-full ${
@@ -578,7 +734,31 @@ function App() {
 
       <video
         ref={hiddenVideoRef}
-        style={{ display: 'none' }}
+        style={{
+          position: 'fixed',
+          left: -9999,
+          top: -9999,
+          width: 1,
+          height: 1,
+          opacity: 0,
+          pointerEvents: 'none',
+        }}
+        muted
+        playsInline
+        autoPlay
+      />
+
+      <video
+        ref={screenVideoRef}
+        style={{
+          position: 'fixed',
+          left: -9999,
+          top: -9999,
+          width: 1,
+          height: 1,
+          opacity: 0,
+          pointerEvents: 'none',
+        }}
         muted
         playsInline
         autoPlay

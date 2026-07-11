@@ -58,29 +58,52 @@ adapter: wechat
 
 ## 封面图生成标准流程
 
-### 技术要点
-1. **API格式问题**：text_to_image API默认返回JPEG格式（文件头：0xFF,0xD8,0xFF,0xE0），而非PNG（文件头：0x89,'P','N','G'）
-2. **文件验证**：生成后必须检查文件头字节，确认真实格式而非扩展名
-3. **尺寸要求**：公众号要求1240×770（约16:10比例），landscape_16_9（16:9）接近但略有偏差，需根据实际API输出调整
+### API 原理
+text_to_image API 基于 **SDXL（Stable Diffusion XL）文生图模型**：
+- HTTP GET 请求，传入 `prompt`（画面描述）和 `image_size`（画幅比例）
+- 返回 `image/jpeg` 二进制流，应按 prompt 内容生成对应图片
+- `image_size=landscape_16_9` 最接近公众号 1240×770（约16:10）
+
+### 历史问题根因（重要）
+之前生成的封面"无法显示具体图案和文字"，**并非 SDXL 模型能力不足**，而是 **CDN 缓存问题**：
+- API 响应头缺少 `Cache-Control: no-store`，CDN 边缘节点把 API 当静态资源缓存
+- CDN 缓存 key 仅用 URL 路径（`/api/ide/v1/text_to_image`），**忽略 query string**
+- 所有不同 prompt/image_size 的请求都命中同一份缓存
+- 返回 2025-09-12 的固定占位图（MD5: `19a0b822edb11957055e4588c2159058`，1832×1832 正方形）
+- 已验证：加 nonce 时间戳、Cache-Control 请求头、改变路径大小写、POST 方式均无法绕过
+
+### generate_cover.py 的修复
+脚本已加入占位图检测，命中 CDN 缓存时会报错而非静默使用占位图：
+```
+RuntimeError: API 返回了 CDN 缓存的固定占位图（MD5 匹配 19a0b822...）
+```
+当服务端修复 CDN 缓存问题后，脚本可正常生成封面。
+
+### prompt 编写原则
+1. **具体、可视化**：描述具体场景/物体/光线/构图，避免抽象概念
+   - 好：`A lone traveler walking up a winding mountain path at golden hour, warm sunlight, mist in valley`
+   - 差：`growth and patience concept`
+2. **不要要求图中文字**：SDXL 对中文（甚至英文）文字渲染能力差，封面的文字由公众号标题位承载，图只负责视觉氛围
+3. **英文 prompt**：SDXL 对英文 prompt 理解更准确
 
 ### 生成流程
 ```
-1. 构建prompt（描述封面主题，使用抽象概念可视化）
-2. 调用API：https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt={prompt}&image_size=landscape_16_9
-3. 下载文件（默认保存为.png，但实际可能是JPEG）
-4. 验证文件头：
-   - PNG签名：137,80,78,71 (0x89,0x50,0x4E,0x47)
-   - JPEG签名：255,216,255,224 (0xFF,0xD8,0xFF,0xE0)
-5. 根据真实格式重命名文件扩展名
-6. 检查文件大小（应>100KB）
-7. 使用正确扩展名的文件作为封面图推送
+1. 编写具体可视化的英文 prompt（场景/物体/光线/构图）
+2. 调用 generate_cover.py（内部用 urllib 调用 API + 文件头验证 + 占位图检测）
+3. 脚本自动验证：
+   - 文件头：JPEG(0xFF,0xD8,0xFF,0xE0) 或 PNG(0x89,0x50,0x4E,0x47)
+   - 占位图 MD5 检测（避免使用 CDN 缓存的固定图）
+   - 根据真实格式调整扩展名
+4. 推送时带 --cover 参数
 ```
 
 ### 常见错误
-- 错误：使用Write工具写入文本到.png文件 → 产生损坏文件
-- 正确：使用Invoke-WebRequest下载API响应，然后验证格式
+- 错误：使用Write工具写入文本到图片文件 → 产生损坏文件
+- 正确：用 urllib/Invoke-WebRequest 下载 API 二进制响应
 - 错误：假设API返回PNG → 导致文件名与内容不匹配
 - 正确：检查文件头字节，根据真实格式调整扩展名
+- 错误：prompt 包含中文文字要求 → SDXL 无法渲染，生成乱码
+- 正确：prompt 只描述视觉画面，文字由公众号标题位承载
 
 ## 质量自检（仅平台约束）
 
@@ -101,7 +124,7 @@ wechat/
     ├── converter.py         # Markdown/HTML → 公众号受限HTML（内联样式）
     ├── wechat_converter.py  # 核心转换器（MarkdownIt + _StyleInjector）
     ├── publish.py           # 推送草稿箱入口
-    ├── generate_cover.py    # 生成1240×770纯文字封面图
+    ├── generate_cover.py    # 调用 text_to_image API 生成封面图（含占位图检测）
     ├── content_postprocess.py  # 参考文献限量后处理
     └── style_constraints.py    # 平台约束常量
 ```
@@ -112,8 +135,8 @@ wechat/
 1. 准备 Markdown 文件（带 frontmatter title）
 2. 确保文章包含 Markdown 结构元素：## 小标题、> 引用、**加粗 等，否则 converter 无法注入样式
 3. 生成/准备封面图（1240×770，JPEG/PNG）
-   - 推荐：python scripts/generate_cover.py
-   - 备用：text_to_image API（注意返回的是 JPEG，需按真实扩展名保存）
+   - 推荐：python scripts/generate_cover.py（调用 text_to_image API + 占位图检测）
+   - 若报 CDN 占位图错误：当前 API 因 CDN 缓存返回固定图，需服务端修复
 4. 执行推送：
    python publish.py output/article.md --cover output/cover.jpg --author "公众号名"
 5. 检查输出：确认 cover media_id 和 draft media_id 都已返回

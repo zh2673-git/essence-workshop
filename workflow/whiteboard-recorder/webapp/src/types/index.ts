@@ -1,6 +1,6 @@
 export type RecordingStatus = 'idle' | 'countdown' | 'recording' | 'paused' | 'processing' | 'done' | 'error';
 
-export type RecordingMode = 'whiteboard' | 'camera';
+export type RecordingMode = 'whiteboard' | 'camera' | 'screen';
 
 export interface Bounds {
   x: number;
@@ -75,12 +75,38 @@ export interface WhiteboardProject {
   scenes: WhiteboardScene[];
 }
 
+export type WebcamCameraLayout = 'fullscreen' | '16:9' | '9:16' | '4:3' | '1:1';
+
+export function getCameraLayoutDimensions(layout: WebcamCameraLayout, baseWidth: number, baseHeight: number): { width: number; height: number } {
+  if (layout === 'fullscreen') {
+    return { width: baseWidth, height: baseHeight };
+  }
+
+  const ratioMap: Record<Exclude<WebcamCameraLayout, 'fullscreen'>, number> = {
+    '16:9': 16 / 9,
+    '9:16': 9 / 16,
+    '4:3': 4 / 3,
+    '1:1': 1,
+  };
+  const targetRatio = ratioMap[layout];
+  const baseRatio = baseWidth / baseHeight;
+
+  // 从 base 画面中按目标比例裁剪中心区域，保持原始像素密度，不放大缩小
+  if (baseRatio > targetRatio) {
+    const width = Math.round(baseHeight * targetRatio);
+    return { width, height: baseHeight };
+  }
+  const height = Math.round(baseWidth / targetRatio);
+  return { width: baseWidth, height };
+}
+
 export interface WebcamSettings {
   enabled: boolean;
   mirror: boolean;
   bounds: Bounds;
   borderRadius: number;
   filter: 'none' | 'soften' | 'grayscale';
+  cameraLayout: WebcamCameraLayout;
 }
 
 export interface CursorSettings {
@@ -109,20 +135,31 @@ export interface TeleprompterSettings {
   position: 'top' | 'bottom' | 'left' | 'right';
 }
 
+export type RecordingResolution = 'auto' | '4k' | '2k' | '1080p' | '720p';
+
 export interface RecordingSettings {
-  resolution: '720p' | '1080p' | '2k';
+  resolution: RecordingResolution;
   framerate: 30 | 60;
   countdownSeconds: number;
   audioEnabled: boolean;
   mode: RecordingMode;
   continuousTeleprompter: boolean;
+  recordFullInterface: boolean;
 }
 
-export const RESOLUTION_MAP: Record<RecordingSettings['resolution'], { width: number; height: number }> = {
-  '720p': { width: 1280, height: 720 },
-  '1080p': { width: 1920, height: 1080 },
+export const RESOLUTION_MAP: Record<Exclude<RecordingResolution, 'auto'>, { width: number; height: number }> = {
+  '4k': { width: 3840, height: 2160 },
   '2k': { width: 2560, height: 1440 },
+  '1080p': { width: 1920, height: 1080 },
+  '720p': { width: 1280, height: 720 },
 };
+
+export function getResolutionDimensions(resolution: RecordingResolution): { width: number; height: number } {
+  if (resolution === 'auto') {
+    return RESOLUTION_MAP['1080p'];
+  }
+  return RESOLUTION_MAP[resolution];
+}
 
 export const DEFAULT_WEBCAM_SETTINGS: WebcamSettings = {
   enabled: true,
@@ -130,6 +167,7 @@ export const DEFAULT_WEBCAM_SETTINGS: WebcamSettings = {
   bounds: { x: 1000, y: 520, width: 240, height: 180 },
   borderRadius: 16,
   filter: 'soften',
+  cameraLayout: 'fullscreen',
 };
 
 export const DEFAULT_CURSOR_SETTINGS: CursorSettings = {
@@ -159,10 +197,11 @@ export const DEFAULT_TELEPROMPTER_SETTINGS: TeleprompterSettings = {
 };
 
 export const DEFAULT_RECORDING_SETTINGS: RecordingSettings = {
-  resolution: '720p',
+  resolution: 'auto',
   framerate: 30,
   countdownSeconds: 3,
   audioEnabled: true,
   mode: 'whiteboard',
   continuousTeleprompter: false,
+  recordFullInterface: true,
 };

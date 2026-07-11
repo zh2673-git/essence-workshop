@@ -12,13 +12,20 @@ export class WebcamModule {
   private handGestureModule: HandGestureModule | null = null;
 
   private bounds: Bounds = { x: 0, y: 0, width: 320, height: 240 };
+  private targetResolution: { width: number; height: number } = { width: 1920, height: 1080 };
 
   constructor(canvas: HTMLCanvasElement, videoElement: HTMLVideoElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
     this.videoElement = videoElement;
-    this.canvas.width = 320;
-    this.canvas.height = 240;
+    this.canvas.width = this.targetResolution.width;
+    this.canvas.height = this.targetResolution.height;
+  }
+
+  setTargetResolution(width: number, height: number): void {
+    this.targetResolution = { width, height };
+    this.canvas.width = width;
+    this.canvas.height = height;
   }
 
   setGestureMode(enabled: boolean, module: HandGestureModule | null): void {
