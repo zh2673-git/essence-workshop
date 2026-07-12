@@ -120,7 +120,7 @@ export const useAppStore = create<AppState>((set) => ({
       showSceneNavigator: true,
       teleprompter: {
         ...DEFAULT_TELEPROMPTER_SETTINGS,
-        enabled: true,
+        enabled: !!initialText,
         text: initialText,
       }
     };

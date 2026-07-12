@@ -536,6 +536,7 @@ function TeleprompterSettingsPanel({ settings, onChange }: TeleprompterSettingsP
             { value: 'bottom', label: '底部' },
             { value: 'left', label: '左侧' },
             { value: 'right', label: '右侧' },
+            { value: 'center', label: '居中（适合口播）' },
           ]}
           onChange={(position) => onChange({ position })}
         />

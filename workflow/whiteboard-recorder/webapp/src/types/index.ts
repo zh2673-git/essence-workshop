@@ -132,7 +132,7 @@ export interface TeleprompterSettings {
   fontSize: number;
   speed: number;
   opacity: number;
-  position: 'top' | 'bottom' | 'left' | 'right';
+  position: 'top' | 'bottom' | 'left' | 'right' | 'center';
 }
 
 export type RecordingResolution = 'auto' | '4k' | '2k' | '1080p' | '720p';

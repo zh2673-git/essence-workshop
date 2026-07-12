@@ -254,17 +254,19 @@ function App() {
 
     webcamModuleRef.current.setBounds(webcam.bounds);
 
+    const isCameraMode = recording.mode === 'camera';
+
     previewRendererRef.current.setWebcamBounds(webcam.bounds);
     previewRendererRef.current.setWebcamMirror(webcam.mirror);
     previewRendererRef.current.setWebcamBorderRadius(webcam.borderRadius);
     previewRendererRef.current.setWebcamEnabled(webcam.enabled);
-    previewRendererRef.current.setCursorEnabled(cursor.enabled);
+    previewRendererRef.current.setCursorEnabled(cursor.enabled && !isCameraMode);
 
     recordingRendererRef.current.setWebcamBounds(webcam.bounds);
     recordingRendererRef.current.setWebcamMirror(webcam.mirror);
     recordingRendererRef.current.setWebcamBorderRadius(webcam.borderRadius);
     recordingRendererRef.current.setWebcamEnabled(webcam.enabled);
-    recordingRendererRef.current.setCursorEnabled(cursor.enabled);
+    recordingRendererRef.current.setCursorEnabled(cursor.enabled && !isCameraMode);
 
     webcamModuleRef.current.setMirror(webcam.mirror);
     webcamModuleRef.current.setFilter(webcam.filter);
@@ -283,7 +285,7 @@ function App() {
       }
       cursorEffectsRef.current.setGestureMode(isGesture);
     }
-  }, [webcam, cursor, gesture, recording.resolution, lockedResolution]);
+  }, [webcam, cursor, gesture, recording.resolution, recording.mode, lockedResolution]);
 
   useEffect(() => {
     const updateScale = () => {

@@ -115,13 +115,14 @@ export function TeleprompterPanel() {
     resetScroll();
   }, [text, resetScroll]);
 
-  if (!enabled || !text) return null;
+  if (!enabled) return null;
 
   const positionClasses: Record<string, string> = {
     top: 'top-20 left-1/2 -translate-x-1/2 w-[600px] h-[200px]',
     bottom: 'bottom-24 left-1/2 -translate-x-1/2 w-[600px] h-[200px]',
     left: 'left-4 top-1/2 -translate-y-1/2 w-[350px] h-[400px]',
     right: 'right-4 top-1/2 -translate-y-1/2 w-[350px] h-[400px]',
+    center: 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[160px]',
   };
 
   return (
@@ -156,13 +157,21 @@ export function TeleprompterPanel() {
           lineHeight: 1.8,
         }}
       >
-        <div ref={contentRef} className="pb-[200px]">
-          {text.split('\n').map((line, i) => (
-            <p key={i} className="mb-4">
-              {line}
-            </p>
-          ))}
-        </div>
+        {text ? (
+          <div ref={contentRef} className="pb-[200px]">
+            {text.split('\n').map((line, i) => (
+              <p key={i} className="mb-4">
+                {line}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <div className="h-full flex items-center justify-center text-white/50 text-base text-center">
+            当前场景暂无提词器文稿
+            <br />
+            可在设置面板粘贴讲稿，或检查白板项目是否包含 teleprompter_script
+          </div>
+        )}
       </div>
     </div>
   );

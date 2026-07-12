@@ -23,6 +23,7 @@ layer: content-framework
 ├── project-analysis/       # 项目分析框架（逆向分析项目）
 ├── project-dev/            # 项目开发框架（从0到1构建项目）
 ├── distillation/           # 蒸馏框架（人物/话题蒸馏的结构）
+├── broadcast-script/       # 五蕴法口播稿框架（色→受→想→行→识）
 └── iching-divination/      # 周易占卜框架（问题→摇卦→卦象→解释）
 ```
 
@@ -38,6 +39,7 @@ layer: content-framework
 | 项目分析框架 | 逆向分析项目的骨架 | [project-analysis/](project-analysis/project-analysis.md) |
 | 项目开发框架 | 从0到1构建项目的骨架 | [project-dev/](project-dev/project-dev.md) |
 | 蒸馏框架 | 人物/话题蒸馏的方法论 | [distillation/](distillation/distillation.md) |
+| 五蕴法口播稿框架 | 用色→受→想→行→识组织口播稿内容 | [broadcast-script/](broadcast-script/broadcast-script.md) |
 | 周易占卜框架 | 问题→摇卦→卦象→解释的内容组织结构 | [iching-divination/](iching-divination/iching-divination.md) |
 
 ## 输入输出契约
