@@ -141,31 +141,57 @@ export class CompositionRenderer {
     ctx.drawImage(this.screenVideoElement, drawX, drawY, drawWidth, drawHeight);
   }
 
-  private drawWebcamWithLayout(width: number, height: number): void {
+  private drawWebcamWithLayout(canvasWidth: number, canvasHeight: number): void {
     if (!this.webcamCanvas) return;
     const { ctx } = this;
 
-    // 1:1 像素映射：canvas 尺寸已由 App.tsx 按目标比例裁剪好，
-    // 这里只需从全屏摄像头画面的中心裁剪出同等尺寸的区域，不放大不缩小。
-    const sourceWidth = width;
-    const sourceHeight = height;
-    const sourceX = (this.webcamCanvas.width - sourceWidth) / 2;
-    const sourceY = (this.webcamCanvas.height - sourceHeight) / 2;
+    // 根据布局比例在画布内计算裁剪区域（居中，周围填充黑色）
+    // 这样即使录制中画布尺寸不变（locked），切换布局也能正确裁剪
+    const ratioMap: Record<string, number> = {
+      '16:9': 16 / 9,
+      '9:16': 9 / 16,
+      '4:3': 4 / 3,
+      '1:1': 1,
+    };
+    const targetRatio = ratioMap[this.webcamCameraLayout] ?? (canvasWidth / canvasHeight);
+
+    const canvasRatio = canvasWidth / canvasHeight;
+    let cropWidth: number;
+    let cropHeight: number;
+    if (canvasRatio > targetRatio) {
+      cropHeight = canvasHeight;
+      cropWidth = canvasHeight * targetRatio;
+    } else {
+      cropWidth = canvasWidth;
+      cropHeight = canvasWidth / targetRatio;
+    }
+
+    // 从全屏摄像头画面的中心裁剪
+    const sourceX = (this.webcamCanvas.width - cropWidth) / 2;
+    const sourceY = (this.webcamCanvas.height - cropHeight) / 2;
+
+    // 在画布上居中绘制
+    const destX = (canvasWidth - cropWidth) / 2;
+    const destY = (canvasHeight - cropHeight) / 2;
+
+    // 填充黑色背景（信箱/柱箱区域）
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     if (this.webcamMirror) {
       ctx.save();
-      ctx.translate(width / 2, height / 2);
+      ctx.translate(destX + cropWidth / 2, destY + cropHeight / 2);
       ctx.scale(-1, 1);
       ctx.drawImage(
         this.webcamCanvas,
         sourceX,
         sourceY,
-        sourceWidth,
-        sourceHeight,
-        -width / 2,
-        -height / 2,
-        width,
-        height
+        cropWidth,
+        cropHeight,
+        -cropWidth / 2,
+        -cropHeight / 2,
+        cropWidth,
+        cropHeight
       );
       ctx.restore();
     } else {
@@ -173,12 +199,12 @@ export class CompositionRenderer {
         this.webcamCanvas,
         sourceX,
         sourceY,
-        sourceWidth,
-        sourceHeight,
-        0,
-        0,
-        width,
-        height
+        cropWidth,
+        cropHeight,
+        destX,
+        destY,
+        cropWidth,
+        cropHeight
       );
     }
   }

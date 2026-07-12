@@ -67,6 +67,9 @@ function App() {
     status: 'idle',
     message: '',
   });
+  // 录制期间锁定的画布分辨率。MediaRecorder 的 captureStream 无法处理画布尺寸动态变化，
+  // 否则会导致黑屏。录制开始时锁定，结束时释放。
+  const [lockedResolution, setLockedResolution] = useState<{ width: number; height: number } | null>(null);
   const whiteboardCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const excalidrawAPIRef = useRef<ExcalidrawImperativeAPI | null>(null);
 
@@ -235,15 +238,19 @@ function App() {
     if (!previewRendererRef.current || !recordingRendererRef.current || !webcamModuleRef.current) return;
 
     const baseResolution = getResolutionDimensions(recording.resolution);
-    const resolution = recording.mode === 'camera'
+    const dynamicResolution = recording.mode === 'camera'
       ? getCameraLayoutDimensions(webcam.cameraLayout, baseResolution.width, baseResolution.height)
       : baseResolution;
-    previewRendererRef.current.setResolution(resolution.width, resolution.height);
-    recordingRendererRef.current.setResolution(resolution.width, resolution.height);
+    const isLocked = lockedResolution !== null;
 
-    mediaCaptureRef.current?.setCaptureResolution(baseResolution.width, baseResolution.height);
-    screenCaptureRef.current?.setCaptureResolution(baseResolution.width, baseResolution.height);
-    webcamModuleRef.current?.setTargetResolution(baseResolution.width, baseResolution.height);
+    // 录制中不改变任何画布尺寸，否则 captureStream 会输出黑屏
+    if (!isLocked) {
+      previewRendererRef.current.setResolution(dynamicResolution.width, dynamicResolution.height);
+      recordingRendererRef.current.setResolution(dynamicResolution.width, dynamicResolution.height);
+      mediaCaptureRef.current?.setCaptureResolution(baseResolution.width, baseResolution.height);
+      screenCaptureRef.current?.setCaptureResolution(baseResolution.width, baseResolution.height);
+      webcamModuleRef.current?.setTargetResolution(baseResolution.width, baseResolution.height);
+    }
 
     webcamModuleRef.current.setBounds(webcam.bounds);
 
@@ -271,10 +278,12 @@ function App() {
         clickEffectColor: cursor.clickEffectColor,
         icon: isGesture ? gesture.icon : undefined,
       });
-      cursorEffectsRef.current.setSize(resolution.width, resolution.height);
+      if (!isLocked) {
+        cursorEffectsRef.current.setSize(dynamicResolution.width, dynamicResolution.height);
+      }
       cursorEffectsRef.current.setGestureMode(isGesture);
     }
-  }, [webcam, cursor, gesture, recording.resolution]);
+  }, [webcam, cursor, gesture, recording.resolution, lockedResolution]);
 
   useEffect(() => {
     const updateScale = () => {
@@ -282,18 +291,19 @@ function App() {
       const containerWidth = containerRef.current.clientWidth;
       const containerHeight = containerRef.current.clientHeight;
       const baseResolution = getResolutionDimensions(recording.resolution);
-      const resolution = recording.mode === 'camera'
+      const dynamicResolution = recording.mode === 'camera'
         ? getCameraLayoutDimensions(webcam.cameraLayout, baseResolution.width, baseResolution.height)
         : baseResolution;
-      const scaleX = containerWidth / resolution.width;
-      const scaleY = containerHeight / resolution.height;
+      const res = lockedResolution ?? dynamicResolution;
+      const scaleX = containerWidth / res.width;
+      const scaleY = containerHeight / res.height;
       setRenderScale(Math.min(scaleX, scaleY, 1));
     };
 
     updateScale();
     window.addEventListener('resize', updateScale);
     return () => window.removeEventListener('resize', updateScale);
-  }, [recording.resolution, recording.mode, webcam.cameraLayout]);
+  }, [recording.resolution, recording.mode, webcam.cameraLayout, lockedResolution]);
 
   const handleWhiteboardCanvasReady = useCallback((canvas: HTMLCanvasElement | null) => {
     whiteboardCanvasRef.current = canvas;
@@ -394,6 +404,13 @@ function App() {
     }
   }, [recording.mode, webcam.enabled, updateWebcamSettings]);
 
+  // 录制结束后释放分辨率锁，让画布恢复跟随设置动态调整
+  useEffect(() => {
+    if (status === 'idle' || status === 'done' || status === 'error') {
+      setLockedResolution(null);
+    }
+  }, [status]);
+
   useEffect(() => {
     const state = useAppStore.getState();
     const project = state.whiteboardProject;
@@ -435,6 +452,14 @@ function App() {
 
   const handleStartRecording = useCallback(async () => {
     if (!recordingRendererRef.current || !mediaCaptureRef.current) return;
+
+    // 锁定录制分辨率：录制期间画布尺寸不可变更，否则 captureStream 会输出黑屏
+    const baseRes = getResolutionDimensions(recording.resolution);
+    setLockedResolution(
+      recording.mode === 'camera'
+        ? getCameraLayoutDimensions(webcam.cameraLayout, baseRes.width, baseRes.height)
+        : baseRes
+    );
 
     try {
       if (recording.mode === 'whiteboard' && recording.recordFullInterface) {
@@ -488,7 +513,7 @@ function App() {
       }
       setError(err instanceof Error ? err.message : '启动录制失败');
     }
-  }, [recording.audioEnabled, recording.mode, recording.recordFullInterface, webcam.enabled, setStatus, setError]);
+  }, [recording.audioEnabled, recording.mode, recording.resolution, recording.recordFullInterface, webcam.enabled, webcam.cameraLayout, setStatus, setError]);
 
   const handleCountdownComplete = useCallback(() => {
     setCountdownActive(false);
@@ -582,9 +607,11 @@ function App() {
   }, [setRecordedBlob, setRecordedUrl, setElapsedTime, setStatus, setError]);
 
   const baseResolution = getResolutionDimensions(recording.resolution);
-  const resolution = recording.mode === 'camera'
+  const dynamicResolution = recording.mode === 'camera'
     ? getCameraLayoutDimensions(webcam.cameraLayout, baseResolution.width, baseResolution.height)
     : baseResolution;
+  // 录制中使用锁定的分辨率，保证画布尺寸不变，避免 captureStream 黑屏
+  const resolution = lockedResolution ?? dynamicResolution;
 
   const handleSelectWork = useCallback((workId: string) => {
     setSelectedWorkId(workId);
