@@ -39,7 +39,7 @@ layer: workflow
 | Obsidian知识管理 | Obsidian笔记 | [obsidian-knowledge/](obsidian-knowledge/SKILL.md) |
 | 项目交付 | 项目代码+文档 | [project-delivery/](project-delivery/SKILL.md) |
 
-## 场景流程工作流（7 个）
+## 场景流程工作流（8 个）
 
 | 工作流 | 流程说明 | 路径 |
 |--------|---------|------|
@@ -51,6 +51,7 @@ layer: workflow
 | 项目解析工作流 | 逆向分析→反推报告 | [project-analysis/](project-analysis/D-project-analysis.md) |
 | 法律分析工作流 | 编排法律适用框架12原子skill | [law-analysis/](law-analysis/SKILL.md) |
 | 蒸馏工作流 | 人物/话题蒸馏→生成Skill→存output | [distillation/](distillation/B-person-distillation.md) |
+| 周易占卜工作流 | 认知×框架×HTML×浏览器→交互占卜 | [iching-divination/](iching-divination/SKILL.md) |
 
 ---
 
@@ -86,4 +87,4 @@ layer: workflow
 
 ---
 
-*工作流层 · v1.1 · 认知 × 框架 × 格式 × 平台 · 平台工作流9个 + 场景工作流8个*
+*工作流层 · v1.1 · 认知 × 框架 × 格式 × 平台 · 平台工作流9个 + 场景工作流9个*

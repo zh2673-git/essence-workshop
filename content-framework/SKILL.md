@@ -22,7 +22,8 @@ layer: content-framework
 ├── serial-fiction/         # 连载小说写作框架（章节化叙事）
 ├── project-analysis/       # 项目分析框架（逆向分析项目）
 ├── project-dev/            # 项目开发框架（从0到1构建项目）
-└── distillation/           # 蒸馏框架（人物/话题蒸馏的结构）
+├── distillation/           # 蒸馏框架（人物/话题蒸馏的结构）
+└── iching-divination/      # 周易占卜框架（问题→摇卦→卦象→解释）
 ```
 
 ## 框架列表
@@ -37,6 +38,7 @@ layer: content-framework
 | 项目分析框架 | 逆向分析项目的骨架 | [project-analysis/](project-analysis/project-analysis.md) |
 | 项目开发框架 | 从0到1构建项目的骨架 | [project-dev/](project-dev/project-dev.md) |
 | 蒸馏框架 | 人物/话题蒸馏的方法论 | [distillation/](distillation/distillation.md) |
+| 周易占卜框架 | 问题→摇卦→卦象→解释的内容组织结构 | [iching-divination/](iching-divination/iching-divination.md) |
 
 ## 输入输出契约
 

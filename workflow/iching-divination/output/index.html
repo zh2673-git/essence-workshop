@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="天纪周易 - 周易64卦占卜。三硬币法起卦，本卦变卦详解。不疑不问，诚心卜问。">
+<title>天纪周易 · 64卦占卜</title>
+<style>
+/* ========== 全局样式 ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { width: 100%; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
+body {
+  background-image: linear-gradient(to bottom, #f0f5ff, #f8f8f8);
+  color: #333;
+  font-size: 14px;
+  line-height: 1.5;
+}
+/* 移动端优先，桌面端居中 */
+.page-wrap {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background-image: linear-gradient(to bottom, #f0f5ff, #f8f8f8);
+  position: relative;
+}
+.view { display: none; padding: 15px 10px; min-height: 100vh; }
+.view.active { display: flex; flex-direction: column; align-items: center; }
+
+/* ========== 通用组件 ========== */
+.header { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px 0 15px; }
+.logo { width: 75px; height: 75px; margin-bottom: 10px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.15); animation: float 6s ease-in-out infinite; }
+@keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0); } }
+.title { font-size: 20px; font-weight: bold; color: #333; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+.subtitle { font-size: 15px; color: #666; margin-bottom: 15px; text-align: center; }
+.card {
+  width: 100%;
+  background-color: white;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.intro-card { margin-top: 10px; border-left: 3px solid #3288e6; }
+.stats-card { margin-top: 8px; border-left: 3px solid #36b37e; }
+.section-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+.text-secondary { font-size: 13px; color: #666; line-height: 1.8; }
+.text-secondary div { margin-bottom: 6px; }
+.flex-row { display: flex; flex-direction: row; width: 100%; }
+.flex-center { justify-content: center; align-items: center; }
+.stat-item { display: flex; flex-direction: column; align-items: center; margin: 0 15px; padding: 8px; background: linear-gradient(135deg, #f9f9f9, #f5f5f5); border-radius: 8px; min-width: 80px; }
+.stat-value { font-size: 24px; font-weight: bold; color: #ff6b6b; }
+.stat-label { font-size: 13px; color: #666; margin-top: 3px; }
+
+/* 按钮 */
+.btn {
+  width: 100%;
+  padding: 12px 0;
+  background: linear-gradient(135deg, #3298ff, #2278c5);
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 25px;
+  margin: 8px 0 12px;
+  box-shadow: 0 3px 8px rgba(50,136,230,0.25);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.btn:active { transform: translateY(2px); box-shadow: 0 2px 4px rgba(50,136,230,0.2); }
+.btn-disabled { background: linear-gradient(135deg, #b3d1f0, #9bc0e3); color: rgba(255,255,255,0.8); box-shadow: none; }
+.btn-green { background: linear-gradient(135deg, #36b37e, #28a745); box-shadow: 0 3px 8px rgba(40,167,69,0.25); }
+.btn-gray { background: linear-gradient(135deg, #f5f7fa, #e4e7eb); color: #666; border: 1px solid #ddd; box-shadow: none; }
+.btn-red { background: linear-gradient(135deg, #ff9a9e, #ff7676); box-shadow: 0 3px 8px rgba(255,118,118,0.25); }
+.btn-small { padding: 6px 12px; font-size: 12px; border-radius: 15px; width: auto; margin: 0; }
+
+/* ========== 首页历史预览 ========== */
+.history-preview { width: 100%; margin-top: 8px; }
+.history-item {
+  display: flex; flex-direction: row; justify-content: space-between; align-items: center;
+  background: #fff; padding: 10px; margin: 8px 0; border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08); border-left: 3px solid #f7d794;
+  transition: transform 0.3s ease;
+}
+.history-item:active { transform: scale(0.98); }
+.history-content { flex: 1; display: flex; align-items: center; padding-right: 8px; overflow: hidden; cursor: pointer; }
+.history-date { font-size: 12px; color: #888; }
+.history-result { font-size: 14px; color: #333; font-weight: bold; flex: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 5px; }
+.history-arrow { color: #999; font-size: 16px; background: #f5f5f5; height: 25px; width: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.delete-btn { color: #e74c3c; font-size: 20px; font-weight: bold; padding: 5px; margin-left: auto; cursor: pointer; }
+
+/* ========== 占卜页 ========== */
+.question-container { width: 100%; background-color: white; border-radius: 8px; padding: 10px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.question-label { font-size: 14px; color: #555; margin-bottom: 6px; font-weight: 500; }
+.question-input { width: 100%; height: 40px; border: 1px solid #e8e8e8; border-radius: 5px; padding: 6px 8px; font-size: 13px; background-color: #f9f9f9; transition: border-color 0.3s, box-shadow 0.3s; }
+.question-input:focus { border-color: #3288e6; box-shadow: 0 0 0 2px rgba(50,136,230,0.2); outline: none; }
+.question-tip { font-size: 11px; color: #999; margin-top: 6px; text-align: center; font-style: italic; }
+
+/* 硬币区域 */
+.coins-container { display: flex; justify-content: center; padding: 5px 0; margin-bottom: 12px; width: 100%; background-color: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.coin-box { display: flex; flex-direction: column; align-items: center; }
+.coin-box .coin-img { width: 200px; height: 200px; border-radius: 50%; margin-bottom: 3px; }
+.coin-value { font-size: 15px; font-weight: bold; color: #333; background: linear-gradient(135deg, #f7f9fc, #edf2f7); padding: 4px 12px; border-radius: 15px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+
+/* 摇卦区 */
+.coin-area { display: flex; flex-direction: column; align-items: center; margin-top: 25px; margin-bottom: 20px; }
+.coin-wrapper { width: 200px; height: 200px; margin-bottom: 15px; perspective: 500px; position: relative; }
+.coin-wrapper .coin-img { width: 100%; height: 100%; border-radius: 50%; cursor: pointer; }
+.coin-flip { animation: flip 1s ease-in-out; }
+@keyframes flip { 0% { transform: rotateY(0deg) scale(1); } 50% { transform: rotateY(180deg) scale(1.1); } 100% { transform: rotateY(360deg) scale(1); } }
+.coin-tip { font-size: 13px; color: #666; margin-top: 5px; }
+.coin-counter { font-size: 12px; color: #888; margin-top: 3px; }
+
+/* 卦象展示区 */
+.hex-container { width: 100%; display: flex; flex-direction: column; padding: 12px; background-color: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 12px; }
+.progress-container { margin-bottom: 10px; }
+.progress-text { font-size: 13px; color: #666; margin-bottom: 5px; display: flex; justify-content: space-between; }
+.progress-bar { width: 100%; height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: #3288e6; border-radius: 3px; transition: width 0.3s ease; }
+
+.result-container { display: flex; flex-direction: column; align-items: center; padding: 8px 0; background-color: #f9fafc; border-radius: 6px; margin-top: 10px; }
+.yao-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
+.yao-item { display: flex; align-items: center; margin: 5px 0; width: 100%; }
+.yao-line { width: 100px; height: 10px; margin-right: 10px; position: relative; }
+.yao-line.yang { background-color: #e63946; border-radius: 5px; }
+.yao-line.yin { background-color: transparent; }
+.yao-line.yin::before, .yao-line.yin::after { content: ''; position: absolute; top: 0; height: 100%; width: 45%; background-color: #457b9d; border-radius: 5px; }
+.yao-line.yin::before { left: 0; }
+.yao-line.yin::after { right: 0; }
+.yao-text { font-size: 14px; width: 30px; text-align: center; }
+.yao-position { font-size: 12px; color: #888; margin-left: 5px; }
+
+.hexagram-name-display { text-align: center; margin-bottom: 15px; }
+.name-text { font-size: 24px; font-weight: bold; color: #e63946; }
+.trigram-text { font-size: 16px; color: #457b9d; margin-top: 5px; }
+.trigram-label { font-size: 15px; color: #333; margin: 10px 0 5px; font-weight: bold; }
+
+.btn-container { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+
+/* ========== 详情页 ========== */
+.question-section { width: 100%; background-color: white; border-radius: 8px; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 3px solid #f7d794; }
+.question-content { font-size: 14px; color: #555; line-height: 1.6; word-break: break-all; }
+.hexagram-section { width: 100%; display: flex; flex-direction: column; align-items: center; background-color: white; border-radius: 8px; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.hexagram-image { width: 100%; max-height: 250px; height: auto; margin-bottom: 15px; border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); object-fit: contain; }
+.hexagram-title { font-size: 18px; font-weight: bold; color: #333; }
+.text-section { width: 100%; background-color: white; border-radius: 8px; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.section-content { font-size: 14px; color: #555; line-height: 1.8; margin-top: 8px; text-align: justify; white-space: pre-wrap; }
+
+/* ========== 历史页 ========== */
+.empty-tip { margin-top: 40px; display: flex; flex-direction: column; align-items: center; }
+.empty-image { width: 100px; height: 100px; margin-bottom: 15px; opacity: 0.8; animation: float 6s ease-in-out infinite; }
+.history-list { margin-top: 8px; width: 100%; }
+.history-question { font-size: 14px; font-weight: bold; margin-bottom: 8px; word-break: break-all; color: #333; }
+.history-tag { display: inline-block; background: linear-gradient(135deg, #f9f8f3, #f5f1e6); color: #666; font-size: 12px; padding: 3px 8px; border-radius: 15px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+.history-actions { display: flex; align-items: center; margin-left: 5px; }
+
+/* ========== 模态框与Toast ========== */
+.modal-mask { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center; }
+.modal-mask.show { display: flex; }
+.modal-box { width: 80%; max-width: 320px; background: white; border-radius: 12px; overflow: hidden; }
+.modal-title { padding: 15px; font-size: 16px; font-weight: bold; text-align: center; border-bottom: 1px solid #eee; }
+.modal-content { padding: 20px 15px; font-size: 14px; color: #555; text-align: center; line-height: 1.6; }
+.modal-btns { display: flex; border-top: 1px solid #eee; }
+.modal-btn { flex: 1; padding: 12px 0; font-size: 15px; text-align: center; cursor: pointer; border: none; background: transparent; }
+.modal-btn.cancel { color: #666; border-right: 1px solid #eee; }
+.modal-btn.confirm { color: #3288e6; font-weight: bold; }
+
+.toast { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 8px; font-size: 14px; z-index: 1000; max-width: 80%; text-align: center; }
+.toast.show { display: block; }
+.toast.success { background: rgba(40,167,69,0.9); }
+
+/* ========== 爻位行（生成过程） ========== */
+.line-display { display: flex; flex-direction: column-reverse; align-items: center; margin: 10px 0; }
+.line-row { display: flex; align-items: center; margin: 4px 0; width: 100%; padding: 3px 0; border-radius: 4px; transition: all 0.3s ease; }
+.line-row.active { background-color: rgba(230,57,70,0.1); transform: scale(1.05); }
+.line-num { width: 30px; text-align: center; font-size: 12px; color: #777; }
+.line-visual { flex: 1; height: 12px; margin: 0 15px; position: relative; }
+.line-visual.yang { background-color: #e63946; border-radius: 6px; }
+.line-visual.yin { background-color: transparent; }
+.line-visual.yin::before, .line-visual.yin::after { content: ''; position: absolute; top: 0; height: 100%; width: 45%; background-color: #457b9d; border-radius: 6px; }
+.line-visual.yin::before { left: 0; }
+.line-visual.yin::after { right: 0; }
+.line-label { width: 40px; text-align: center; font-size: 13px; font-weight: 500; }
+
+/* 上下卦显示 */
+.trigram-display { display: flex; justify-content: space-around; margin: 15px 0; padding: 10px; background-color: #f9fafc; border-radius: 6px; opacity: 0; transform: translateY(10px); transition: all 0.5s ease; }
+.trigram-display.visible { opacity: 1; transform: translateY(0); }
+.trigram-box { display: flex; flex-direction: column; align-items: center; }
+.trigram-name-big { font-size: 18px; font-weight: bold; margin-bottom: 5px; color: #333; }
+.trigram-lines { display: flex; flex-direction: column-reverse; align-items: center; }
+.trigram-line { width: 40px; height: 8px; margin: 3px 0; border-radius: 4px; position: relative; }
+.trigram-line.yang { background-color: #e63946; }
+.trigram-line.yin { background-color: transparent; }
+.trigram-line.yin::before, .trigram-line.yin::after { content: ''; position: absolute; top: 0; height: 100%; width: 45%; background-color: #457b9d; border-radius: 4px; }
+.trigram-line.yin::before { left: 0; }
+.trigram-line.yin::after { right: 0; }
+.coin-status { font-size: 14px; color: #666; text-align: center; margin: 5px 0; min-height: 20px; }
+
+/* 按钮组 */
+.action-buttons { width: 100%; display: flex; gap: 8px; margin-top: 10px; }
+.action-buttons .btn { margin: 0; }
+
+/* 当前爻状态 */
+.current-line-status { font-size: 15px; text-align: center; margin: 10px 0; padding: 5px; background: rgba(0,0,0,0.05); border-radius: 4px; color: #444; }
+
+/* 卦象结果区 */
+.hexagram-result-box { text-align: center; margin: 15px 0; padding: 15px; background: linear-gradient(135deg, #fff9e6, #fff); border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.hexagram-result-box .name { font-size: 22px; font-weight: bold; color: #e63946; margin-bottom: 5px; }
+.hexagram-result-box .number { font-size: 13px; color: #888; }
+.hexagram-result-box .trigrams { font-size: 14px; color: #457b9d; margin-top: 5px; }
+.changing-info { margin-top: 8px; padding: 8px; background: rgba(230,57,70,0.08); border-radius: 4px; font-size: 13px; color: #c0392b; }
+
+/* 顶部导航栏 */
+.nav-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+.nav-bar .nav-back { font-size: 18px; color: #333; cursor: pointer; padding: 5px 10px; }
+.nav-bar .nav-title { font-size: 17px; font-weight: bold; color: #333; }
+.nav-bar .nav-placeholder { width: 40px; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- ============ 首页 ============ -->
+  <div id="view-home" class="view active">
+    <div class="header">
+      <img class="logo" src="assets/images/logo.png" alt="天纪周易">
+      <div class="title">天纪周易</div>
+    </div>
+    <div class="card intro-card">
+      <div class="section-title">预测须知</div>
+      <div class="text-secondary">
+        <div>1. 建议每日预测不超过3次，保持一颗平常心。</div>
+        <div>2. 预测前请先静心，想好要咨询的问题。</div>
+        <div>3. 遵循"不疑不问"的原则，真诚对待每一次卜问。</div>
+        <div>4. 周易预测需谨慎参考，一切以自身理性判断为主。</div>
+      </div>
+    </div>
+    <div class="card stats-card">
+      <div class="section-title">今日预测</div>
+      <div class="flex-row flex-center">
+        <div class="stat-item">
+          <div class="stat-value" id="remain-count">3</div>
+          <div class="stat-label">建议剩余</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="today-count">0</div>
+          <div class="stat-label">已完成</div>
+        </div>
+      </div>
+    </div>
+    <div class="btn" onclick="startDivination()">开始预测</div>
+    <div class="history-preview" id="home-history"></div>
+    <div class="btn btn-gray" style="margin-top: 12px;" onclick="showView('history')">查看全部历史</div>
+  </div>
+
+  <!-- ============ 占卜页 ============ -->
+  <div id="view-divination" class="view">
+    <div class="nav-bar">
+      <div class="nav-back" onclick="showView('home')">‹</div>
+      <div class="nav-title">铜钱预测</div>
+      <div class="nav-placeholder"></div>
+    </div>
+    <div class="subtitle">静心一问 · 六爻解析</div>
+
+    <!-- 问题输入 -->
+    <div class="question-container">
+      <div class="question-label">请输入您的问题：</div>
+      <input class="question-input" id="question-input" type="text" placeholder="例如：事业发展、感情走向、健康状况...">
+      <div class="question-tip">遵循"不疑不问"的原则，请保持诚心</div>
+    </div>
+
+    <!-- 硬币区 -->
+    <div class="coins-container">
+      <div class="coin-box">
+        <img class="coin-img" id="coin-img" src="assets/images/coin_yang.png" alt="硬币">
+        <div class="coin-value" id="coin-value-text">阳爻</div>
+      </div>
+    </div>
+
+    <!-- 卦象展示区 -->
+    <div class="hex-container">
+      <div class="progress-container">
+        <div class="progress-text">
+          <text>已完成: <span id="current-index">0</span>/6</text>
+          <text id="remain-text">6次后完成</text>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width: 0%;"></div></div>
+      </div>
+
+      <div id="hexagram-name-display" class="hexagram-name-display" style="display:none;">
+        <div class="name-text" id="result-name"></div>
+        <div class="trigram-text" id="result-trigrams"></div>
+      </div>
+
+      <div class="result-container" id="result-container">
+        <!-- 上卦 -->
+        <div class="trigram-label" id="upper-label" style="display:none;">上卦: </div>
+        <div class="yao-container" id="upper-yao"></div>
+        <!-- 下卦 -->
+        <div class="trigram-label" id="lower-label" style="display:none;">下卦: </div>
+        <div class="yao-container" id="lower-yao"></div>
+      </div>
+    </div>
+
+    <div class="btn-container">
+      <button class="btn" id="shake-btn" onclick="onShake()">开始测算</button>
+      <button class="btn btn-green" id="result-btn" onclick="generateResult()" disabled>查看详解</button>
+      <button class="btn btn-gray" onclick="resetDivination()">重新开始</button>
+    </div>
+  </div>
+
+  <!-- ============ 详情页 ============ -->
+  <div id="view-detail" class="view">
+    <div class="nav-bar">
+      <div class="nav-back" onclick="showView('home')">‹</div>
+      <div class="nav-title">周易详解</div>
+      <div class="nav-placeholder"></div>
+    </div>
+
+    <div class="question-section" id="detail-question-section" style="display:none;">
+      <div class="section-title">你的问题</div>
+      <div class="question-content" id="detail-question"></div>
+    </div>
+
+    <div class="hexagram-section">
+      <img id="detail-hexagram-image" class="hexagram-image" src="" alt="卦象" style="display:none;">
+      <div class="hexagram-title" id="detail-hexagram-name"></div>
+    </div>
+
+    <div class="text-section">
+      <div class="section-title">卦辞</div>
+      <div class="section-content" id="detail-hexagram-text">暂无卦辞内容</div>
+    </div>
+
+    <div class="text-section">
+      <div class="section-title">解释</div>
+      <div class="section-content" id="detail-hexagram-desc">暂无解释内容</div>
+    </div>
+
+    <button class="btn" onclick="showView('home')">返回主页</button>
+  </div>
+
+  <!-- ============ 历史页 ============ -->
+  <div id="view-history" class="view">
+    <div class="nav-bar">
+      <div class="nav-back" onclick="showView('home')">‹</div>
+      <div class="nav-title">预测历史</div>
+      <div class="nav-placeholder"></div>
+    </div>
+
+    <div class="empty-tip" id="empty-tip" style="display:none;">
+      <img class="empty-image" src="assets/images/empty.png" alt="空">
+      <div class="text-secondary">暂无预测记录</div>
+    </div>
+
+    <div class="history-list" id="history-list"></div>
+
+    <button class="btn btn-red" id="clear-btn" style="display:none;" onclick="clearHistory()">清空历史记录</button>
+  </div>
+
+</div>
+
+<!-- 模态框 -->
+<div class="modal-mask" id="modal-mask">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">提示</div>
+    <div class="modal-content" id="modal-content"></div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" id="modal-cancel" onclick="hideModal(false)">取消</button>
+      <button class="modal-btn confirm" id="modal-confirm" onclick="hideModal(true)">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========== 全局状态管理 ========== */
+const app = {
+  globalData: {
+    userInfo: null,
+    dailyLimit: 3,
+    predictionHistory: [],
+    todayCount: 0,
+    lastPredictionDate: ''
+  },
+
+  formatDate(date) {
+    const y = date.getFullYear();
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    const d = date.getDate().toString().padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  },
+
+  loadStorage() {
+    this.globalData.predictionHistory = JSON.parse(localStorage.getItem('predictionHistory') || '[]');
+    const lastDate = localStorage.getItem('lastPredictionDate') || '';
+    const today = this.formatDate(new Date());
+    if (lastDate === today) {
+      this.globalData.todayCount = parseInt(localStorage.getItem('todayCount') || '0');
+      this.globalData.lastPredictionDate = lastDate;
+    } else {
+      this.globalData.todayCount = 0;
+      this.globalData.lastPredictionDate = today;
+      localStorage.setItem('todayCount', '0');
+      localStorage.setItem('lastPredictionDate', today);
+    }
+  },
+
+  updatePredictionHistory(predictionResult) {
+    const history = this.globalData.predictionHistory;
+    const newRecord = {
+      id: Date.now(),
+      date: this.formatDate(new Date()),
+      question: predictionResult.question || '未设置问题',
+      result: predictionResult,
+      timestamp: Date.now()
+    };
+    history.unshift(newRecord);
+    this.globalData.predictionHistory = history;
+    localStorage.setItem('predictionHistory', JSON.stringify(history));
+    this.globalData.todayCount += 1;
+    localStorage.setItem('todayCount', String(this.globalData.todayCount));
+  },
+
+  removeHistoryById(id) {
+    let history = this.globalData.predictionHistory;
+    const initialLength = history.length;
+    history = history.filter(item => item.id !== id);
+    if (history.length < initialLength) {
+      this.globalData.predictionHistory = history;
+      localStorage.setItem('predictionHistory', JSON.stringify(history));
+      return true;
+    }
+    return false;
+  },
+
+  clearAllHistory() {
+    this.globalData.predictionHistory = [];
+    localStorage.setItem('predictionHistory', '[]');
+  }
+};
+
+/* ========== 周易64卦数据 ========== */
+const TRIGRAMS = ['乾', '兑', '离', '震', '巽', '坎', '艮', '坤'];
+
+const HEXAGRAM_NAMES = [
+  '乾','坤','屯','蒙','需','讼','师','比',
+  '小畜','履','泰','否','同人','大有','谦','豫',
+  '随','蛊','临','观','噬嗑','贲','剥','复',
+  '无妄','大畜','颐','大过','坎','离','咸','恒',
+  '遯','大壮','晋','明夷','家人','睽','蹇','解',
+  '损','益','夬','姤','萃','升','困','井',
+  '革','鼎','震','艮','渐','归妹','丰','旅',
+  '巽','兑','涣','节','中孚','小过','既济','未济'
+];
+
+const HEXAGRAM_LOOKUP = {
+  '乾':{upper:'乾',lower:'乾',index:0},'坤':{upper:'坤',lower:'坤',index:1},
+  '屯':{upper:'坎',lower:'震',index:2},'蒙':{upper:'艮',lower:'坎',index:3},
+  '需':{upper:'坎',lower:'乾',index:4},'讼':{upper:'乾',lower:'坎',index:5},
+  '师':{upper:'坤',lower:'坎',index:6},'比':{upper:'坎',lower:'坤',index:7},
+  '小畜':{upper:'巽',lower:'乾',index:8},'履':{upper:'乾',lower:'兑',index:9},
+  '泰':{upper:'坤',lower:'乾',index:10},'否':{upper:'乾',lower:'坤',index:11},
+  '同人':{upper:'乾',lower:'离',index:12},'大有':{upper:'离',lower:'乾',index:13},
+  '谦':{upper:'坤',lower:'艮',index:14},'豫':{upper:'震',lower:'坤',index:15},
+  '随':{upper:'兑',lower:'震',index:16},'蛊':{upper:'艮',lower:'巽',index:17},
+  '临':{upper:'坤',lower:'兑',index:18},'观':{upper:'巽',lower:'坤',index:19},
+  '噬嗑':{upper:'离',lower:'震',index:20},'贲':{upper:'艮',lower:'离',index:21},
+  '剥':{upper:'艮',lower:'坤',index:22},'复':{upper:'震',lower:'坤',index:23},
+  '无妄':{upper:'乾',lower:'震',index:24},'大畜':{upper:'艮',lower:'乾',index:25},
+  '颐':{upper:'艮',lower:'震',index:26},'大过':{upper:'兑',lower:'巽',index:27},
+  '坎':{upper:'坎',lower:'坎',index:28},'离':{upper:'离',lower:'离',index:29},
+  '咸':{upper:'兑',lower:'艮',index:30},'恒':{upper:'震',lower:'巽',index:31},
+  '遯':{upper:'乾',lower:'艮',index:32},'大壮':{upper:'震',lower:'乾',index:33},
+  '晋':{upper:'离',lower:'坤',index:34},'明夷':{upper:'坤',lower:'离',index:35},
+  '家人':{upper:'巽',lower:'离',index:36},'睽':{upper:'离',lower:'兑',index:37},
+  '蹇':{upper:'坎',lower:'艮',index:38},'解':{upper:'震',lower:'坎',index:39},
+  '损':{upper:'艮',lower:'兑',index:40},'益':{upper:'巽',lower:'震',index:41},
+  '夬':{upper:'兑',lower:'乾',index:42},'姤':{upper:'乾',lower:'巽',index:43},
+  '萃':{upper:'兑',lower:'坤',index:44},'升':{upper:'坤',lower:'巽',index:45},
+  '困':{upper:'兑',lower:'坎',index:46},'井':{upper:'坎',lower:'巽',index:47},
+  '革':{upper:'兑',lower:'离',index:48},'鼎':{upper:'离',lower:'巽',index:49},
+  '震':{upper:'震',lower:'震',index:50},'艮':{upper:'艮',lower:'艮',index:51},
+  '渐':{upper:'巽',lower:'艮',index:52},'归妹':{upper:'震',lower:'兑',index:53},
+  '丰':{upper:'震',lower:'离',index:54},'旅':{upper:'离',lower:'艮',index:55},
+  '巽':{upper:'巽',lower:'巽',index:56},'兑':{upper:'兑',lower:'兑',index:57},
+  '涣':{upper:'巽',lower:'坎',index:58},'节':{upper:'坎',lower:'兑',index:59},
+  '中孚':{upper:'巽',lower:'兑',index:60},'小过':{upper:'震',lower:'艮',index:61},
+  '既济':{upper:'坎',lower:'离',index:62},'未济':{upper:'离',lower:'坎',index:63}
+};
+
+const HEXAGRAM_TEXTS = {
+  '乾':'乾：元亨利贞。',
+  '坤':'坤：元亨，利牝马之贞。君子有攸往，先迷后得主，利西南得朋，东北丧朋。安贞吉。',
+  '屯':'屯：元亨利贞。勿用有攸往，利建侯。',
+  '蒙':'蒙：亨。匪我求童蒙，童蒙求我。初筮告，再三渎，渎则不告。利贞。',
+  '需':'需：有孚，光亨，贞吉，利涉大川。',
+  '讼':'讼：有孚窒惕，中吉，终凶。利见大人，不利涉大川。',
+  '师':'师：贞，丈人吉，无咎。',
+  '比':'比：吉。原筮，元永贞，无咎。不宁方来，后夫凶。',
+  '小畜':'小畜：亨。密云不雨，自我西郊。',
+  '履':'履：履虎尾，不咥人，亨。',
+  '泰':'泰：小往大来，吉亨。',
+  '否':'否：否之匪人，不利君子贞，大往小来。',
+  '同人':'同人：同人于野，亨。利涉大川，利君子贞。',
+  '大有':'大有：元亨。',
+  '谦':'谦：亨，君子有终。',
+  '豫':'豫：利建侯行师。',
+  '随':'随：元亨利贞，无咎。',
+  '蛊':'蛊：元亨，利涉大川。先甲三日，后甲三日。',
+  '临':'临：元亨利贞。至于八月有凶。',
+  '观':'观：盥而不荐，有孚颙若。',
+  '噬嗑':'噬嗑：亨，利用狱。',
+  '贲':'贲：亨，小利有攸往。',
+  '剥':'剥：不利有攸往。',
+  '复':'复：亨。出入无疾，朋来无咎。反复其道，七日来复。利有攸往。',
+  '无妄':'无妄：元亨利贞。其匪正有眚，不利有攸往。',
+  '大畜':'大畜：利贞。不家食吉，利涉大川。',
+  '颐':'颐：贞吉。观颐，自求口实。',
+  '大过':'大过：栋桡，利有攸往，亨。',
+  '坎':'坎：习坎，有孚维心，亨。行有尚。',
+  '离':'离：利贞，亨。畜牝牛吉。',
+  '咸':'咸：亨，利贞。取女吉。',
+  '恒':'恒：亨，无咎，利贞。利有攸往。',
+  '遯':'遁：亨，小利贞。',
+  '大壮':'大壮：利贞。',
+  '晋':'晋：康侯用锡马蕃庶，昼日三接。',
+  '明夷':'明夷：利艰贞。',
+  '家人':'家人：利女贞。',
+  '睽':'睽：小事吉。',
+  '蹇':'蹇：利西南，不利东北。利见大人，贞吉。',
+  '解':'解：利西南。无所往，其来复吉。有攸往，夙吉。',
+  '损':'损：有孚，元吉，无咎，可贞。利有攸往。曷之用？二簋可用享。',
+  '益':'益：利有攸往，利涉大川。',
+  '夬':'夬：扬于王庭，孚号有厉。告自邑，不利即戎，利有攸往。',
+  '姤':'姤：女壮，勿用取女。',
+  '萃':'萃：亨。王假有庙。利见大人，亨，利贞。用大牲吉。利有攸往。',
+  '升':'升：元亨。用见大人，勿恤。南征吉。',
+  '困':'困：亨。贞大人吉，无咎。有言不信。',
+  '井':'井：改邑不改井，无丧无得。往来井井。汔至亦未繘井，羸其瓶，凶。',
+  '革':'革：巳日乃孚。元亨利贞，悔亡。',
+  '鼎':'鼎：元吉，亨。',
+  '震':'震：亨。震来虩虩，笑言哑哑。震惊百里，不丧匕鬯。',
+  '艮':'艮：艮其背，不获其身。行其庭，不见其人。无咎。',
+  '渐':'渐：女归吉，利贞。',
+  '归妹':'归妹：征凶，无攸利。',
+  '丰':'丰：亨。王假之，勿忧，宜日中。',
+  '旅':'旅：小亨。旅贞吉。',
+  '巽':'巽：小亨。利有攸往，利见大人。',
+  '兑':'兑：亨，利贞。',
+  '涣':'涣：亨。王假有庙。利涉大川，利贞。',
+  '节':'节：亨。苦节不可贞。',
+  '中孚':'中孚：豚鱼吉。利涉大川，利贞。',
+  '小过':'小过：亨，利贞。可小事，不可大事。飞鸟遗之音，不宜上，宜下。大吉。',
+  '既济':'既济：亨小，利贞。初吉终乱。',
+  '未济':'未济：亨。小狐汔济，濡其尾，无攸利。'
+};
+
+const HEXAGRAM_DESCRIPTIONS = {
+  '乾':'卦圖象解\n一、官人在梯上：平步青雲象。\n二、鹿在雲中：作為行事心中不可求祿，則祿至矣。\n三、石上玉有光明：示人才如玉之含光，吉也。\n四、人磨玉：示人堅心不移，夕惕若厲，隨時戒之。\n五、工匠：有重立門户之象。\n六、梯上官人：棺也。卜疾厄凶也。\n七、官人望磨玉人：示人即平步青雲須戒盛，且望下看，念中無妄，則升遷平安，如爭位則旦夕而亡也。',
+  '坤':'卦圖象解\n一、十一口：吉也，陳姓人也。\n二、一官人：倌人，丈夫也。公務員也。\n三、坐看二串錢：欲拿不得，憂心忡忡狀。\n四、一馬者：肖馬人；指官貴；指調動也。\n五、金甲神：示民心也。\n六、授文書與官：授官封侯。\n七、土堆上有四點：黑也，背有陰謀也。',
+  '屯':'卦圖象解\n一、人在望竿頭上立：此不明局勢之屯難時也，不可妄動也。\n二、犬上回字：乃肖狗之人，狗年，狄姓之人，果為哭之象。\n三、車在泥中：進退兩難之象。刀在牛上：解也，牛為貴人象。\n四、人射文書：張姓，小人阻礙也。射：同音，色也，緋聞。\n五、牛不順道：背道而馳，反其道而為之，吉。\n六、人望：人亡也。\n七、人立：在位也。\n八、盒：先成後破。\n九、牛回頭視犬：計無所出，待也。',
+  '蒙':'卦圖象解\n一、滿船珍寳：暗示人圖財之象。\n二、船在水上：乃離國他去象。\n三、鹿在地上，示仍有小祿於內，鹿—祿也。\n四、兩串錢：乃憂心忡忡象，即意雖有祿，但仍令人憂心。\n五、圖中一碗：示此蒙蔽手段，必先成後破，因其乃不正之財，必不久遠也。\n六、李樹子折：示人李姓人氏，且有子夭折之象，則成格。',
+  '需':'卦圖象解\n一、月當天：陰人居上位象，無擔當也；清明無災。\n二、一門：豪鬥也，官府也。\n三、一人攀龍尾：附於貴人，想進據其位也。\n四、一僧接引：光頭之人，柔而無慾之象。入空門可解。\n五、墓：藏棺之地，有官與財象；置之死地而後生之象。',
+  '讼':'卦圖象解\n一、口舌二字：官司，糾紛，災也。\n二、山下有睡虎：入危地而不知象。\n三、虎：王姓，肖虎之人。\n四、文書在雲中：心想事不成，幻想也。\n五、人立虎下：近險也，近險為脱險之道。\n六、柳樹：隨風而動，雖大風而不斷，此柳之性也。',
+  '师':'卦圖象解\n一、肖虎、馬、羊之人三合：可戰。\n二、文武二官綬印：得萬人服之帥。\n三、人立棋盤上：圍棋愈下愈多，但須有謀略方可成事。\n四、將軍臺上立：示有兵權也。生殺之專權也。武職大利。\n五、羊回首：回陽也，病危之人卜之，有自陰間回陽間之象。\n六、虎在馬後：為馬之靠山，馬因虎威而動。故馬回首視虎。',
+  '比':'卦圖象解\n一、月圓當空：政治清明象。\n二、三星拱照：得賢能剛直之人輔助。\n三、秀才望月飲酒：示才智之人無憂也\n四、自酌自斟：無慾則剛象，孤獨之象。\n五、藥爐在高處：無病無災，故不需用藥也。\n六、枯樹開花：晚發也。示心有誠，制度立，事必成。\n七、酒：忘憂之物。',
+  '小畜':'卦圖象解\n一、兩重山：知有險阻於前，不妄動之象。亦為出字象。\n二、一人山頂：孤立獨行象。已至顛峰，將走下坡之意。\n三、舟横岸上：準備出發，水未至而不行也。\n四、望竿在草裡：等待訊息象。草頭姓人為貴人。望，亡也。\n五、上有羊馬：馬引羊過河，馬為貴人，肖馬人，姓馬人也，馬亦為午時。',
+  '履':'卦圖象解\n一、女人在笠下：妾也。\n二、千里堠：遠離外出封侯象。\n三、文書破在地：憑證承諾無效象。\n四、傘下：有庇蔭也。\n五、軍旗下官人坐：主有官司、訴訟、牢獄之災象。\n六、二點在地：踐踏之足印也，示人處危之時，有禮之道，乃能行危而無殃也',
+  '泰':'卦圖象解\n一、月中桂開：清明政治之時。\n二、官人登梯：升遷順遂之意，官人亦倌人，即丈夫也。\n三、鹿銜書：受天子恩賜祿位。\n四、小兒在雲中：少年得志象。得天官貴人助也。\n五、羊回頭：回陽間也。亦楊姓人，發肖羊人成格。',
+  '否':'卦圖象解\n一、男子臥病：男子為陽，陽同佯，裝病之象也。\n二、镜破：不可赴也。破鏡難圓之象。\n三、人路上坐：小人阻路，不讓進也。\n四、張弓箭頭落地：鳥盡弓藏也。\n五、人拍掌笑：幸災樂禍之小人，做假攻訐兩人感情得逞狀，夫妻凶。\n六、舌：主口舌，官司，謡言生害。\n七、口上有四點：四點為黑，暗中誣陷之謡言，古人謂三口成虎，即意此。',
+  '同人':'卦圖象解\n一、人捧文書上有心字：得民心之象，同心協力之象。寧姓。\n二、人張弓射山上：高中金榜。張姓人氏。\n三、一鹿飲水：财祿滾滾而來。亦在野之賢人。\n四、一溪：平和安靜狀。\n五、鹿之性，動則敏，靜則順，此剛健人之性，世間但聞虎食人，未聞鹿食人。',
+  '大有':'卦圖象解\n一、婦人腹中一道氣：妊娠之事；事萌於內也。\n二、氣中二子：主雙喜臨鬥。伯仲之間象。\n三、一藥王：平安之象。得病有救，遇良醫也。\n四、藥有光：藥有名也，災中有救也。\n五、女人受藥：女人為陰，示表面不信，但暗中仍聽之。\n六、一犬：乃狗年，戌月，戌日，此論時機也；或狄姓人士。\n七、犬：哭笑皆有象。',
+  '谦':'卦圖象解\n一、月當天：清明之政，中秋時也。\n二、一人骑鹿：才祿俱備。\n三、三人腳下亂絲，隱於山後：小人不敢正面示人，惟隱山謙之後(即外飾謙為幌子)實則亂如麻，計無所出。\n四、貴人捧鏡：明鏡高懸，執法公正光大。\n五、文字上有公字：處事以公，得理也。',
+  '豫':'卦圖象解\n一、兩重山：出象，千里阻隔也。\n二、官人在中：外出不任官象；丈夫外出從商。\n三、一祿一馬：從商之人，財祿豐盛。\n四、金銀數錠：紙錢錠，主喪服。\n五、錢一堆者：內有憂心忡忡象。',
+  '随':'卦圖象解\n一、雲中雁傳書：飛來喜訊象。\n二、一堆錢：財聚也。\n三、朱門內有人坐：君王之象，必見君面也。\n四、一人在鬥外立地：乃士人求仕，受尊重之象。\n五、串錢在地：有用利不行之象。\n六、亂珠聚盆：先聚後散之象。',
+  '蛊':'卦圖象解\n一、孩兒在雲中：有天官促成也。不求名利之人。\n二、雁啣書：有消息至。\n三、一鹿：有大利也。\n四、錢在空中：此心中圖利之象也。\n五、男女相拜：男女相合，此為利而結合，非正婚也。',
+  '临':'卦圖象解\n一、婦人乘風：外援為陰女，美人也。\n二、一車上有使旗：出使之象，以謀略可解災，謀之對象為女人也。連姓、車姓人。\n三、人在山頂頭：盛極將衰，招困也，即將下坡也。\n四、虎在山下坐：人受虎困之象。\n五、一合：先成後破象。\n六、人射弓：張姓人士，夷狄之人，以弓射獵，故外族入侵象。',
+  '观':'卦圖象解\n一、日月當天：政治清明，普照大地，父母雙全。\n二、官人香案邊立：倌人，丈夫也。蔡姓人士，神人共明之象。\n三、鹿在山上：得高祿之象。\n四、金甲人：君側之人也，護衛也。\n五、執印秤：提印信而來授權也。',
+  '噬嗑':'卦圖象解\n一、北斗星：君王也，夫君也，公職也。\n二、婦人燒香拜：妻於人事無助，乃求助於天。\n三、憂字不全喜字全：乃無又喜象。\n四、一雞食稻：果被食，無果也。\n五、一錢財、一鹿者：於財祿事憂心忡忡也。\n六、禽：字解為『離多會少』之象。',
+  '贲':'卦圖象解\n一、雨下：滿也，潤澤也，成也。\n二、車行路：前往任官象，行走四方也。\n三、舟張帆在江中：此行順風大利也。\n四、官人著公服登梯：升遷在外地象。任公職主官外調象。丈夫從公職升官也。\n五、仙女雲中執珪：受陰人提攜象',
+  '剥':'卦圖象解\n一、婦人床上坐：必有暗災，陰人得勢，陽道衰弱，小人為主官。\n二、燭在風中：險也。\n三、葫蘆：醫藥無救也；有暗計也。\n四、繅絲：事務繁冗。\n五、山下官人坐：有靠山，但陰人為禍。\n六、冠巾掛木上：求去之象；又有樂之象。',
+  '复':'卦圖象解\n一、官人乘車：使節也；車姓、連姓也；軍隊也；官大也；調職也。\n二、上兩隻旗：鬥也；將、帥也；一方之主也。\n三、堠上東字：猴發木形人。東：有心約束，十八日至。十日來人封侯象。\n四、一將持刀立：武威之人，司法執行人。\n五、一兔：肖兔之人，劉姓之人。\n六、一虎：肖虎之人，王姓之人。',
+  '无妄':'卦圖象解\n一、官人射鹿：自亂陣腳。\n二、鹿啣文書：財訊至也。\n三、錢一堆在水中：得財遇險之象。險中求財，憂心忡忡也。\n四、一鼠一豬：遇子、亥年吉，肖鼠人陰謀，肖豬人黑心。',
+  '大畜':'卦圖象解\n一、一鹿一馬：祿馬交馳，大富之象。\n二、月下有文書：明而有往，中秋時節，文書在空中尚未到手。\n三、官人憑欄：無事狀，遥望所失之國度。又欄為木，人靠木，休也。棺也。\n四、花在盆中：有限也。',
+  '颐':'卦圖象解\n一、雨下：受恩澤也。\n二、三小兒：乃合心之象，有德之國也。\n三、日當天：君明之象。父全。\n四、香案：求取之象。\n五、金紫官人：天子身側之人。\n六、引一人：提攜，推薦也。',
+  '大过':'卦圖象解\n一、官人乘車上插兩旗：車至官來，必有官司訴訟，軍人象。\n二、旗上有喜字且分開，乃喜有破損象，捨去婚姻象。\n三、入朱鬥：乃豪門世家相請，或朱姓人。\n四，、門外貴人立：被棄於外象。\n五、文書在地：合約，契約，不成之象。\n六、一合子：先成後破之象。',
+  '坎':'卦圖象解\n一、人在井中：官司，牢獄，陷入險地象。\n二、人用繩引出：責人出手相救狀。\n三、一牛：勞苦也，春夏凶，秋冬吉，亦肖牛人。\n四、一鼠：肖鼠人，陰謀暗害者，暗藏也。\n五、人身虎頭：有權威之人，貴人也。',
+  '离':'卦圖象解\n一、人在虎背上立：行危不懼；難下也。\n二、一船在江心：口舌相爭，無所適從也。\n三、官人執箭岸上立：在位之人，欲殺之象。',
+  '咸':'卦圖象解\n一、空中有一拳：貴人提拔，憑空而得。\n二、錢寶一堆：求財得財。\n三、貴人在山頂：孤立狀，即將下坡，退休狀。\n四、女人上山：夫妻吉，陰人卜之知走馬上任。\n五、合子：先成後破，因誠感方吉，物感必凶。',
+  '恒':'卦圖象解\n一、日在雲中：昏暗之象，君主不明象。\n二、鳳啣書：喜訊至，金榜题名也。\n三、官人行路：將至也，貴人至。官人，倌人，丈夫也，人傍為倌也。\n四、道士手指鬥：入空門也，閃也。\n五、鼠下兩口：陰謀在後之象；兩口，回也，呂姓也。\n六、時機：在春末，日為春之末尾也。',
+  '遯':'卦圖象解\n一、一山：阻也。\n二、一水：險也。\n三、酒旗上文字：酒為忘憂之物，文在旗上，受人提攜也。\n四、官人踏龜：歸，鬼也；玄武自來，水上求財。\n五、幞頭上樹：求去辭官也。\n六、月在雲中：主半清半濁象，事未明晰。\n七、人在水邊：等待平安狀，蒞臨也。\n八、樹下人獨酌：休也，無事也，萌生退意狀。',
+  '大壮':'卦圖象解\n一、北斗星：帝君，老闆，主事之人。\n二、天神執劍：民意歸向，人心也。\n三、一官人燒香拜：拜求於天，而不求人，凶。\n四、一猴、一兔、一犬：侯，劉，狄姓，在野之人。\n五、猴回頭：回吼。\n六、兔回頭：回吐。\n七、羊回頭：回陽。',
+  '晋':'卦圖象解\n一、文字破：官事不成，退位象。\n二、官人掩面：無顏見人，悲象。\n三、毬在泥上：所求必陷險也。\n四、雞啣秤：雞，酉也，肖雞人也，落日之象。秤：示公平，稱心也。\n五、枯木生花：晚發也。\n六、鹿啣書：祿與命到也。\n七、一堆金寶：財祿豐收之象，占疾厄，則有焚金紙之象。主喪服，二人去一也。\n八、人立水邊：恐泣之象，主喪服。\n九、三點在石上：心象，示人心在石上，不動念，堅心也。',
+  '明夷':'卦圖象解\n一、婦人在井中：女人招災，或頸部災，家內有災。\n二、虎在外：外人虎視眈眈。\n三、錢缺：財傷也。\n四、人逐鹿：財失也，爭相為祿，逐鹿中原。\n五、堠在人鹿中：猴作梗也。\n六、「：尺也，工匠獨有，匠，將也，武官人。\n七、堠：不動也，尊位也，姓侯，肖猴。\n八、鹿回頭：回祿也，火災。\n九、人手上木枝：休象。',
+  '家人':'卦圖象解\n一、一人張弓：暗算，破壞也。\n二、一帶在水邊：事滯也，棄官也。\n三、雲中文書：突而來之喜訊也。\n四、貴人拜受：綬命也。\n五、婦人攜手：家和之象，此卦卜婚姻大吉。',
+  '睽':'卦圖象解\n一、人執斧在手：求快也，行刑之人，執法之人，有權柄也。\n二、文書半破：無望象，毁約也。\n三、牛鼠：秋冬吉，春夏凶。\n四、桃開：逃開也。\n五、門掩：牢獄之災，閉也，隔也。\n六、雁飛鳴：悲也，孤單也，報凶訊也。',
+  '蹇':'卦圖象解\n一、日當天：君明之象，吳姓。\n二、旗一面只有使字：出使，和平之象，使—二人一口，示單人也。\n三、鼓五面者：時為五更天，佔五面地，王為君王，一方之主，有多國或多島之象。\n四、中有一鹿：攜財福至，旅客帶財來狀，商人至也。\n五、堆子千里字：行西南，千里封候，候姓也。\n六、千里為重：有第二次方吉。',
+  '解':'卦圖象解\n一、旗上提字：指名提凶，不利。有遠走他鄉之象。\n二、一刀插地：求快也，劉姓之人也。\n三、一兔走：卯年，劉姓。\n四、一雞在邊鳴：有競爭象，酉年適逢貴人救。\n五、貴人雲中：不及救也。\n六、道士手指門：入空門也，逃亡方向，出家也。\n七、道人獻書：裝飾外表，示誠象。',
+  '损':'卦圖象解\n一、二人對酌：二人夾木，來也。\n二、酒瓶倒案之：目前無指望也。\n三、毬在地上：所求不成狀。\n四、文書二策有再告二字：再次求，方成。',
+  '益':'卦圖象解\n一、官人抱合子：倌人，丈夫也，事必先成後破。\n二、一人推車：因時而動之象，空坐相請。\n三、一鹿一錢：才祿俱備，有回祿之災，財有破損，憂心忡忡。\n四、不為財货，不畏時尚之變，明知先成後破，仍走馬上任，以損上益下之道，天下或事業亦能平治。',
+  '夬':'卦圖象解\n一、二人同行：相輔相成，可成事也。\n二、前水後火：前險而後明，宜進取象，土生金象。\n三、虎蛇當道：虎，有權威之人。蛇—險奸之小人阻道。\n四、一人斬蛇：勇士也，得名將也。\n五、竿上有文字：揚竿而起，正名出師。\n六、竿下有錢：行動有利也。\n七、錢下有火：燒錢狀，主喪服。',
+  '姤':'卦圖象解\n一、官人射鹿：丈夫也，取祿狀，野外之財，射，發也。\n二、文書上有喜字：摇摇欲墜，根只一線，夫妻凶。\n三、二人執索：互相牽累。\n四、綠衣人指路：掌生死簿之人，信差（今日）。\n五、二重山：重阻也。出也。',
+  '萃':'卦圖象解\n一、貴人磨玉：進修也，專心一致也，免破損也。\n二、一僧指：指引也，局外人也，光頭人也，曾姓人也。\n三、小兒山路：退引山林，以退為進象，示上坡也。倪姓。\n四、一人救火：救災禍也；猶行醫濟世救人之道也。\n五、一魚在火上：得救狀，或餐飲業。\n六、一鳳啣書：喜訊至也。',
+  '升':'卦圖象解\n一、雲中雨點下：沾衣恩澤之象，昏暗之時將過也。\n二、木匠下墨解木：有尺度法則，有依據之象。匠—將也。以武力去災也有改朝換代之象也。\n三、一人磨鏡：可成始得之象。\n四、一架子負大木：有不小之財也。\n五、有鏡：指明鏡高懸，於商事指有競爭也。\n六、藍：難也，百廢待與之象。',
+  '困':'卦圖象解\n一、一輪獨在地下：獨行也無依也，方向不明也。\n二、一人臥病，招危難也。\n三、藥爐：有人來救，待時緩進也。\n四、貴人傾水救旱池魚：旱池，無財也，有貴人資援。\n五、池中青草：仍有生氣狀。',
+  '井':'卦圖象解\n一、金甲神執符：貴人在空中，祥瑞之兆也。\n二、女子抱合：好也，但先成後破。\n三、錢寶有光起：財不失，不露之象，不久有喪也。\n四、人落井中：病重象，官司沈陷象，招陷害也。\n五、官人用繩引出：貴人為官人，欲相救也。\n六、符：符乃策略有傍人作對。',
+  '革':'卦圖象解\n一、一人把柿全，乃人肺腑之言。\n二、一人把柿不全，一人半真言也。\n三、一兔：躍進之象。\n四、一虎：威權之象，大人之象，肖虎也。\n五、官人推車有一印：如為武官，則訟至。今為文官帶印，主得掛印封帥，須力求變革，果必成。丈夫推車，乃求婚也，帶印必成。\n六、虎兔向山行：賢良大人退，後繼有人躍進同行。\n七、山頭四點：上位之人，黑暗不明之象。\n八、大路：轉變為新且順之象。',
+  '鼎':'卦圖象解\n一、雲中月現：顯象，撥雲見月之象，清明也。\n二、鵲南飛：冬至來臨，北人執政。\n三、一子裹席帽，不明之人，無知之人。果喜也。\n四、一人執刀：武官也，護衛將軍。\n五、貴人端坐無畏：君王，老闆等人，至公無私。\n六、一鼠：子年，暗謀之人，內有陰謀，肖鼠人也。',
+  '震':'卦圖象解\n一、人立岩上：特立獨行，摇摇欲墜也。危險也。\n二、一樹開花：有果也，惜乎過於短暫，少部份之人。\n三、一文書：消息至，公文至。\n四、一人推車：轉變之象，執行命令象。\n五、上有文字：得官令也。\n六、一堆錢財者：錢財散於地狀，憂心也，喪事也，求財不利，占疾病凶。',
+  '艮':'卦圖象解\n一、堠上東北字：候也，停滯等候也，陳姓。\n二、猴執文書：候其時，待公文命令至也。\n三、官吏執鏡：清明之法官，政治清明。\n四、三人繩相繫縛：三人相牽連招訟事也。',
+  '渐':'卦圖象解\n一、一望竿在爽高處：家人望歸象。\n二、一藥爐在地：平安，無災也。\n三、一官人登梯：升官之象，衣錦還鄉也，棺也。\n四、一枝花在地：落第象，不久之象。',
+  '归妹':'卦圖象解\n一、官人騎鹿指雲：浮雲蔽日，乘亂而欲進。\n二、小鹿子在後：生意人，隨從狀。\n三、望竿上有文字：旦夕而亡，揭竿而起，正名也。\n四、人落刺中：如鲠在喉，去之不得。\n五、一人拔出：一人相救示寵狀。\n六、此卦問病凶，問財吉，問政凶。',
+  '丰':'卦圖象解\n一、竹简灰起：簡姓，竹有順象，堅節不變之象，灰起，中空之象。\n二、龍蛇交錯：辰巳之年，正邪相爭，蛇虺乃毒謀暗算也。\n三、官人著衣裳立：官人、倌人、丈夫也，藏於內也。\n四、一合子：先成後破。\n五、人吹笙竿：閒情逸志，主喜事臨門。\n六、腳踏虎：臨危不亂也，險在下也。\n七、旱沼之旁：心力交瘁也。\n八、池中無水：旱象，破財也。\n九、珠落盤中：先聚後散也。',
+  '旅':'卦圖象解\n一、三星者：三台貴人，相位之人。\n二、貴人台上垂釣：君主相求，老闆相求人才。\n三、牽水畔人：賢能之人，離野入朝封候。或慕權勢而變志。\n四、一猴一羊：肖猴，肖羊，候、楊姓人，未申年應之。\n五、大溪：脱險也，港口也，水側也。',
+  '巽':'卦圖象解\n一、貴人賜衣：先破後成象。\n二、一人跪受：貴綬也。如占疾病，則主壽衣，凶象。\n三、雲中雁傳書：意外喜訊。\n四、人在虎下坐：身處險而不知。\n五、一人射虎中箭：貴人相救。\n六、虎走：脱險，寅年也。',
+  '兑':'卦圖象解\n一、人坐看一擔：任務完成狀，有人相助象，助人為樂之貴人。\n二、月在天邊：清明之治。\n三、秀才登梯：金榜登科象。\n四、一女在合邊立：女人介入，先成後破。\n五、文字上箭：得機而發，射：發象。',
+  '涣':'卦圖象解\n一、山上有寺：出家狀，對峙狀，寸土寸金象。\n二、僧：化外之人，光頭人，曾姓人。\n三、一人隨後：逃避，求助化外之人。\n四、一鬼在後：為禍追緝之象，內心有鬼，處事不明象。\n五、金甲人：正義之師，得民心也。\n六、寺，土頭人作對。等待時機也。',
+  '节':'卦圖象解\n一、大雨下：陰暗不明，凶象。\n二、火中魚躍：飛騰而徒勞無功，又餐飲業。\n三、雞在屋上：酉年肖雞人，解救之時與人。\n四、犬在井中：招陷，動彈不得，不知節制而招如此。\n五、屋門開著：仍可開張，須雞人來助大吉。',
+  '中孚':'卦圖象解\n一、望子上文書：科甲高中，刑法更吉。\n二、人擊柝：預警也。\n三、貴人用繩牽鹿：守成，不可攻也。\n四、雁啣書：喜事將至，有南徙之象。\n五、人立庭中：蒞庭也，防官司或打官司保身也。',
+  '小过':'卦圖象解\n一、明月當空：政清狀，入法庭，刑堂。\n二、林下一人：林姓人。\n三、人陷網中：不得脱身，受束縛。\n四、一人彈冠：求去之象，但求去為形，束縛為神，合則有表裡不一狀。\n五、一人割網：貴人解救，脫困狀。\n六、猴子在山頭：從新開始之課(候再出山)。',
+  '既济':'卦圖象解\n一、人在岸上：泣也，等待也，無目的也。\n二、一船來：接引至也。\n三、一堆錢：財祿無用也，憂心忡忡也，有竊象，抄家之象。\n四、雲中雨下：陰中有果也，夜間至凌晨時。\n五、二小兒：主喜也，二人也，二人雨中行也。\n六、文書一策：證件，命令也，資料也。',
+  '未济':'卦圖象解\n一、一人提刀斧：劉姓，武官，手有生殺之權。\n二、一虎坐：肖虎人，王姓，虎坐乃無威之象。\n三、一旗卓在山上：揭竿而起，正義之師。\n四、一人取旗：代替也，高姓，宋姓，其人取代之象。\n五、梯子有至字：無刀日至，桎梏受困象。\n六、（附註：峪：谷姓。旗揚：楊姓。)有谷、楊合乃招凶象。'
+};
+
+/* ========== 八卦二进制映射 ========== */
+const BINARY_TO_TRIGRAM = {
+  '000':'坤','001':'艮','010':'坎','011':'巽',
+  '100':'震','101':'离','110':'兑','111':'乾'
+};
+
+/* ========== 工具函数 ========== */
+function getHexagramName(hexNumber) {
+  return HEXAGRAM_NAMES[hexNumber] || '';
+}
+function getHexagramText(hexName) {
+  return HEXAGRAM_TEXTS[hexName] || `${hexName}卦的卦辞`;
+}
+function getHexagramDescription(hexName) {
+  return HEXAGRAM_DESCRIPTIONS[hexName] || `${hexName}卦的详细解释`;
+}
+function getTrigramNameByBinary(binary) {
+  return BINARY_TO_TRIGRAM[binary] || '未知';
+}
+
+/* ========== 占卜逻辑 ========== */
+let divinationState = {
+  question: '',
+  currentIndex: 0,
+  hexagram: [],           // true=阳, false=阴
+  hexagramLines: [],      // 6/7/8/9
+  hexagramName: '',
+  hexagramNumber: null,
+  upperTrigramName: '',
+  lowerTrigramName: '',
+  hexagramText: '',
+  changingLines: [],
+  activeCoin: false,
+  coinValue: true
+};
+
+function resetDivination() {
+  divinationState = {
+    question: '',
+    currentIndex: 0,
+    hexagram: [],
+    hexagramLines: [],
+    hexagramName: '',
+    hexagramNumber: null,
+    upperTrigramName: '',
+    lowerTrigramName: '',
+    hexagramText: '',
+    changingLines: [],
+    activeCoin: false,
+    coinValue: true
+  };
+  document.getElementById('question-input').value = '';
+  document.getElementById('coin-img').src = 'assets/images/coin_yang.png';
+  document.getElementById('coin-value-text').textContent = '阳爻';
+  document.getElementById('current-index').textContent = '0';
+  document.getElementById('remain-text').textContent = '6次后完成';
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('hexagram-name-display').style.display = 'none';
+  document.getElementById('upper-label').style.display = 'none';
+  document.getElementById('lower-label').style.display = 'none';
+  document.getElementById('upper-yao').innerHTML = '';
+  document.getElementById('lower-yao').innerHTML = '';
+  document.getElementById('shake-btn').textContent = '开始测算';
+  document.getElementById('shake-btn').disabled = false;
+  document.getElementById('result-btn').disabled = true;
+}
+
+function startDivination() {
+  if (app.globalData.todayCount >= app.globalData.dailyLimit) {
+    showModal('友情提示', '您今日已超过推荐预测次数，过度预测可能影响准确性，是否继续？', '继续预测', '稍后再来', (confirm) => {
+      if (confirm) {
+        resetDivination();
+        showView('divination');
+      }
+    });
+  } else {
+    resetDivination();
+    showView('divination');
+  }
+}
+
+function onShake() {
+  if (divinationState.activeCoin || divinationState.currentIndex >= 6) return;
+
+  divinationState.activeCoin = true;
+  const coinImg = document.getElementById('coin-img');
+  coinImg.classList.add('coin-flip');
+  document.getElementById('shake-btn').disabled = true;
+
+  // 随机转动时间
+  const flipDuration = 800 + Math.floor(Math.random() * 700);
+
+  setTimeout(() => {
+    // 三硬币法：阳面(1)计3，阴面(0)计2，和值6/7/8/9
+    const coins = [Math.random() >= 0.5 ? 1 : 0, Math.random() >= 0.5 ? 1 : 0, Math.random() >= 0.5 ? 1 : 0];
+    const sum = coins.reduce((total, c) => total + (c === 1 ? 3 : 2), 0);
+
+    let lineValue, isYang, yinYangText;
+    if (sum === 6) { lineValue = 6; isYang = false; yinYangText = '老阴 (6) - 变卦'; divinationState.changingLines.push(divinationState.currentIndex); }
+    else if (sum === 7) { lineValue = 7; isYang = true; yinYangText = '少阳 (7) - 不变'; }
+    else if (sum === 8) { lineValue = 8; isYang = false; yinYangText = '少阴 (8) - 不变'; }
+    else { lineValue = 9; isYang = true; yinYangText = '老阳 (9) - 变卦'; divinationState.changingLines.push(divinationState.currentIndex); }
+
+    coinImg.classList.remove('coin-flip');
+    coinImg.src = `assets/images/coin_${isYang ? 'yang' : 'yin'}.png`;
+    document.getElementById('coin-value-text').textContent = isYang ? '阳爻' : '阴爻';
+
+    divinationState.hexagram.push(isYang);
+    divinationState.hexagramLines.push(lineValue);
+    divinationState.currentIndex += 1;
+    divinationState.activeCoin = false;
+
+    updateDivinationDisplay(yinYangText);
+
+    if (divinationState.currentIndex === 6) {
+      calculateHexagramInfo();
+    } else if (divinationState.currentIndex === 3) {
+      calculateLowerTrigramInfo();
+    }
+  }, flipDuration);
+}
+
+function updateDivinationDisplay(yinYangText) {
+  const idx = divinationState.currentIndex;
+  document.getElementById('current-index').textContent = idx;
+  document.getElementById('remain-text').textContent = `${6 - idx}次后完成`;
+  document.getElementById('progress-fill').style.width = `${(idx / 6) * 100}%`;
+
+  // 显示爻
+  renderYaoLines();
+
+  // 提示
+  showToast(`第${idx}爻: ${divinationState.hexagram[idx-1] ? '阳' : '阴'}`, 1000);
+
+  // 更新按钮
+  if (idx === 6) {
+    document.getElementById('shake-btn').textContent = '六爻已生成完毕';
+    document.getElementById('shake-btn').disabled = true;
+    document.getElementById('result-btn').disabled = false;
+  } else {
+    document.getElementById('shake-btn').textContent = '继续摇硬币';
+    document.getElementById('shake-btn').disabled = false;
+  }
+}
+
+function renderYaoLines() {
+  const upperYao = document.getElementById('upper-yao');
+  const lowerYao = document.getElementById('lower-yao');
+  const upperLabel = document.getElementById('upper-label');
+  const lowerLabel = document.getElementById('lower-label');
+
+  // 下卦：索引0-2
+  if (divinationState.currentIndex > 0) {
+    lowerLabel.style.display = 'block';
+    lowerLabel.textContent = `下卦: ${divinationState.lowerTrigramName || '生成中...'}`;
+    lowerYao.innerHTML = '';
+    // 从下到上：索引0,1,2 → 显示从下到上
+    for (let i = 2; i >= 0; i--) {
+      if (divinationState.hexagram[i] !== undefined) {
+        lowerYao.appendChild(createYaoItem(divinationState.hexagram[i], i + 1));
+      }
+    }
+  }
+
+  // 上卦：索引3-5
+  if (divinationState.currentIndex > 3) {
+    upperLabel.style.display = 'block';
+    upperLabel.textContent = `上卦: ${divinationState.upperTrigramName || '生成中...'}`;
+    upperYao.innerHTML = '';
+    for (let i = 5; i >= 3; i--) {
+      if (divinationState.hexagram[i] !== undefined) {
+        upperYao.appendChild(createYaoItem(divinationState.hexagram[i], i + 1));
+      }
+    }
+  }
+}
+
+function createYaoItem(isYang, position) {
+  const item = document.createElement('div');
+  item.className = 'yao-item';
+  const line = document.createElement('div');
+  line.className = `yao-line ${isYang ? 'yang' : 'yin'}`;
+  const text = document.createElement('div');
+  text.className = 'yao-text';
+  text.textContent = isYang ? '阳' : '阴';
+  const pos = document.createElement('div');
+  pos.className = 'yao-position';
+  pos.textContent = `第${position}爻`;
+  item.appendChild(line);
+  item.appendChild(text);
+  item.appendChild(pos);
+  return item;
+}
+
+function calculateLowerTrigramInfo() {
+  const lines = divinationState.hexagram.slice(0, 3);
+  let binary = '';
+  for (let i = 0; i < 3; i++) binary += lines[i] ? '1' : '0';
+  divinationState.lowerTrigramName = getTrigramNameByBinary(binary);
+  document.getElementById('lower-label').textContent = `下卦: ${divinationState.lowerTrigramName}`;
+  showToast(`下卦: ${divinationState.lowerTrigramName}`, 1500);
+}
+
+function calculateHexagramInfo() {
+  const lines = divinationState.hexagram;
+  let lowerBinary = '', upperBinary = '';
+  for (let i = 0; i < 3; i++) lowerBinary += lines[i] ? '1' : '0';
+  for (let i = 3; i < 6; i++) upperBinary += lines[i] ? '1' : '0';
+
+  divinationState.lowerTrigramName = getTrigramNameByBinary(lowerBinary);
+  divinationState.upperTrigramName = getTrigramNameByBinary(upperBinary);
+
+  // 查找卦象
+  let hexagramName = '', hexagramNumber = -1;
+  for (const [name, info] of Object.entries(HEXAGRAM_LOOKUP)) {
+    if (info.upper === divinationState.upperTrigramName && info.lower === divinationState.lowerTrigramName) {
+      hexagramName = name;
+      hexagramNumber = info.index;
+      break;
+    }
+  }
+
+  divinationState.hexagramName = hexagramName;
+  divinationState.hexagramNumber = hexagramNumber;
+  divinationState.hexagramText = getHexagramText(hexagramName);
+
+  // 显示卦名
+  document.getElementById('lower-label').textContent = `下卦: ${divinationState.lowerTrigramName}`;
+  document.getElementById('upper-label').textContent = `上卦: ${divinationState.upperTrigramName}`;
+  document.getElementById('hexagram-name-display').style.display = 'block';
+  document.getElementById('result-name').textContent = `${hexagramName}卦`;
+  document.getElementById('result-trigrams').textContent = `${divinationState.upperTrigramName}上${divinationState.lowerTrigramName}下`;
+
+  showToast(`卦象形成: ${hexagramName}`, 2000, 'success');
+}
+
+function generateResult() {
+  if (divinationState.currentIndex < 6) {
+    showToast('请完成六次预测', 1500);
+    return;
+  }
+
+  // 计算变卦
+  const changedLines = divinationState.hexagram.map((y, i) => {
+    if (divinationState.changingLines.includes(i)) return !y;
+    return y;
+  });
+
+  let changedLowerBinary = '', changedUpperBinary = '';
+  for (let i = 0; i < 3; i++) changedLowerBinary += changedLines[i] ? '1' : '0';
+  for (let i = 3; i < 6; i++) changedUpperBinary += changedLines[i] ? '1' : '0';
+
+  let changedName = divinationState.hexagramName;
+  if (divinationState.changingLines.length > 0) {
+    const changedUpperName = getTrigramNameByBinary(changedUpperBinary);
+    const changedLowerName = getTrigramNameByBinary(changedLowerBinary);
+    for (const [name, info] of Object.entries(HEXAGRAM_LOOKUP)) {
+      if (info.upper === changedUpperName && info.lower === changedLowerName) {
+        changedName = name;
+        break;
+      }
+    }
+  }
+
+  // 保存历史
+  const divinationResult = {
+    question: divinationState.question || '未填写问题',
+    original: { name: divinationState.hexagramName, value: divinationState.hexagramNumber },
+    changed: { name: changedName, value: HEXAGRAM_LOOKUP[changedName] ? HEXAGRAM_LOOKUP[changedName].index : -1 },
+    changingLines: divinationState.changingLines,
+    hexagramText: divinationState.hexagramText,
+    upperTrigram: divinationState.upperTrigramName,
+    lowerTrigram: divinationState.lowerTrigramName
+  };
+  app.updatePredictionHistory(divinationResult);
+
+  // 跳转详情页
+  showDetailView(divinationState.hexagramNumber, divinationState.hexagramName, divinationState.question);
+}
+
+/* ========== 详情页 ========== */
+function showDetailView(hexNumber, hexName, question, fromHistoryId) {
+  showView('detail');
+  document.getElementById('detail-hexagram-name').textContent = `${hexName}卦`;
+
+  if (question) {
+    document.getElementById('detail-question-section').style.display = 'block';
+    document.getElementById('detail-question').textContent = question;
+  } else {
+    document.getElementById('detail-question-section').style.display = 'none';
+  }
+
+  if (hexNumber !== null && hexNumber !== undefined) {
+    document.getElementById('detail-hexagram-image').src = `assets/images/hexagrams/${hexNumber}.jpg`;
+    document.getElementById('detail-hexagram-image').style.display = 'block';
+  } else {
+    document.getElementById('detail-hexagram-image').style.display = 'none';
+  }
+
+  document.getElementById('detail-hexagram-text').textContent = getHexagramText(hexName);
+  document.getElementById('detail-hexagram-desc').textContent = getHexagramDescription(hexName);
+}
+
+function viewHistoryDetail(id) {
+  const record = app.globalData.predictionHistory.find(item => item.id === id);
+  if (!record) {
+    showToast('记录不存在', 1500);
+    return;
+  }
+  const originalData = record.result ? record.result.original : null;
+  if (originalData && originalData.name) {
+    showDetailView(originalData.value, originalData.name, record.question, id);
+  } else {
+    showToast('记录数据格式错误', 1500);
+  }
+}
+
+/* ========== 历史页 ========== */
+function renderHistoryPage() {
+  const history = app.globalData.predictionHistory;
+  const listEl = document.getElementById('history-list');
+  const emptyEl = document.getElementById('empty-tip');
+  const clearBtn = document.getElementById('clear-btn');
+
+  if (history.length === 0) {
+    emptyEl.style.display = 'flex';
+    listEl.innerHTML = '';
+    clearBtn.style.display = 'none';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  clearBtn.style.display = 'block';
+  listEl.innerHTML = '';
+
+  history.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    const originalName = item.result && item.result.original ? item.result.original.name : '未知';
+    const changedName = item.result && item.result.changed && item.result.changingLines && item.result.changingLines.length > 0 ? item.result.changed.name : '';
+    const changedText = changedName ? ` 变 ${changedName}卦` : '';
+
+    div.innerHTML = `
+      <div class="history-content" onclick="viewHistoryDetail(${item.id})">
+        <div style="flex:1; overflow:hidden;">
+          <div class="history-date">${item.date}</div>
+          <div class="history-question">${item.question || '未填写问题'}</div>
+          <div class="history-tag">${originalName}卦${changedText}</div>
+        </div>
+      </div>
+      <div class="history-actions">
+        <div class="delete-btn btn-small" style="color:#ff7676; background:rgba(255,118,118,0.1); padding:6px 12px; border-radius:15px; margin-right:8px; cursor:pointer;" onclick="deleteHistory(${item.id})">删除</div>
+        <div class="history-arrow" onclick="viewHistoryDetail(${item.id})">›</div>
+      </div>
+    `;
+    listEl.appendChild(div);
+  });
+}
+
+function deleteHistory(id) {
+  showModal('提示', '确定要删除这条预测记录吗？', '确定', '取消', (confirm) => {
+    if (confirm) {
+      const deleted = app.removeHistoryById(id);
+      if (deleted) {
+        renderHistoryPage();
+        renderHomePage();
+        showToast('删除成功', 1500, 'success');
+      } else {
+        showToast('删除失败', 1500);
+      }
+    }
+  });
+}
+
+function clearHistory() {
+  showModal('提示', '确定要清空所有预测历史记录吗？', '确定', '取消', (confirm) => {
+    if (confirm) {
+      app.clearAllHistory();
+      renderHistoryPage();
+      renderHomePage();
+      showToast('历史记录已清空', 1500, 'success');
+    }
+  });
+}
+
+/* ========== 首页渲染 ========== */
+function renderHomePage() {
+  const remain = app.globalData.dailyLimit - app.globalData.todayCount;
+  document.getElementById('remain-count').textContent = remain < 0 ? 0 : remain;
+  document.getElementById('today-count').textContent = app.globalData.todayCount;
+
+  const homeHistory = document.getElementById('home-history');
+  const recent = app.globalData.predictionHistory.slice(0, 3);
+
+  if (recent.length === 0) {
+    homeHistory.innerHTML = '';
+    return;
+  }
+
+  let html = '<div class="section-title" style="font-size:16px; font-weight:bold; color:#333; margin-bottom:10px;">最近预测</div>';
+  recent.forEach(item => {
+    const originalName = item.result && item.result.original ? item.result.original.name : '未知';
+    const changedName = item.result && item.result.changed && item.result.changingLines && item.result.changingLines.length > 0 ? item.result.changed.name : '';
+    const changedText = changedName ? ` 变${changedName}卦` : '';
+    html += `
+      <div class="history-item">
+        <div class="history-content" onclick="viewHistoryDetail(${item.id})">
+          <div class="history-date">${item.date}</div>
+          <div class="history-result">${originalName}卦${changedText}</div>
+          <div class="history-arrow">›</div>
+        </div>
+        <div class="delete-btn" onclick="deleteHistory(${item.id})">×</div>
+      </div>
+    `;
+  });
+  homeHistory.innerHTML = html;
+}
+
+/* ========== 视图切换 ========== */
+function showView(viewName) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const view = document.getElementById(`view-${viewName}`);
+  if (view) {
+    view.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  if (viewName === 'home') renderHomePage();
+  if (viewName === 'history') renderHistoryPage();
+}
+
+/* ========== 模态框 & Toast ========== */
+let modalCallback = null;
+function showModal(title, content, confirmText, cancelText, callback) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-content').textContent = content;
+  document.getElementById('modal-confirm').textContent = confirmText || '确定';
+  document.getElementById('modal-cancel').textContent = cancelText || '取消';
+  document.getElementById('modal-mask').classList.add('show');
+  modalCallback = callback;
+}
+function hideModal(confirm) {
+  document.getElementById('modal-mask').classList.remove('show');
+  if (modalCallback) {
+    const cb = modalCallback;
+    modalCallback = null;
+    cb(confirm);
+  }
+}
+
+let toastTimer = null;
+function showToast(text, duration, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = text;
+  toast.className = 'toast show' + (type ? ` ${type}` : '');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, duration || 1500);
+}
+
+/* ========== 问题输入监听 ========== */
+document.getElementById('question-input').addEventListener('input', function(e) {
+  divinationState.question = e.target.value;
+});
+
+/* ========== 初始化 ========== */
+app.loadStorage();
+renderHomePage();
+</script>
+</body>
+</html>

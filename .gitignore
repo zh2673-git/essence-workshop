@@ -6,6 +6,10 @@
 /workflow/wechat-publish/output/
 # 注意：workflow/distillation/output/ 下的蒸馏产物需要推送，不忽略
 # 注意：workflow/k12-decomposition/output/ 下的HTML教学产物需要推送，不忽略
+# 注意：workflow/iching-divination/output/ 下的浏览器周易成品需要推送，不忽略
+
+# 源小程序目录（已提炼为内容框架层，仅作本地参考，不推送）
+/002-有疑再问小程序/
 
 # Python缓存
 __pycache__/
