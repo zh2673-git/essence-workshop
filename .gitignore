@@ -23,6 +23,10 @@ node_modules/
 yarn.lock
 pnpm-lock.yaml
 
+# Excalidraw vendor assets（从 node_modules 复制，minified bundle 易被 GitHub secret scanning 误报）
+/workflow/whiteboard-recorder/webapp/public/excalidraw-assets/
+/workflow/whiteboard-recorder/webapp/public/excalidraw-assets-dev/
+
 # 构建产物
 dist/
 build/
